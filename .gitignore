@@ -1,5 +1,5 @@
 node_modules
 *.db
-static/webclient
+static/js/webclient
 static/js/bcsocket.js
 static/js/jquery-queryParser.min.js
