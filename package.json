@@ -1,0 +1,27 @@
+{
+  "name": "show-pad",
+  "preferGlobal": true,
+  "version": "0.0.1",
+  "author": "luto <m@luto.at>",
+  "description": "",
+  "contributors": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mluto/show-pad.git"
+  },
+  "dependencies" : {
+    "express": "*",
+    "share": "*",
+    "async": "*",
+    "log4js": "*",
+    "cookie": "*",
+    "cookie-signature": "*",
+    "express-validator": "*",
+    "ueberDB": "*",
+    "ejs": "*",
+    "nconf": "*"
+  },
+  "engines": {
+    "node": ">=0.6"
+  }
+}

@@ -1,0 +1,31 @@
+<html>
+    <head>
+        <title>ShowPad</title>
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="js/bcsocket.js"></script>
+        <script src="webclient/share.js"></script>
+        <script src="webclient/textarea.js"></script>
+    </head>
+    <body>
+        <div id="error"></div>
+        <textarea id='text' style="height: 200px; width: 400px"></textarea>
+        <script>
+            var elem = $('#text');
+
+            var docName = "doc:" + document.location.hash.slice(1);
+            var connection = sharejs.open(docName, 'text', function(error, doc) {
+                // this function is called once the connection is opened
+                if (error)
+                {
+                    $('#error').text(error);
+                    $('#error').show();
+                }
+                else
+                {
+                    doc.attach_textarea(elem[0]);
+                }
+            });
+        </script>
+    </body>
+ </html>
+ 

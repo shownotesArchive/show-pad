@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <title>Login</title>
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="js/jquery-queryParser.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/forms.css">
+    </head>
+    <body>
+        <form method="POST">
+            <table>
+                <tr>
+                    <td><label for="username">Username:</label></td>
+                    <td><input type="text" name="username" id="username" /></td>
+                </tr>
+                <tr>
+                    <td><label for="password">Password:</label></td>
+                    <td><input type="password" name="password" id="password" /></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="submit" id="submit" />
+                    </td>
+                </tr>
+            </table>
+            <span id="login-error" class="error"></span>
+        </form>
+        <script>
+            var errors = $.getQuery().errors;
+            var values = $.getQuery().values;
+
+            if(errors)
+            {
+                values = JSON.parse(values);
+
+                $('#login-error').text("Invalid username/password-combination.");
+                $('#login-error').show();
+                $('#username').val(values["username"]);
+            }
+        </script>
+    </body>
+ </html>
+ 
