@@ -223,6 +223,10 @@ function authenticate(agent, action)
       // get the user
       function (session, cb)
       {
+        // when memoryStore does not give us a single parameter back..
+        if(!cb && typeof session == "function")
+          cb = session;
+
         session = session || {};
         var username = session.user;
         if(username)
