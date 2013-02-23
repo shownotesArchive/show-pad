@@ -7,7 +7,8 @@ var express   = require('express')
   , nconf     = require('nconf')
   , expressValidator = require('express-validator');
 
-var db = require('./db.js')
+var db            = require('./db.js')
+  , api           = require('./api.js')
   , app           = null
   , sessionStore  = null
   , sessionSecret = null;
@@ -18,6 +19,7 @@ console.info("Let's go");
 async.series([
   initConfig,
   initDatabase,
+  initApi,
   initServer,
   startServer,
   function (cb)
@@ -54,6 +56,11 @@ function initDatabase(cb)
   db.init(nconf.get("database"), cb);
 }
 
+function initApi(cb)
+{
+  api.init(db, cb);
+}
+
 function initServer(cb)
 {
   console.info("Initiating server..");
@@ -80,6 +87,7 @@ function initServer(cb)
     // routes
     app.get('/', function(req, res) { res.render('index'); });
 
+    // UI
     app.get('/login', function(req, res) { res.render('login'); });
     app.post('/login', processLogin);
 
@@ -91,6 +99,10 @@ function initServer(cb)
         req.session.user = null;
         res.redirect('/');
       });
+
+    // API
+    app.get('/api/:version/users', function (req, res) { api.handle('get-users', req, res); });
+    app.get('/api/:version/users/:name', function (req, res) { api.handle('get-user', req, res); });
 
     cb(null);
   });
