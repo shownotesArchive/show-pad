@@ -1,4 +1,5 @@
 node_modules
+config.json
 *.db
 static/js/webclient
 static/js/bcsocket.js

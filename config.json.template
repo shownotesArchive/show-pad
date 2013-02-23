@@ -6,7 +6,7 @@
   },
   "sessions":
   {
-  	"persistent": false,
-  	"secret": ""
+    "persistent": false,
+    "secret": ""
   }
 }
