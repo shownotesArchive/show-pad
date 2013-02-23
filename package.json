@@ -11,7 +11,7 @@
   },
   "dependencies" : {
     "express": "*",
-    "share": "*",
+    "share": "git://github.com/josephg/ShareJS.git",
     "async": "*",
     "log4js": "*",
     "cookie": "*",
