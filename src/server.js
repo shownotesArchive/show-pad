@@ -94,6 +94,8 @@ function initServer(cb)
     app.get('/register', function(req, res) { res.render('register'); });
     app.post('/register', processRegister);
 
+    app.get('/dashboard', function(req, res) { res.render('dashboard'); });
+
     app.get('/logout', function(req, res)
       {
         req.session.user = null;

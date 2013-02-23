@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>ShowPad</title>
+        <!-- jQuery+jQueryUI -->
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+        <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+        <!-- DataTables -->
+        <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
+        <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.js"></script>
+        <!-- ShowPad -->
+        <link rel="stylesheet" type="text/css" href="css/dashboard.css">
+    </head>
+    <body>
+        <div id="tabs">
+          <ul>
+            <li><a href="#tabs-users">Users</a></li>
+            <li><a href="#tabs-pads">Pads</a></li>
+          </ul>
+          <div id="tabs-users">
+            <table id="usertable">
+                <thead>
+                    <th>Name</th>
+                    <th>E-Mail</th>
+                </thead>
+            </table>
+          </div>
+          <div id="tabs-pads">
+            <table id="padtable"></table>
+          </div>
+        </div>
+        <script>
+            $('#tabs').tabs();
+
+            $.fn.dataTableExt.sErrMode = 'throw';
+            $('#usertable').dataTable(
+                {
+                    "bProcessing": true,
+                    "sAjaxSource": "/api/1/users",
+                    "sAjaxDataProp": "data",
+                    "aoColumns": [
+                      { "mData": [ "username" ] },
+                      { "mData": [ "email" ] }
+                    ]
+                });
+            //$('#padtable').dataTable();
+        </script>
+    </body>
+ </html>
+ 
