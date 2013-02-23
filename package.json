@@ -17,7 +17,7 @@
     "cookie": "*",
     "cookie-signature": "*",
     "express-validator": "*",
-    "ueberDB": "*",
+    "redis": "*",
     "ejs": "*",
     "nconf": "*",
     "mysql": "*"

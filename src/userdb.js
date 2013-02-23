@@ -1,11 +1,11 @@
-var db
+var client
   , async  = require('async')
   , util   = require('util')
   , crypto = require('crypto');
 
-exports.init = function (_db, _cb)
+exports.init = function (_client, _cb)
 {
-  db =_db;
+  client =_client;
   _cb(null);
 }
 
@@ -48,7 +48,7 @@ exports.createUser = function (username, password, email, cb)
       if(!err)
       {
         user.password = result;
-        db.set("user:" + username, user);
+        client.set("user:" + username, JSON.stringify(user));
       }
       cb(err);
     });
@@ -56,7 +56,12 @@ exports.createUser = function (username, password, email, cb)
 
 exports.getUser = function (username, cb)
 {
-  db.get("user:" + username, cb);
+  client.get("user:" + username, function (err, user)
+    {
+      if(!err)
+        user = JSON.parse(user);
+      cb(err, user);
+    });
 }
 
 exports.checkPassword = function (username, password, cb)

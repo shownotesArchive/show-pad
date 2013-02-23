@@ -1,8 +1,8 @@
-var ueberDB = require('ueberDB')
-  , async   = require('async')
-  , userdb  = require('./userdb.js')
+var redis  = require('redis')
+  , async  = require('async')
+  , userdb = require('./userdb.js')
   , options
-  , db;
+  , client;
 
 exports.user = userdb;
 
@@ -10,25 +10,31 @@ exports.init = function (_options, cb)
 {
   options = _options;
   async.series([
-    initUeberDB,
+    initRedis,
     function ()
     {
-      userdb.init(db, cb);
+      userdb.init(client, cb);
     }
   ]);
 }
 
-function initUeberDB(cb)
+exports.quit = function (cb)
 {
-  db = new ueberDB.database(options.type, options);
-  db.init(function (err)
-  {
-    if(err) 
+  client.quit(cb);
+}
+
+function initRedis(cb)
+{
+  client = redis.createClient(options.socket);
+
+  client.on("connect", function ()
+    {
+      cb(null);
+    });
+
+  client.on("error", function (err)
     {
       console.error(err);
       process.exit(1);
-    }
-
-    cb(null);
-  });
+    });
 }
