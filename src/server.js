@@ -17,8 +17,8 @@ console.info("Let's go");
 
 async.series([
   initConfig,
-  initServer,
   initDatabase,
+  initServer,
   startServer,
   function (cb)
   {
@@ -63,15 +63,9 @@ function initServer(cb)
     app.set('view engine', 'ejs');
     app.use(express.static(__dirname + '/../static'));
 
-    var shareJSOptions = nconf.get('database');
-    shareJSOptions.schema = shareJSOptions.database;
-    shareJSOptions.operations_table = "sharejs_ops";
-    shareJSOptions.snapshot_table = "sharejs_snapshots";
-    shareJSOptions.create_tables_automatically = true;
-
     ShareJS.attach(app, 
       {
-        db: shareJSOptions,
+        db: { client: db.getClient() },
         auth: authenticate
       });
 
