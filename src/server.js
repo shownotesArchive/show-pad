@@ -51,7 +51,7 @@ function initConfig(cb)
 function initDatabase(cb)
 {
   console.info("Initiating database..");
-  db.init(cb);
+  db.init(nconf.get("database"), cb);
 }
 
 function initServer(cb)
@@ -63,9 +63,15 @@ function initServer(cb)
     app.set('view engine', 'ejs');
     app.use(express.static(__dirname + '/../static'));
 
+    var shareJSOptions = nconf.get('database');
+    shareJSOptions.schema = shareJSOptions.database;
+    shareJSOptions.operations_table = "sharejs_ops";
+    shareJSOptions.snapshot_table = "sharejs_snapshots";
+    shareJSOptions.create_tables_automatically = true;
+
     ShareJS.attach(app, 
       {
-        db: { type: "none" },
+        db: shareJSOptions,
         auth: authenticate
       });
 

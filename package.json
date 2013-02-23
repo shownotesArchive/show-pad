@@ -19,7 +19,8 @@
     "express-validator": "*",
     "ueberDB": "*",
     "ejs": "*",
-    "nconf": "*"
+    "nconf": "*",
+    "mysql": "*"
   },
   "engines": {
     "node": ">=0.6"

@@ -6,7 +6,15 @@
   },
   "sessions":
   {
-    "persistent": false,
     "secret": ""
+  },
+  "database":
+  {
+    "type": "mysql",
+    "host": "localhost",
+    "port": "3306",
+    "user": "user",
+    "password": "pass",
+    "database": "showpad"
   }
 }

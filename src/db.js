@@ -1,12 +1,14 @@
 var ueberDB = require('ueberDB')
   , async   = require('async')
   , userdb  = require('./userdb.js')
+  , options
   , db;
 
 exports.user = userdb;
 
-exports.init = function (cb)
+exports.init = function (_options, cb)
 {
+  options = _options;
   async.series([
     initUeberDB,
     function ()
@@ -18,7 +20,7 @@ exports.init = function (cb)
 
 function initUeberDB(cb)
 {
-  db = new ueberDB.database("dirty", { filename: "dirty.db" });
+  db = new ueberDB.database(options.type, options);
   db.init(function (err)
   {
     if(err) 
