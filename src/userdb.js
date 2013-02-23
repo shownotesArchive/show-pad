@@ -64,6 +64,36 @@ exports.getUser = function (username, cb)
     });
 }
 
+exports.getUsers = function (cb)
+{
+  async.waterfall([
+      // get all user-names
+      function (_cb)
+      {
+        client.keys('user:*', _cb);
+      },
+      // get all users
+      function (_users, _cb)
+      {
+        var multi = client.multi();
+        for(var id in _users)
+        {
+          multi.get(_users[id]);
+        }
+        multi.exec(_cb);
+      },
+      // parse all users
+      function (_users, _cb)
+      {
+        for(var id in _users)
+        {
+          _users[id] = JSON.parse(_users[id]);
+        }
+        _cb(null, _users);
+      }
+    ], cb);
+}
+
 exports.checkPassword = function (username, password, cb)
 {
   var user;
