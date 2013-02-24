@@ -25,14 +25,35 @@
             <span id="login-error" class="error"></span>
         </form>
         <script>
-            var errors = $.getQuery().errors;
+            var error = $.getQuery().error;
             var values = $.getQuery().values;
 
-            if(errors)
+            if(error)
             {
                 values = JSON.parse(values);
 
-                $('#login-error').text("Invalid username/password-combination.");
+                switch(error)
+                {
+                    // Account status:
+                    case "email":
+                        error = "Your account is not yet activated.";
+                        break;
+                    case "banned":
+                        error = "You have been banned.";
+                        break;
+                    case "unknown":
+                        error = "The status of your account is unknown. Please contact an administrator.";
+                        break;
+                    // Other:
+                    case "input":
+                        error = "Please check your input.";
+                        break;
+                    case "pw":
+                        error = "Invalid username/password-combination.";
+                        break;
+                }
+
+                $('#login-error').text(error);
                 $('#login-error').show();
                 $('#username').val(values["username"]);
             }

@@ -129,24 +129,47 @@ function processLogin (req, res)
 
   if (errors)
   {
-    res.redirect('/login?errors=1&values=' + JSON.stringify(values));
+    res.redirect('/login?error=input&values=' + JSON.stringify(values));
     return;
   }
 
-
-  db.user.checkPassword(username, password, function (err, isValid)
+  var user = db.user.getUser(username, function (err, user)
     {
-      if(!isValid || err)
+      if(err || !user)
       {
-        console.info("[" + username + "] Login failed: " + err + " isValid=" + isValid);
-        res.redirect('/login?errors=1&values=' + JSON.stringify(values));
+        console.info("[" + username + "] Login failed: " + err + ", user=" + user);
+        res.redirect('/login?error=pw&values=' + JSON.stringify(values));
+        return;
       }
-      else
+      
+      if(user.status != "normal")
       {
-        console.info("[" + username + "] Logged in");
-        req.session.user = username;
-        res.redirect('/');
+        var error;
+
+        if(user.status == "email" || user.status == "banned")
+          error = user.status;
+        else
+          error = "unknown";
+
+        console.info("[" + username + "] Login failed: status=" + user.status);
+        res.redirect('/login?error=' + error + '&values=' + JSON.stringify(values));
+        return;
       }
+
+      db.user.checkPassword(username, password, function (err, isValid)
+        {
+          if(!isValid || err)
+          {
+            console.info("[" + username + "] Login failed: " + err + " isValid=" + isValid);
+            res.redirect('/login?error=pw&values=' + JSON.stringify(values));
+          }
+          else
+          {
+            console.info("[" + username + "] Logged in");
+            req.session.user = username;
+            res.redirect('/');
+          }
+        });
     });
 }
 
