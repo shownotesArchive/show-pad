@@ -118,7 +118,7 @@ function startServer(cb)
 
 function processLogin (req, res)
 {
-  req.assert('username', 'Empty username').notEmpty().isAlpha();
+  req.assert('username', 'Empty username').notEmpty().isAlphanumeric();
   req.assert('password', 'Empty password').notEmpty();
 
   var errors = req.validationErrors();
