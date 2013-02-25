@@ -58,9 +58,16 @@ exports.getUser = function (username, cb)
 {
   client.get("user:" + username, function (err, user)
     {
-      if(!err)
-        user = JSON.parse(user);
-      cb(err, user);
+      if(!user)
+      {
+        cb("nouser", null);
+      }
+      else
+      {
+        if(!err)
+          user = JSON.parse(user);
+        cb(err, user);
+      }
     });
 }
 

@@ -135,7 +135,7 @@ function processLogin (req, res)
 
   var user = db.user.getUser(username, function (err, user)
     {
-      if(err || !user)
+      if(err)
       {
         console.info("[" + username + "] Login failed: " + err + ", user=" + user);
         res.redirect('/login?error=pw&values=' + JSON.stringify(values));
