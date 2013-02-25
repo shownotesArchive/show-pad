@@ -1,4 +1,5 @@
 {
+  "pageurl":"",
   "http":
   {
     "ip": "0.0.0.0",
@@ -11,5 +12,9 @@
   "database":
   {
     "socket": "foo.sock"
+  },
+  "mail":
+  {
+    "from": ""
   }
 }

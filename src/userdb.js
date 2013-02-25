@@ -9,12 +9,14 @@ exports.init = function (_client, _cb)
   _cb(null);
 }
 
-exports.createUser = function (username, password, email, cb)
+exports.createUser = function (username, password, email, emailToken, cb)
 {
   var user =
     {
       username: username,
-      email: email
+      email: email,
+      emailToken: emailToken,
+      status: "email"
     };
 
   async.waterfall(

@@ -5,6 +5,10 @@ var express   = require('express')
   , cookie    = require('cookie')
   , signature = require('cookie-signature')
   , nconf     = require('nconf')
+  , email     = require('email').Email
+  , ejs       = require('ejs')
+  , fs        = require('fs')
+  , crypto    = require('crypto')
   , expressValidator = require('express-validator');
 
 var db            = require('./db.js')
@@ -209,20 +213,52 @@ function processRegister (req, res)
     return;
   }
 
-
-  db.user.createUser(username, password, email, function (err)
+  var emailToken;
+  var mailLocals =
     {
-      if(!err)
-      {
-        console.info("[" + username + "] Registered");
-        res.redirect('/login');
-      }
-      else
-      {
-        console.info("[" + username + "] Register failed: " + err);
-        res.redirect('/register?errors=' + JSON.stringify([err]) + "&values=" + JSON.stringify(values));
-      }
-    });
+      username: username,
+      page: "",
+      link: nconf.get("pageurl") + "/activate/" + username + "/"
+    };
+
+  async.series([
+    // generate random string for activation mail
+    function (cb)
+    {
+      crypto.randomBytes(16, function (err, bytes)
+        {
+          emailToken = bytes.toString('hex');
+          mailLocals.link += emailToken;
+          cb();
+        });
+    },
+    // send activation mail and create user in db
+    function (cb)
+    {
+      sendMail("activation-en", mailLocals, email, "Activate your Shownotes account!", function (err, result)
+        {
+          if(err)
+          {
+            console.info("[" + username + "] Register failed (email): " + err);
+            res.redirect('/register?errors=' + JSON.stringify(["email-error"]) + "&values=" + JSON.stringify(values));
+            return;
+          }
+
+          db.user.createUser(username, password, email, emailToken, function (err)
+            {
+              if(!err)
+              {
+                console.info("[" + username + "] Registered");
+                res.redirect('/login');
+              }
+              else
+              {
+                console.info("[" + username + "] Register failed (db): " + err);
+                res.redirect('/register?errors=' + JSON.stringify(["other-error"]) + "&values=" + JSON.stringify(values));
+              }
+            });
+        });
+    }]);
 }
 
 function getErrorArray(errors)
@@ -233,6 +269,35 @@ function getErrorArray(errors)
     newErrors.push(errors[e].msg);
   }
   return newErrors;
+}
+
+function sendMail(template, locals, to, subject, cb)
+{
+  async.waterfall([
+      // load the template file
+      function (_cb)
+      {
+        fs.readFile(__dirname + '/../email-templates/' + template + '.ejs', _cb);
+      },
+      // process the template file
+      function (content, _cb)
+      {
+        content = content+""; // content to string
+        _cb(null, ejs.render(content, locals));
+      },
+      // send mail
+      function (content, _cb)
+      {
+        var msg = new email(
+          {
+            from: nconf.get("mail:from"),
+            to: to,
+            subject: subject,
+            body: content
+          });
+        msg.send(_cb);
+      }
+    ], cb);
 }
 
 function authenticate(agent, action)
