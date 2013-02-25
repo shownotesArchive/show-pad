@@ -22,14 +22,14 @@ exports.createUser = function (username, password, email, cb)
       // check if user exists
       function (_cb)
       {
-        exports.getUser(username, _cb);
-      },
-      function (user, _cb)
-      {
-        if(user)
-          _cb("userexists");
-        else
-          _cb(null);
+        exports.getUser(username, function (err)
+          {
+            // we need to invert the error from getUser..
+            if(err == "nouser")
+              _cb(null);
+            else
+              _cb("userexists");
+          });
       },
       // get random salt
       function (_cb)
