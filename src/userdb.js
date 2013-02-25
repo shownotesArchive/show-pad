@@ -73,6 +73,12 @@ exports.getUser = function (username, cb)
     });
 }
 
+exports.updateUser = function (user)
+{
+  var username = user.username;
+  client.set("user:" + username, JSON.stringify(user));
+}
+
 exports.getUsers = function (cb)
 {
   async.waterfall([

@@ -106,6 +106,9 @@ function initServer(cb)
         res.redirect('/');
       });
 
+    // email activation
+    app.get('/activate/:username/:token', processEmailActivation);
+
     // API
     app.get('/api/:version/users', function (req, res) { api.handle('get-users', req, res); });
     app.get('/api/:version/users/:name', function (req, res) { api.handle('get-user', req, res); });
@@ -269,6 +272,40 @@ function getErrorArray(errors)
     newErrors.push(errors[e].msg);
   }
   return newErrors;
+}
+
+function processEmailActivation(req, res)
+{
+  var username = req.params.username;
+
+  if(!username.match(/^[a-zA-Z0-9]+$/))
+  {
+    res.end('Invalid link.');
+    return;
+  }
+
+  var user = db.user.getUser(username, function (err, user)
+    {
+      if(err || user.status != "email")
+      {
+        res.end('Invalid link.');
+        return;
+      }
+
+      var token = req.params.token;
+
+      if(user.emailToken == token)
+      {
+        user.status = "normal";
+        db.user.updateUser(user);
+        res.redirect('/login');
+      }
+      else
+      {
+        res.end('Invalid link.');
+        return;
+      }
+    });
 }
 
 function sendMail(template, locals, to, subject, cb)
