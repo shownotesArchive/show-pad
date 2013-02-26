@@ -254,7 +254,7 @@ function processRegister (req, res)
   var mailLocals =
     {
       username: username,
-      page: "",
+      page: nconf.get("pageurl"),
       link: nconf.get("pageurl") + "/activate/" + username + "/"
     };
 
@@ -269,36 +269,43 @@ function processRegister (req, res)
           cb();
         });
     },
-    // send activation mail and create user in db
+    // create user in db and send activation mail
     function (cb)
     {
-      sendMail("activation-en", mailLocals, email, res.locals.__("register.email.subject"), function (err, result)
+      db.user.createUser(username, password, email, emailToken, function (err)
         {
+          // creating the user didn't work
           if(err)
           {
-            console.info("[" + username + "] Register failed (email): " + err);
-            res.redirect('/register?errors=' + JSON.stringify(["email-error"]) + "&values=" + JSON.stringify(values));
-            return;
+            console.info("[" + username + "] Register failed (db): " + err);
+            var usererror;
+            if(err == "userexists")
+              usererror = [err];
+            else
+              usererror = ["other-error"];
+            res.redirect('/register?errors=' + JSON.stringify(usererror) + "&values=" + JSON.stringify(values));
           }
-
-          db.user.createUser(username, password, email, emailToken, function (err)
-            {
-              if(!err)
+          else
+          {
+            sendMail("activation-en", mailLocals, email, res.locals.__("register.email.subject"), function (err, result)
               {
-                console.info("[" + username + "] Registered");
-                res.redirect('/login');
-              }
-              else
-              {
-                console.info("[" + username + "] Register failed (db): " + err);
-                var usererror;
-                if(err == "userexists")
-                  usererror = [err];
+                // sending the email didn't work
+                if(err)
+                {
+                  // delete the created user
+                  db.user.deleteUser(username, function ()
+                    {
+                      console.info("[" + username + "] Register failed (email): " + err);
+                      res.redirect('/register?errors=' + JSON.stringify(["email-error"]) + "&values=" + JSON.stringify(values));
+                    });
+                }
                 else
-                  usererror = ["other-error"];
-                res.redirect('/register?errors=' + JSON.stringify(usererror) + "&values=" + JSON.stringify(values));
-              }
-            });
+                {
+                  console.info("[" + username + "] Registered");
+                  res.redirect('/login');
+                }
+              });
+          }
         });
     }]);
 }

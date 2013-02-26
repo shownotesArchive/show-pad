@@ -79,6 +79,11 @@ exports.updateUser = function (user)
   client.set("user:" + username, JSON.stringify(user));
 }
 
+exports.deleteUser = function (username, cb)
+{
+  client.del("user:" + username, cb);
+}
+
 exports.getUsers = function (cb)
 {
   async.waterfall([
