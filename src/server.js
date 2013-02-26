@@ -348,7 +348,7 @@ function sendMail(template, locals, to, subject, cb)
       // load the template file
       function (_cb)
       {
-        fs.readFile(path.resolve(__dirname + '/../email-templates/') + template + '.ejs', _cb);
+        fs.readFile(path.resolve(__dirname + '/../email-templates') + '/' + template + '.ejs', _cb);
       },
       // process the template file
       function (content, _cb)
