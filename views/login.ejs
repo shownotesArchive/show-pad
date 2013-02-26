@@ -9,16 +9,16 @@
         <form method="POST">
             <table>
                 <tr>
-                    <td><label for="username">Username:</label></td>
+                    <td><label for="username"><%= __('login.username') %></label></td>
                     <td><input type="text" name="username" id="username" /></td>
                 </tr>
                 <tr>
-                    <td><label for="password">Password:</label></td>
+                    <td><label for="password"><%= __('login.password') %></label></td>
                     <td><input type="password" name="password" id="password" /></td>
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <input type="submit" id="submit" />
+                        <input type="submit" id="submit" value="<%= __('login.submit') %>" />
                     </td>
                 </tr>
             </table>
@@ -36,20 +36,20 @@
                 {
                     // Account status:
                     case "email":
-                        error = "Your account is not yet activated.";
+                        error = "<%= __('login.error.status.deactivated') %>";
                         break;
                     case "banned":
-                        error = "You have been banned.";
+                        error = "<%= __('login.error.status.banned') %>";
                         break;
                     case "unknown":
-                        error = "The status of your account is unknown. Please contact an administrator.";
+                        error = "<%= __('login.error.status.unknown') %>";
                         break;
                     // Other:
                     case "input":
-                        error = "Please check your input.";
+                        error = "<%= __('login.error.input') %>";
                         break;
                     case "pw":
-                        error = "Invalid username/password-combination.";
+                        error = "<%= __('login.error.invalid') %>";
                         break;
                 }
 
