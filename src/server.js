@@ -10,6 +10,7 @@ var express   = require('express')
   , fs        = require('fs')
   , crypto    = require('crypto')
   , i18n      = require("i18n")
+  , path      = require('path')
   , expressValidator = require('express-validator');
 
 var db            = require('./db.js')
@@ -73,7 +74,7 @@ function initi18n(cb)
   i18n.configure({
       locales:['en', 'de'],
       cookie: 'locale',
-      directory: '../locales',
+      directory: path.resolve(__dirname + '/../locales'),
       extension: '.json',
       updateFiles: false
   });
@@ -87,7 +88,7 @@ function initServer(cb)
   app.configure(function()
   {
     app.set('view engine', 'ejs');
-    app.use(express.static(__dirname + '/../static'));
+    app.use(express.static(path.resolve(__dirname + '/../static')));
     app.use(express.cookieParser());
 
     console.info("Initiating server-i18n..");
@@ -347,7 +348,7 @@ function sendMail(template, locals, to, subject, cb)
       // load the template file
       function (_cb)
       {
-        fs.readFile(__dirname + '/../email-templates/' + template + '.ejs', _cb);
+        fs.readFile(path.resolve(__dirname + '/../email-templates/') + template + '.ejs', _cb);
       },
       // process the template file
       function (content, _cb)
