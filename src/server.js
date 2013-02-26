@@ -9,6 +9,7 @@ var express   = require('express')
   , ejs       = require('ejs')
   , fs        = require('fs')
   , crypto    = require('crypto')
+  , i18n      = require("i18n")
   , expressValidator = require('express-validator');
 
 var db            = require('./db.js')
@@ -24,6 +25,7 @@ async.series([
   initConfig,
   initDatabase,
   initApi,
+  initi18n,
   initServer,
   startServer,
   function (cb)
@@ -65,6 +67,19 @@ function initApi(cb)
   api.init(db, cb);
 }
 
+function initi18n(cb)
+{
+  console.info("Initiating i18n..");
+  i18n.configure({
+      locales:['en', 'de'],
+      cookie: 'locale',
+      directory: '../locales',
+      extension: '.json',
+      updateFiles: false
+  });
+  cb();
+}
+
 function initServer(cb)
 {
   console.info("Initiating server..");
@@ -73,7 +88,25 @@ function initServer(cb)
   {
     app.set('view engine', 'ejs');
     app.use(express.static(__dirname + '/../static'));
+    app.use(express.cookieParser());
 
+    console.info("Initiating server-i18n..");
+    app.use(i18n.init);
+
+    // binding template helpers to request (Credits to https://github.com/enyo #12)
+    app.use(function(req, res, next)
+      {
+        res.locals.__ = function() {
+          return i18n.__.apply(req, arguments);
+        };
+        res.locals.__n = function() {
+          return i18n.__n.apply(req, arguments);
+        };
+        // do not forget this, otherwise your app will hang
+        next();
+      });
+
+    console.info("Initiating server-ShareJS..");
     ShareJS.attach(app, 
       {
         db: { client: db.getClient() },
@@ -81,13 +114,13 @@ function initServer(cb)
       });
 
     app.use(express.bodyParser());
-    app.use(express.cookieParser());
     app.use(expressValidator);
 
     // sessions
     sessionStore = new express.session.MemoryStore();
     app.use(express.session({ secret: sessionSecret, store: sessionStore }));
 
+    console.info("Initiating server-routes..");
     // routes
     app.get('/', function(req, res) { res.render('index'); });
 
@@ -406,7 +439,7 @@ function authenticate(agent, action)
 function handleAction(action, accept)
 {
   if(["update"].indexOf(action.type) == -1)
-    console.debug("Action: " + action.type + (accept ? " accepted" : " rejected"));
+    console.debug("ShareJS-Action: " + action.type + (accept ? " accepted" : " rejected"));
 
   if(accept)
     action.accept();

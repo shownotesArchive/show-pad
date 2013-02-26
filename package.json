@@ -20,7 +20,8 @@
     "redis": "*",
     "ejs": "*",
     "nconf": "*",
-    "email": "*"
+    "email": "*",
+    "i18n": "*"
   },
   "engines": {
     "node": ">=0.6"
