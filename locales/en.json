@@ -1,3 +1,31 @@
 {
-    "Hello": "Hello"
+    "login.username": "Username:",
+    "login.password": "Password:",
+    "login.submit": "Submit",
+    
+    "login.error.status.deactivated": "Your account is not yet activated.",
+    "login.error.status.banned": "You have been banned.",
+    "login.error.status.unknown": "The status of your account is unknown. Please contact an administrator.",
+    "login.error.input": "Please check your input.",
+    "login.error.invalid": "Invalid username/password-combination.",
+    
+
+    "register.username": "Username:",
+    "register.email": "E-Mail:",
+    "register.password": "Password:",
+    "register.passwordr": "Repeat Password:",
+    "register.submit": "Register",
+
+    "register.error.usernametaken": "Sorry, that username is already taken.",
+    "register.error.email": "There was a problem while sending you an email.",
+    "register.error.other": "That did not work. Please try again or contact an administrator.",
+    
+    "register.email.subject": "Activate your Shownotes account!",
+    "register.email.invalidlink": "Invalid link.",
+
+
+    "dashboard.users": "Users",
+    "dashboard.docs": "Documents",
+    "dashboard.users.name": "Name",
+    "dashboard.users.email": "E-Mail"
 }

@@ -1,3 +1,34 @@
 {
-    "Hello": "Hello"
+    "login": "Login",
+    "login.username": "Username:",
+    "login.password": "Passwort:",
+    "login.submit": "Einloggen",
+
+    "login.error.status.deactivated": "Dein Konto ist noch nicht aktiviert.",
+    "login.error.status.banned": "Dein Konto ist gesperrt.",
+    "login.error.status.unknown": "Der Status deines Kontos ist unbekannt. Bitte melde Dich bei einem Administrator.",
+    "login.error.input": "Bitte überprüfe Deine Eingaben.",
+    "login.error.invalid": "Ungültige Username/Passwort-Kombination.",
+
+    
+    "register": "Registrieren",
+    "register.username": "Username:",
+    "register.email": "E-Mail:",
+    "register.password": "Passwort:",
+    "register.passwordr": "Passwort Wiederholung:",
+    "register.submit": "Abschicken",
+
+    "register.error.usernametaken": "Dieser Username ist bereits belegt.",
+    "register.error.email": "Die Bestätigungsmail konnte nicht sendet werden.",
+    "register.error.other": "Es ist ein Fehler aufgetreten. Bitte versuche es erneut oder melde Dich bei einem Administrator.",
+
+    "register.email.subject": "Aktiviere Deine Shownotes-Konto!",
+    "register.email.invalidlink": "Ungültiger Link.",
+
+
+    "dashboard": "Dashboard",
+    "dashboard.users": "Nutzer",
+    "dashboard.docs": "Dokumente",
+    "dashboard.users.name": "Name",
+    "dashboard.users.email": "E-Mail"
 }
