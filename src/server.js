@@ -291,7 +291,12 @@ function processRegister (req, res)
               else
               {
                 console.info("[" + username + "] Register failed (db): " + err);
-                res.redirect('/register?errors=' + JSON.stringify(["other-error"]) + "&values=" + JSON.stringify(values));
+                var usererror;
+                if(err == "userexists")
+                  usererror = [err];
+                else
+                  usererror = ["other-error"];
+                res.redirect('/register?errors=' + JSON.stringify(usererror) + "&values=" + JSON.stringify(values));
               }
             });
         });
