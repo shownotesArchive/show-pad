@@ -21,6 +21,7 @@
     "register.error.usernametaken": "Dieser Username ist bereits belegt.",
     "register.error.email": "Die Bestätigungsmail konnte nicht sendet werden.",
     "register.error.other": "Es ist ein Fehler aufgetreten. Bitte versuche es erneut oder melde Dich bei einem Administrator.",
+    "register.error.passwordmatch": "Die Passwörter stimmen nicht überein.",
 
     "register.email.subject": "Aktiviere Deine Shownotes-Konto!",
     "register.email.invalidlink": "Ungültiger Link.",

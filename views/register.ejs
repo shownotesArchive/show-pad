@@ -9,26 +9,26 @@
         <form method="POST">
             <table>
                 <tr>
-                    <td><label for="username">Username:</label></td>
+                    <td><label for="username"><%= __('register.username') %></label></td>
                     <td><input type="text" name="username" id="username" /></td>
                     <td><span id="nick-error" class="error"></span></td>
                 </tr>
                 <tr>
-                    <td><label for="email">E-Mail:</label></td>
+                    <td><label for="email"><%= __('register.email') %></label></td>
                     <td><input type="text" name="email" id="email" /></td>
                 </tr>
                 <tr>
-                    <td><label for="password">Password:</label></td>
+                    <td><label for="password"><%= __('register.password') %></label></td>
                     <td><input type="password" name="password" id="password" /></td>
                 </tr>
                 <tr>
-                    <td><label for="passwordr">Repeat Password:</label></td>
+                    <td><label for="passwordr"><%= __('register.passwordr') %></label></td>
                     <td><input type="password" name="passwordr" id="passwordr" /></td>
-                    <td><span id="pw-match-error" class="error">The passwords don't match.</span></td>
+                    <td><span id="pw-match-error" class="error"><%= __('register.error.passwordmatch') %></span></td>
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <input type="submit" id="submit" />
+                        <input type="submit" id="submit" value="<%= __('register.submit') %>" />
                         <span id="other-error" class="error"></span>
                     </td>
                 </tr>
@@ -64,15 +64,15 @@
                             $("#pw-match-error").show();
                             break;
                         case "userexists":
-                            $("#nick-error").text("Sorry, that username is already taken.");
+                            $("#nick-error").text("<%= __('register.error.usernametaken') %>");
                             $("#nick-error").show();
                             break;
                         case "email-error":
-                            $("#other-error").text("There was a problem while sending you an email.");
+                            $("#other-error").text("<%= __('register.error.email') %>");
                             $("#other-error").show();
                             break;
                         case "other-error":
-                            $("#other-error").text("That did not work. Please try again or contact an administrator.");
+                            $("#other-error").text("<%= __('register.error.other') %>");
                             $("#other-error").show();
                             break;
                     }

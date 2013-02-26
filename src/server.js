@@ -272,7 +272,7 @@ function processRegister (req, res)
     // send activation mail and create user in db
     function (cb)
     {
-      sendMail("activation-en", mailLocals, email, "Activate your Shownotes account!", function (err, result)
+      sendMail("activation-en", mailLocals, email, res.locals.__("register.email.subject"), function (err, result)
         {
           if(err)
           {
