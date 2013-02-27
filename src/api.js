@@ -27,7 +27,7 @@ exports.handle = function (cmd, req, res)
       function (_user, _cb)
       {
         user = _user;
-        _cb(null, debug || user.role === "admin");
+        _cb(null, debug || user.hasRole("admin"));
       }
     ],
     // handle the API-Request

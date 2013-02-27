@@ -16,7 +16,8 @@ exports.createUser = function (username, password, email, emailToken, cb)
       username: username,
       email: email,
       emailToken: emailToken,
-      status: "email"
+      status: "email",
+      roles: {"user": {}}
     };
 
   async.waterfall(
@@ -67,10 +68,27 @@ exports.getUser = function (username, cb)
       else
       {
         if(!err)
-          user = JSON.parse(user);
+          user = convertUserFromJSON(user);
         cb(err, user);
       }
     });
+}
+
+function convertUserFromJSON(json)
+{
+  var user = JSON.parse(json);
+  user.hasRole = function (role, group)
+    {
+      for(var r in this.roles)
+      {
+        if(r == "groupadmin" && group && r.group == group)
+          return true;
+        else if(r == role)
+          return true;
+      }
+      return false;
+    }
+  return user;
 }
 
 exports.updateUser = function (user)

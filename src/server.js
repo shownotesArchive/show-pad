@@ -426,8 +426,15 @@ function authenticate(agent, action)
             handleAction(action, true);
             break;
 
-          // creating and changing docs for registred users
+          // creating for admins
          case "create":
+            if(user && user.hasRole('admin'))
+              handleAction(action, true);
+            else
+              handleAction(action, false);
+            break;
+
+          // updating for registered users
          case "update":
             if(user)
               handleAction(action, true);
