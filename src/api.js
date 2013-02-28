@@ -42,10 +42,13 @@ exports.handle = function (cmd, req, res)
         switch(cmd)
         {
           case "get-users":
-            handleGetUsers(res, answerRequest);
+            handleGetUsers(res, !!req.query["datatables"], answerRequest);
             break;
           case "get-user":
             handleGetUser(req.params.name, res, answerRequest);
+            break;
+          case "dt-set-user":
+            handleDTSetUser(req.body, res, answerRequest);
             break;
         }
       }
@@ -65,7 +68,7 @@ function answerRequest(res, statusCode, msg, data)
   res.end(JSON.stringify(response));
 }
 
-function handleGetUsers (res, cb)
+function handleGetUsers (res, datatables, cb)
 {
   db.user.getUsers(function (err, users)
   {
@@ -79,6 +82,9 @@ function handleGetUsers (res, cb)
       {
         delete users[id].salt;
         delete users[id].password;
+
+        if(datatables)
+          users[id].DT_RowId = users[id].username;
       }
 
       var statusCode = users.length == 0 ? 204 : 200;
@@ -105,6 +111,37 @@ function handleGetUser (username, res, cb)
         delete user.salt;
         delete user.password;
         cb(res, 200, "ok", user);
+      }
+    });
+}
+
+function handleDTSetUser (body, res, cb)
+{
+  db.user.getUser(body.id,
+    function (err, user)
+    {
+      if(err == "nouser")
+      {
+        cb(res, 404, "User not found", null);
+      }
+      else if(err)
+      {
+        cb(res, 500, err, null);
+      }
+      else
+      {
+        switch(body.value)
+        {
+          case "admin":
+            user.roles["admin"] = {};
+            break;
+          case "user":
+            delete user.roles.admin;
+            break;
+        }
+
+        db.user.updateUser(user);
+        res.end(body.value);
       }
     });
 }

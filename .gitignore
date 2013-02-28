@@ -4,3 +4,5 @@ config.json
 static/js/webclient
 static/js/bcsocket.js
 static/js/jquery-queryParser.min.js
+static/js/jquery.dataTables.editable.js
+static/js/jquery.jeditable.mini.js

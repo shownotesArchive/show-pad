@@ -4,6 +4,8 @@
         <!-- jQuery+jQueryUI -->
         <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
         <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+        <script src="js/jquery.jeditable.mini.js"></script>
+        <script src="js/jquery.dataTables.editable.js" type="text/javascript"></script>
         <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
         <!-- DataTables -->
         <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
@@ -22,6 +24,7 @@
                 <thead>
                     <th>Name</th>
                     <th>E-Mail</th>
+                    <th>Role</th>
                 </thead>
             </table>
           </div>
@@ -33,14 +36,41 @@
             $('#tabs').tabs();
 
             $.fn.dataTableExt.sErrMode = 'throw';
-            $('#usertable').dataTable(
+            $('#usertable')
+                .dataTable(
                 {
                     "bProcessing": true,
-                    "sAjaxSource": "/api/1/users",
+                    "sAjaxSource": "/api/1/users/?datatables=1",
                     "sAjaxDataProp": "data",
                     "aoColumns": [
                       { "mData": [ "username" ] },
-                      { "mData": [ "email" ] }
+                      { "mData": [ "email" ] },
+                      {
+                        "mData": [ "roles" ],
+                        "fnRender": function (oObj)
+                            {
+                                if(oObj.aData.roles["admin"] || oObj.aData.roles == "Admin")
+                                    return "Admin";
+                                if(oObj.aData.roles["user"] || oObj.aData.roles == "User")
+                                    return "User";
+                            },
+                      }
+                    ]
+                })
+                .makeEditable({
+                    "sUpdateURL": '/api/1/users-dt/',
+                    "aoColumns":
+                    [
+                        null,
+                        null,
+                        {
+                            event: 'click',
+                            indicator: 'Select role..',
+                            loadtext: 'loading...',
+                            type: 'select',
+                            onblur: 'submit',
+                            data: "{'admin':'Admin','user':'User'}"
+                        }
                     ]
                 });
             //$('#padtable').dataTable();

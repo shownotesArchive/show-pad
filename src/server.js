@@ -146,6 +146,7 @@ function initServer(cb)
     // API
     app.get('/api/:version/users', function (req, res) { api.handle('get-users', req, res); });
     app.get('/api/:version/users/:name', function (req, res) { api.handle('get-user', req, res); });
+    app.post('/api/:version/users-dt', function (req, res) { api.handle('dt-set-user', req, res); });
 
     cb(null);
   });
