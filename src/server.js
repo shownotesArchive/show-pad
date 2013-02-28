@@ -343,6 +343,7 @@ function processEmailActivation(req, res)
       if(user.emailToken == token)
       {
         user.status = "normal";
+        delete user.emailToken;
         db.user.updateUser(user);
         res.redirect('/login');
       }
