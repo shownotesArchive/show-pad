@@ -35,10 +35,12 @@ exports.handle = function (cmd, req, res)
     {
       if(!result)
       {
+        console.log("API - Command: " + cmd + " - Unauthorized");
         answerRequest(res, 401, "Unauthorized", null);
       }
       else
       {
+        console.log("API - Command: " + cmd);
         switch(cmd)
         {
           case "get-users":

@@ -335,6 +335,7 @@ function processEmailActivation(req, res)
     {
       if(err || user.status != "email")
       {
+        console.info("[" + username + "] Account activation failed (status)");
         res.end('Invalid link.');
         return;
       }
@@ -346,10 +347,12 @@ function processEmailActivation(req, res)
         user.status = "normal";
         delete user.emailToken;
         db.user.updateUser(user);
+        console.info("[" + username + "] Account activated");
         res.redirect('/login');
       }
       else
       {
+        console.info("[" + username + "] Account activation failed (token)");
         res.end('Invalid link.');
         return;
       }
@@ -418,50 +421,52 @@ function authenticate(agent, action)
       // process the action
       function (user, cb)
       {
+        var name = "unnamed";
+        if(user)
+          name = user.username;
+
         switch(action.type)
         {
          // connecting for everyone, also set the name
          case "connect":
-            var name = "unnamed";
-            if(user) name = user.username;
             agent.name = name;
-            handleAction(action, true);
+            handleAction(action, name, true);
             break;
 
           // creating for admins
          case "create":
             if(user && user.hasRole('admin'))
-              handleAction(action, true);
+              handleAction(action, name, true);
             else
-              handleAction(action, false);
+              handleAction(action, name, false);
             break;
 
           // updating for registered users
          case "update":
             if(user)
-              handleAction(action, true);
+              handleAction(action, name, true);
             else
-              handleAction(action, false);
+              handleAction(action, name, false);
             break;
 
           // allow read for everyone
           case "read":
-            handleAction(action, true);
+            handleAction(action, name, true);
             break;
 
           // forbid delete for everyone
           case "delete":
-            handleAction(action, false);
+            handleAction(action, name, false);
             break;
         }
       }
     ]);
 }
 
-function handleAction(action, accept)
+function handleAction(action, username, accept)
 {
   if(["update"].indexOf(action.type) == -1)
-    console.debug("ShareJS-Action: " + action.type + (accept ? " accepted" : " rejected"));
+    console.debug("[" + username + "] [" + action.docName + "] ShareJS-Action: " + action.type + (accept ? " accepted" : " rejected"));
 
   if(accept)
     action.accept();
