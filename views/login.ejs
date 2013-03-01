@@ -1,25 +1,19 @@
 <% layout('layout.ejs') %>
-<% block('title', "Login") -%>
+<% block('title', __('login')) -%>
 <% script('js/jquery-queryParser.min.js') %>
-<% stylesheet('css/forms.css') %> 
 
 <form method="POST">
-    <table>
-        <tr>
-            <td><label for="username"><%= __('login.username') %></label></td>
-            <td><input type="text" name="username" id="username" /></td>
-        </tr>
-        <tr>
-            <td><label for="password"><%= __('login.password') %></label></td>
-            <td><input type="password" name="password" id="password" /></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <input type="submit" id="submit" value="<%= __('login.submit') %>" />
-            </td>
-        </tr>
-    </table>
-    <span id="login-error" class="error"></span>
+    <div class="alert alert-error" id="login-error" style="display:none">
+    </div>
+    <fieldset>
+        <div class="clearfix">
+            <input type="text" name="username" placeholder="<%= __('login.username') %>">
+        </div>
+        <div class="clearfix">
+            <input type="password" name="password" placeholder="<%= __('login.password') %>">
+        </div>
+        <button class="btn primary" type="submit"><%= __('login.login') %></button>
+    </fieldset>
 </form>
 
 <script>

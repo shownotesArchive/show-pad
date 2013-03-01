@@ -5,11 +5,60 @@
 
     <!-- force jquery to be included as the very first. -->
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+
+    <% stylesheet('http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/css/bootstrap-combined.min.css') %>
+    <% stylesheet('css/global.css') %>
     
     <%- stylesheets %>
     <%- scripts %>
 </head>
 <body>
-    <%- body %>
+	<div class="container">
+		<div class="navbar navbar-inverse">
+			<a class="brand" href="#">SharePad</a>
+			<div class="navbar-inner">
+				<ul class="nav">
+					<li><a href="/">Home</a></li>
+					<% if (user) { %>
+						<li><a href="/profile">Profile</a></li>
+						<% if (user.hasRole("admin")) { %>
+							<li><a href="/dashboard">Dashboard</a></li>
+						<% } %>
+		            <% } else { %>
+						<li><a href="/register">Register</a></li>
+						<li><a href="/login">Login</a></li>
+		            <% } %>
+				</ul>
+
+				<% if (!user) { %>
+					<form class="navbar-form pull-right" action="/login" method="POST">
+		                <input type="text" name="username" class="span2" placeholder="<%= __('login.username') %>">
+		                <input type="password" name="password" class="span2" placeholder="<%= __('login.password') %>">
+		                <input type="submit" value="<%= __('login.login') %>" class="btn" />
+		            </form>
+	            <% } else { %>
+					<form class="navbar-form pull-right" action="/logout" method="GET">
+		                <input type="submit" value="<%= __('login.logout') %>" class="btn" />
+		            </form>
+	            <% } %>
+			</div>
+		</div>
+		<div id="content" class="row-fluid">
+			<div class="main">
+				<h2><%-blocks.title %></h2>
+				<%- body %>
+			</div>
+		</div>
+	</div>
+
+	<!-- Menu -->
+	<script>
+$('.nav li').each(function (index, element)
+{
+	element = $(element);
+	if(element.children('a').attr('href') == window.location.pathname)
+		element.addClass('active');
+});
+	</script>
 </body>
 </html>

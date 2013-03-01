@@ -1,8 +1,9 @@
 {
     "login": "Login",
-    "login.username": "Benutzername:",
-    "login.password": "Passwort:",
-    "login.submit": "Einloggen",
+    "login.username": "Benutzername",
+    "login.password": "Passwort",
+    "login.login": "Einloggen",
+    "login.logout": "Ausloggen",
 
     "login.error.status.deactivated": "Dein Konto ist noch nicht aktiviert.",
     "login.error.status.banned": "Dein Konto ist gesperrt.",

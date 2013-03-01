@@ -1,7 +1,9 @@
 {
-    "login.username": "Username:",
-    "login.password": "Password:",
-    "login.submit": "Submit",
+    "login": "Login",
+    "login.username": "Username",
+    "login.password": "Password",
+    "login.login": "Login",
+    "login.logout": "Logout",
     
     "login.error.status.deactivated": "Your account is not yet activated.",
     "login.error.status.banned": "You have been banned.",
@@ -10,6 +12,7 @@
     "login.error.invalid": "Invalid username/password-combination.",
     
 
+    "register": "Register",
     "register.username": "Username:",
     "register.email": "E-Mail:",
     "register.password": "Password:",
@@ -25,6 +28,7 @@
     "register.email.invalidlink": "Invalid link.",
 
 
+    "dashboard": "Dashboard",
     "dashboard.users": "Users",
     "dashboard.docs": "Documents",
     "dashboard.users.name": "Name",

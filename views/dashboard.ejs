@@ -1,9 +1,5 @@
 <% layout('layout.ejs') %>
-<% block('title', "Dashboard") -%>
-
-<!-- jQueryUI -->
-<% script('http://code.jquery.com/ui/1.10.1/jquery-ui.js') %>
-<% stylesheet('http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css') %> 
+<% block('title', __('dashboard')) -%>
 
 <!-- DataTables -->
 <% script('js/jquery.jeditable.mini.js') %>
@@ -14,28 +10,29 @@
 <!-- ShowPad -->
 <% stylesheet('css/dashboard.css') %>
 
+<% script('http://twitter.github.com/bootstrap/1.4.0/bootstrap-tabs.js') %>
+
 <div id="tabs">
-  <ul>
-    <li><a href="#tabs-users"><%= __('dashboard.users') %></a></li>
-    <li><a href="#tabs-pads"><%= __('dashboard.docs') %></a></li>
+  <ul class="nav nav-tabs" data-tabs="tabs">
+    <li class="active"><a href="#users" data-toggle="tab"><%= __('dashboard.users') %></a></li>
+    <li><a href="#docs" data-toggle="tab"><%= __('dashboard.docs') %></a></li>
   </ul>
-  <div id="tabs-users">
-    <table id="usertable">
-        <thead>
-            <th><%= __('dashboard.users.name') %></th>
-            <th><%= __('dashboard.users.email') %></th>
-            <th><%= __('dashboard.users.role') %></th>
-        </thead>
-    </table>
-  </div>
-  <div id="tabs-pads">
-    <table id="padtable"></table>
-  </div>
+  <div id="my-tab-content" class="tab-content">
+    <div class="tab-pane active" id="users">
+        <table id="usertable">
+            <thead>
+                <th><%= __('dashboard.users.name') %></th>
+                <th><%= __('dashboard.users.email') %></th>
+                <th><%= __('dashboard.users.role') %></th>
+            </thead>
+        </table>
+    </div>
+    <div class="tab-pane" id="docs">
+        <table id="padtable"></table>
+    </div>
 </div>
 
 <script>
-$('#tabs').tabs();
-
 $.fn.dataTableExt.sErrMode = 'throw';
 $('#usertable')
     .dataTable(

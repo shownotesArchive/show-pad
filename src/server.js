@@ -123,6 +123,24 @@ function initServer(cb)
     sessionStore = new express.session.MemoryStore();
     app.use(express.session({ secret: sessionSecret, store: sessionStore }));
 
+    app.use(function(req, res, next)
+      {
+        res.locals.user = null;
+        if(!req.session.user)
+        {
+          next();
+        }
+        else
+        {
+          db.user.getUser(req.session.user, function (err, user)
+            {
+              if(!err)
+                res.locals.user = user;
+              next();
+            });
+        }
+      });
+
     console.info("Initiating server-routes..");
     // routes
     app.get('/', function(req, res) { res.render('index'); });

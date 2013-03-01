@@ -1,0 +1,26 @@
+body
+{
+	background-color: #CCC;
+}
+
+.container
+{
+	width: 900px;
+}
+
+.navbar
+{
+	margin-top: 5px;
+}
+
+#content
+{
+	background-color: #FFF;
+	border-radius: 4px;
+}
+
+#content .main
+{
+	padding: 20px;
+	padding-top: 0px;
+}
