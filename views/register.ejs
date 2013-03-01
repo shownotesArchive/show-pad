@@ -1,101 +1,94 @@
-<html>
-    <head>
-        <title>Register</title>
-        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-        <script src="js/jquery-queryParser.min.js"></script>
-        <link rel="stylesheet" type="text/css" href="css/forms.css">
-    </head>
-    <body>
-        <form method="POST">
-            <table>
-                <tr>
-                    <td><label for="username"><%= __('register.username') %></label></td>
-                    <td><input type="text" name="username" id="username" /></td>
-                    <td><span id="nick-error" class="error"></span></td>
-                </tr>
-                <tr>
-                    <td><label for="email"><%= __('register.email') %></label></td>
-                    <td><input type="text" name="email" id="email" /></td>
-                </tr>
-                <tr>
-                    <td><label for="password"><%= __('register.password') %></label></td>
-                    <td><input type="password" name="password" id="password" /></td>
-                </tr>
-                <tr>
-                    <td><label for="passwordr"><%= __('register.passwordr') %></label></td>
-                    <td><input type="password" name="passwordr" id="passwordr" /></td>
-                    <td><span id="pw-match-error" class="error"><%= __('register.error.passwordmatch') %></span></td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <input type="submit" id="submit" value="<%= __('register.submit') %>" />
-                        <span id="other-error" class="error"></span>
-                    </td>
-                </tr>
-            </table>
-        </form>
+<% layout('layout.ejs') %>
+<% block('title', "Register") -%>
+<% stylesheet('css/forms.css') %>
 
-        <script>
-            var errors = $.getQuery().errors;
-            var values = $.getQuery().values;
+<form method="POST">
+    <table>
+        <tr>
+            <td><label for="username"><%= __('register.username') %></label></td>
+            <td><input type="text" name="username" id="username" /></td>
+            <td><span id="nick-error" class="error"></span></td>
+        </tr>
+        <tr>
+            <td><label for="email"><%= __('register.email') %></label></td>
+            <td><input type="text" name="email" id="email" /></td>
+        </tr>
+        <tr>
+            <td><label for="password"><%= __('register.password') %></label></td>
+            <td><input type="password" name="password" id="password" /></td>
+        </tr>
+        <tr>
+            <td><label for="passwordr"><%= __('register.passwordr') %></label></td>
+            <td><input type="password" name="passwordr" id="passwordr" /></td>
+            <td><span id="pw-match-error" class="error"><%= __('register.error.passwordmatch') %></span></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="submit" id="submit" value="<%= __('register.submit') %>" />
+                <span id="other-error" class="error"></span>
+            </td>
+        </tr>
+    </table>
+</form>
 
-            if(errors)
-            {
-                errors = JSON.parse(errors);
-                values = JSON.parse(values);
+<script>
+var errors = $.getQuery().errors;
+var values = $.getQuery().values;
 
-                for(var e in errors)
-                {
-                    switch(errors[e])
-                    {
-                        case "username-invalid":
-                            $("label[for=username]").addClass('invalid-value');
-                            break;
-                        case "email-invalid":
-                            $("label[for=email]").addClass('invalid-value');
-                            break;
-                        case "pw-invalid":
-                            $("label[for=password]").addClass('invalid-value');
-                            break;
-                        case "pwr-invalid":
-                            $("label[for=passwordr]").addClass('invalid-value');
-                            break;
-                        case "pw-match":
-                            $("#pw-match-error").show();
-                            break;
-                        case "userexists":
-                            $("#nick-error").text("<%= __('register.error.usernametaken') %>");
-                            $("#nick-error").show();
-                            break;
-                        case "email-error":
-                            $("#other-error").text("<%= __('register.error.email') %>");
-                            $("#other-error").show();
-                            break;
-                        case "other-error":
-                            $("#other-error").text("<%= __('register.error.other') %>");
-                            $("#other-error").show();
-                            break;
-                    }
-                }
+if(errors)
+{
+    errors = JSON.parse(errors);
+    values = JSON.parse(values);
 
-                for(var v in values)
-                {
-                    $('#' + v).val(values[v]);
-                }
-            }
+    for(var e in errors)
+    {
+        switch(errors[e])
+        {
+            case "username-invalid":
+                $("label[for=username]").addClass('invalid-value');
+                break;
+            case "email-invalid":
+                $("label[for=email]").addClass('invalid-value');
+                break;
+            case "pw-invalid":
+                $("label[for=password]").addClass('invalid-value');
+                break;
+            case "pwr-invalid":
+                $("label[for=passwordr]").addClass('invalid-value');
+                break;
+            case "pw-match":
+                $("#pw-match-error").show();
+                break;
+            case "userexists":
+                $("#nick-error").text("<%= __('register.error.usernametaken') %>");
+                $("#nick-error").show();
+                break;
+            case "email-error":
+                $("#other-error").text("<%= __('register.error.email') %>");
+                $("#other-error").show();
+                break;
+            case "other-error":
+                $("#other-error").text("<%= __('register.error.other') %>");
+                $("#other-error").show();
+                break;
+        }
+    }
 
-            $('#passwordr').keyup(function ()
-                {
-                    if($('#passwordr').val() != $('#password').val())
-                    {
-                        $("#pw-match-error").show();
-                    }
-                    else
-                    {
-                        $("#pw-match-error").hide();
-                    }
-                });
-        </script>
-    </body>
- </html>
- 
+    for(var v in values)
+    {
+        $('#' + v).val(values[v]);
+    }
+}
+
+$('#passwordr').keyup(function ()
+    {
+        if($('#passwordr').val() != $('#password').val())
+        {
+            $("#pw-match-error").show();
+        }
+        else
+        {
+            $("#pw-match-error").hide();
+        }
+    });
+</script>

@@ -1,63 +1,58 @@
-<html>
-    <head>
-        <title>Login</title>
-        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-        <script src="js/jquery-queryParser.min.js"></script>
-        <link rel="stylesheet" type="text/css" href="css/forms.css">
-    </head>
-    <body>
-        <form method="POST">
-            <table>
-                <tr>
-                    <td><label for="username"><%= __('login.username') %></label></td>
-                    <td><input type="text" name="username" id="username" /></td>
-                </tr>
-                <tr>
-                    <td><label for="password"><%= __('login.password') %></label></td>
-                    <td><input type="password" name="password" id="password" /></td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <input type="submit" id="submit" value="<%= __('login.submit') %>" />
-                    </td>
-                </tr>
-            </table>
-            <span id="login-error" class="error"></span>
-        </form>
-        <script>
-            var error = $.getQuery().error;
-            var values = $.getQuery().values;
+<% layout('layout.ejs') %>
+<% block('title', "Login") -%>
+<% script('js/jquery-queryParser.min.js') %>
+<% stylesheet('css/forms.css') %> 
 
-            if(error)
-            {
-                values = JSON.parse(values);
+<form method="POST">
+    <table>
+        <tr>
+            <td><label for="username"><%= __('login.username') %></label></td>
+            <td><input type="text" name="username" id="username" /></td>
+        </tr>
+        <tr>
+            <td><label for="password"><%= __('login.password') %></label></td>
+            <td><input type="password" name="password" id="password" /></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="submit" id="submit" value="<%= __('login.submit') %>" />
+            </td>
+        </tr>
+    </table>
+    <span id="login-error" class="error"></span>
+</form>
 
-                switch(error)
-                {
-                    // Account status:
-                    case "email":
-                        error = "<%= __('login.error.status.deactivated') %>";
-                        break;
-                    case "banned":
-                        error = "<%= __('login.error.status.banned') %>";
-                        break;
-                    case "unknown":
-                        error = "<%= __('login.error.status.unknown') %>";
-                        break;
-                    // Other:
-                    case "input":
-                        error = "<%= __('login.error.input') %>";
-                        break;
-                    case "pw":
-                        error = "<%= __('login.error.invalid') %>";
-                        break;
-                }
+<script>
+var error = $.getQuery().error;
+var values = $.getQuery().values;
 
-                $('#login-error').text(error);
-                $('#login-error').show();
-                $('#username').val(values["username"]);
-            }
-        </script>
-    </body>
- </html>
- 
+if(error)
+{
+    values = JSON.parse(values);
+
+    switch(error)
+    {
+        // Account status:
+        case "email":
+            error = "<%= __('login.error.status.deactivated') %>";
+            break;
+        case "banned":
+            error = "<%= __('login.error.status.banned') %>";
+            break;
+        case "unknown":
+            error = "<%= __('login.error.status.unknown') %>";
+            break;
+        // Other:
+        case "input":
+            error = "<%= __('login.error.input') %>";
+            break;
+        case "pw":
+            error = "<%= __('login.error.invalid') %>";
+            break;
+    }
+
+    $('#login-error').text(error);
+    $('#login-error').show();
+    $('#username').val(values["username"]);
+}
+</script>

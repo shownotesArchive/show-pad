@@ -1,5 +1,6 @@
 var express   = require('express')
   , ShareJS   = require('share').server
+  , ejslocals = require('ejs-locals')
   , async     = require('async')
   , log4js    = require('log4js')
   , cookie    = require('cookie')
@@ -87,6 +88,7 @@ function initServer(cb)
   app = express();
   app.configure(function()
   {
+    app.engine('ejs', ejslocals);
     app.set('view engine', 'ejs');
     app.use(express.static(path.resolve(__dirname + '/../static')));
     app.use(express.cookieParser());
