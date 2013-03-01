@@ -31,5 +31,7 @@
     "dashboard.users": "Nutzer",
     "dashboard.docs": "Dokumente",
     "dashboard.users.name": "Name",
-    "dashboard.users.email": "E-Mail"
+    "dashboard.users.email": "E-Mail",
+    "dashboard.users.role": "Rolle",
+    "dashboard.users.selectrole": "Rolle auswählen.."
 }

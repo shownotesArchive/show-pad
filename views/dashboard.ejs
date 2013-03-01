@@ -16,15 +16,15 @@
     <body>
         <div id="tabs">
           <ul>
-            <li><a href="#tabs-users">Users</a></li>
-            <li><a href="#tabs-pads">Pads</a></li>
+            <li><a href="#tabs-users"><%= __('dashboard.users') %></a></li>
+            <li><a href="#tabs-pads"><%= __('dashboard.docs') %></a></li>
           </ul>
           <div id="tabs-users">
             <table id="usertable">
                 <thead>
-                    <th>Name</th>
-                    <th>E-Mail</th>
-                    <th>Role</th>
+                    <th><%= __('dashboard.users.name') %></th>
+                    <th><%= __('dashboard.users.email') %></th>
+                    <th><%= __('dashboard.users.role') %></th>
                 </thead>
             </table>
           </div>
@@ -65,7 +65,7 @@
                         null,
                         {
                             event: 'click',
-                            indicator: 'Select role..',
+                            indicator: '<%= __('dashboard.users.selectrole') %>',
                             loadtext: 'loading...',
                             type: 'select',
                             onblur: 'submit',
