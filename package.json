@@ -11,6 +11,7 @@
   },
   "dependencies" : {
     "express": "~3",
+    "connect": "~2",
     "share": "git://github.com/josephg/ShareJS.git",
     "async": "0.2.x",
     "log4js": "0.5.x",
