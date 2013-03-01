@@ -1,6 +1,6 @@
 {
     "login": "Login",
-    "login.username": "Username:",
+    "login.username": "Benutzername:",
     "login.password": "Passwort:",
     "login.submit": "Einloggen",
 
@@ -8,11 +8,11 @@
     "login.error.status.banned": "Dein Konto ist gesperrt.",
     "login.error.status.unknown": "Der Status deines Kontos ist unbekannt. Bitte melde Dich bei einem Administrator.",
     "login.error.input": "Bitte überprüfe Deine Eingaben.",
-    "login.error.invalid": "Ungültige Username/Passwort-Kombination.",
+    "login.error.invalid": "Ungültige Benutzername/Passwort-Kombination.",
 
     
     "register": "Registrieren",
-    "register.username": "Username:",
+    "register.username": "Benutzername:",
     "register.email": "E-Mail:",
     "register.password": "Passwort:",
     "register.passwordr": "Passwort Wiederholung:",
