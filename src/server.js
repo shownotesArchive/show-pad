@@ -288,7 +288,10 @@ function processRegister (req, res)
           }
           else
           {
-            sendMail("activation-en", mailLocals, email, res.locals.__("register.email.subject"), function (err, result)
+            var emailTemplate = "activation-";
+            emailTemplate += req.locale;
+
+            sendMail(emailTemplate, mailLocals, email, res.locals.__("register.email.subject"), function (err, result)
               {
                 // sending the email didn't work
                 if(err)
