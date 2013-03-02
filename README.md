@@ -5,6 +5,8 @@ A realtime web application written in node.js whose aim it is to replace
 the current etherpad-solution and provide a perfect enviroment to write
 shownotes for various german podcasts. See also: http://shownot.es/
 
+The favicon is a modified version of the [shownotes-icon](https://github.com/shownotes/shownot.es/blob/master/favicon.ico).
+
 Technologies used
 -----------------
 
