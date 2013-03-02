@@ -1,7 +1,6 @@
 {
   "name": "show-pad",
-  "preferGlobal": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "luto <m@luto.at>",
   "description": "",
   "contributors": [],
