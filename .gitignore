@@ -1,6 +1,8 @@
 node_modules
 config.json
 *.db
+.DS_Store
+thumbs.db
 static/js/webclient
 static/js/bcsocket.js
 static/js/jquery-queryParser.min.js
