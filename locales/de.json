@@ -37,5 +37,6 @@
     "dashboard.users.email": "E-Mail",
     "dashboard.users.role": "Rolle",
     "dashboard.users.selectrole": "Rolle auswählen..",
-    "dashboard.users.status": "Status"
+    "dashboard.users.status": "Status",
+    "dashboard.users.selectstatus": "Status auswählen.."
 }
