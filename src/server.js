@@ -12,6 +12,7 @@ var express   = require('express')
   , crypto    = require('crypto')
   , i18n      = require("i18n")
   , path      = require('path')
+  , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator');
 
 var db            = require('./db.js')
@@ -19,6 +20,8 @@ var db            = require('./db.js')
   , app           = null
   , sessionStore  = null
   , sessionSecret = null;
+
+var registerLimiters = {};
 
 log4js.replaceConsole();
 console.info("Let's go");
@@ -272,6 +275,11 @@ function processRegister (req, res)
     return;
   }
 
+  if(!registerLimiters[req.ip])
+  {
+    registerLimiters[req.ip] = new RateLimiter(2, 'minute', true);
+  }
+
   var emailToken;
   var mailLocals =
     {
@@ -281,6 +289,21 @@ function processRegister (req, res)
     };
 
   async.series([
+    // check the rate limiting
+    function (cb)
+    {
+      registerLimiters[req.ip].removeTokens(1, function(err, remainingRequests) {
+        if (remainingRequests < 0)
+        {
+          res.statusCode = 429;
+          res.redirect('/register?errors=' + JSON.stringify(["speed"]) + "&values=" + JSON.stringify(values));
+        }
+        else
+        {
+          cb();
+        }
+      });
+    },
     // generate random string for activation mail
     function (cb)
     {
