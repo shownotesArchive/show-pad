@@ -2,18 +2,22 @@
 <% block('title', __('login')) -%>
 <% script('js/jquery-queryParser.min.js') %>
 
-<form method="POST">
+<form method="POST" class="form-horizontal" id="login-form">
     <div class="alert alert-error" id="login-error" style="display:none">
     </div>
-    <fieldset>
-        <div class="clearfix">
-            <input type="text" name="username" placeholder="<%= __('login.username') %>">
+    <div class="control-group" id="grp-username">
+        <label class="control-label" for="username"><%= __('login.username') %></label>
+        <div class="controls">
+            <input type="text" id="username" name="username">
         </div>
-        <div class="clearfix">
-            <input type="password" name="password" placeholder="<%= __('login.password') %>">
+    </div>
+    <div class="control-group" id="grp-password">
+        <label class="control-label" for="password"><%= __('login.password') %></label>
+        <div class="controls">
+            <input type="password" id="password" name="password">
         </div>
-        <button class="btn primary" type="submit"><%= __('login.login') %></button>
-    </fieldset>
+    </div>
+    <button class="btn primary" type="submit" id="login-submit"><%= __('login.login') %></button>
 </form>
 
 <script>
