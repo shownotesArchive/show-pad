@@ -1,5 +1,7 @@
 body
 {
+	/* http://noisetexturegenerator.com/ */
+	background-image:url('../img/noisy-texture-250x250-o20-d31-c-CCC-t0.png');
 	background-color: #CCC;
 }
 
@@ -13,10 +15,16 @@ body
 	margin-top: 5px;
 }
 
+.navbar .brand
+{
+	margin: 0px;
+}
+
 #content
 {
 	background-color: #FFF;
 	border-radius: 4px;
+	box-shadow: 0 0 2px 2px #AAA;
 }
 
 #content .main
