@@ -30,6 +30,7 @@
 		            <% } %>
 				</ul>
 
+				<% if (page != "/register" && page != "/login") { %>
 				<% if (!user) { %>
 					<form class="navbar-form pull-right" action="/login" method="POST">
 		                <input type="text" name="username" class="span2" placeholder="<%= __('login.username') %>">
@@ -40,6 +41,7 @@
 					<form class="navbar-form pull-right" action="/logout" method="GET">
 		                <input type="submit" value="<%= __('login.logout') %>" class="btn" />
 		            </form>
+	            <% } %>
 	            <% } %>
 			</div>
 		</div>
