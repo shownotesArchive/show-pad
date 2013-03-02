@@ -21,6 +21,7 @@
 
     "register.error.usernametaken": "Sorry, that username is already taken.",
     "register.error.email": "There was a problem while sending you an email.",
+    "register.error.invalidemail": "This e-mail-address is not valild.",
     "register.error.other": "That did not work. Please try again or contact an administrator.",
     "register.error.passwordmatch": "The passwords don't match.",
     

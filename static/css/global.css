@@ -32,3 +32,20 @@ body
 	padding: 20px;
 	padding-top: 0px;
 }
+
+.form-horizontal .control-label
+{
+    text-align: left;
+    margin-left: 15px;
+    width: 150px;
+}
+
+.form-horizontal .controls
+{
+	margin-left: 0px;
+}
+
+#register-submit
+{
+	margin-left: 307px;
+}

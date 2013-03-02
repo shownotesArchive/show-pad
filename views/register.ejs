@@ -1,34 +1,43 @@
 <% layout('layout.ejs') %>
-<% block('title', "Register") -%>
-<% stylesheet('css/forms.css') %>
+<% block('title', __('register')) -%>
+<% script('js/jquery-queryParser.min.js') %>
 
-<form method="POST">
-    <table>
-        <tr>
-            <td><label for="username"><%= __('register.username') %></label></td>
-            <td><input type="text" name="username" id="username" /></td>
-            <td><span id="nick-error" class="error"></span></td>
-        </tr>
-        <tr>
-            <td><label for="email"><%= __('register.email') %></label></td>
-            <td><input type="text" name="email" id="email" /></td>
-        </tr>
-        <tr>
-            <td><label for="password"><%= __('register.password') %></label></td>
-            <td><input type="password" name="password" id="password" /></td>
-        </tr>
-        <tr>
-            <td><label for="passwordr"><%= __('register.passwordr') %></label></td>
-            <td><input type="password" name="passwordr" id="passwordr" /></td>
-            <td><span id="pw-match-error" class="error"><%= __('register.error.passwordmatch') %></span></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <input type="submit" id="submit" value="<%= __('register.submit') %>" />
-                <span id="other-error" class="error"></span>
-            </td>
-        </tr>
-    </table>
+<form method="POST" class="form-horizontal">
+    <div class="alert alert-error" id="other-error" style="display:none">
+    </div>
+    <div class="control-group" id="grp-username">
+        <label class="control-label" for="username"><%= __('register.username') %></label>
+        <div class="controls">
+            <input type="text" id="username" name="username">
+            <span class="help-inline" id="help-username"></span>
+        </div>
+    </div>
+    <div class="control-group" id="grp-email">
+        <label class="control-label" for="email"><%= __('register.email') %></label>
+        <div class="controls">
+            <input type="text" id="email" name="email">
+            <span class="help-inline" id="help-email" style="display:none">
+                <%= __('register.error.invalidemail') %>
+            </span>
+        </div>
+    </div>
+    <div class="control-group" id="grp-password">
+        <label class="control-label" for="password"><%= __('register.password') %></label>
+        <div class="controls">
+            <input type="password" id="password" name="password">
+            <span class="help-inline" id="help-password"></span>
+        </div>
+    </div>
+    <div class="control-group" id="grp-passwordr">
+        <label class="control-label" for="passwordr"><%= __('register.passwordr') %></label>
+        <div class="controls">
+            <input type="password" id="passwordr" name="passwordr">
+            <span class="help-inline" id="help-passwordr" style="display:none">
+                <%= __('register.error.passwordmatch') %>
+            </span>
+        </div>
+    </div>
+    <button class="btn primary" type="submit" id="register-submit" disabled="disabled"><%= __('register.submit') %></button>
 </form>
 
 <script>
@@ -45,23 +54,25 @@ if(errors)
         switch(errors[e])
         {
             case "username-invalid":
-                $("label[for=username]").addClass('invalid-value');
+                $("#grp-username").addClass('error');
                 break;
             case "email-invalid":
-                $("label[for=email]").addClass('invalid-value');
+                $("#grp-email").addClass('error');
+                $("#help-email").show();
                 break;
             case "pw-invalid":
-                $("label[for=password]").addClass('invalid-value');
+                $("#grp-password").addClass('error');
                 break;
             case "pwr-invalid":
-                $("label[for=passwordr]").addClass('invalid-value');
+                $("#grp-passwordr").addClass('error');
                 break;
             case "pw-match":
-                $("#pw-match-error").show();
+                $("#grp-passwordr").addClass('error');
+                $("#help-passwordr").show();
                 break;
             case "userexists":
-                $("#nick-error").text("<%= __('register.error.usernametaken') %>");
-                $("#nick-error").show();
+                $("#grp-username").addClass('error');
+                $("#help-username").text("<%= __('register.error.usernametaken') %>");
                 break;
             case "email-error":
                 $("#other-error").text("<%= __('register.error.email') %>");
@@ -82,13 +93,18 @@ if(errors)
 
 $('#passwordr').keyup(function ()
     {
-        if($('#passwordr').val() != $('#password').val())
+        if($('#passwordr').val() != $('#password').val() && $('#passwordr').val().length != 0)
         {
-            $("#pw-match-error").show();
+            $("#grp-passwordr").addClass('error');
+            $("#help-passwordr").show();
+            $('#register-submit').attr('disabled', 'disabled');
         }
         else
         {
-            $("#pw-match-error").hide();
+            $("#grp-passwordr").removeClass('error');
+            $("#help-passwordr").hide();
+            if($('#passwordr').val().length != 0)
+                $('#register-submit').removeAttr('disabled');
         }
     });
 </script>
