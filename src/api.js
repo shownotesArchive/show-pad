@@ -132,14 +132,29 @@ function handleDTSetUser (body, res, cb)
       }
       else
       {
-        switch(body.value)
+        if(body.columnId == 3 &&
+          (body.value == "banned" || body.value == "normal" || body.value == "email"))
         {
-          case "admin":
-            user.roles["admin"] = {};
-            break;
-          case "user":
-            delete user.roles.admin;
-            break;
+          user.status = body.value;
+        }
+        else if(body.columnId == 2 &&
+               (body.value == "admin" || body.value == "user"))
+        {
+          switch(body.value)
+          {
+            case "admin":
+              user.roles["admin"] = {};
+              break;
+            case "user":
+              delete user.roles.admin;
+              break;
+          }
+        }
+        else
+        {
+          res.statusCode = 400;
+          res.end();
+          return;
         }
 
         db.user.updateUser(user);

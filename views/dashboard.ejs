@@ -24,6 +24,7 @@
                 <th><%= __('dashboard.users.name') %></th>
                 <th><%= __('dashboard.users.email') %></th>
                 <th><%= __('dashboard.users.role') %></th>
+                <th><%= __('dashboard.users.status') %></th>
             </thead>
         </table>
     </div>
@@ -52,6 +53,15 @@ $('#usertable')
                     if(oObj.aData.roles["user"] || oObj.aData.roles == "User")
                         return "User";
                 },
+          },
+          {
+            "mData": [ "status" ],
+            "fnRender": function (oObj)
+                {
+                    var status = oObj.aData.status;
+                    status = status.charAt(0).toUpperCase() + status.slice(1);
+                    return status;
+                },
           }
         ]
     })
@@ -68,6 +78,14 @@ $('#usertable')
                 type: 'select',
                 onblur: 'submit',
                 data: "{'admin':'Admin','user':'User'}"
+            },
+            {
+                event: 'click',
+                indicator: '<%= __('dashboard.users.selectstatus') %>',
+                loadtext: 'loading...',
+                type: 'select',
+                onblur: 'submit',
+                data: "{'banned':'Banned','email':'Email','normal':'Normal'}"
             }
         ]
     });
