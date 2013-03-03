@@ -51,7 +51,7 @@ function initConfig(cb)
       }
   });
 
-  sessionSecret = nconf.get("sessions:secret");
+  sessionSecret = nconf.get("sessionSecret");
   if(!sessionSecret || sessionSecret.length == 0)
   {
     console.error("No session-secret given in config.json");
