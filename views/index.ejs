@@ -2,8 +2,8 @@
 <% block('title', "Home") -%>
 <% script('js/etherpad.js') %>
 
-<div id="pad" style="display:one"></div>
-<div id="padlist" style="display:one"></div>
+<div id="pad"></div>
+<div id="padlist"></div>
 
 <script>
 if(document.location.hash.length > 1)
@@ -15,12 +15,21 @@ if(document.location.hash.length > 1)
             'showControls': false,
             'showChat': false,
             'host': '<%=eplurl%>',
-            'height': '350px',
-            'width': '850px'
+            'height': '100%',
+            'width': '100%'
         });
+    $('#fullscreen').show();
+    $('#pad').show();
 }
 else
 {
-    padlist.show();
+    $('#padlist').show();
 }
+
+$('body').css('height', '100%');
+$('body').css('width', '100%');
+$('body').css('position', 'absolute');
+
+var height = $(window).height() - 175;
+$('.container').css('height', height);
 </script>
