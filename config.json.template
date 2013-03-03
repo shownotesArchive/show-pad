@@ -13,5 +13,11 @@
   "mail":
   {
     "from": ""
+  },
+  "etherpad":
+  {
+    "host":"",
+    "port":"",
+    "apikey":""
   }
 }

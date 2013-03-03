@@ -12,18 +12,17 @@
     "express": "~3",
     "connect": "~2",
     "ejs-locals": "~1",
-    "share": "git://github.com/josephg/ShareJS.git",
     "async": "0.2.x",
     "log4js": "0.5.x",
     "cookie": "0.0.5",
-    "cookie-signature": "0.0.1",
     "express-validator": "0.3.x",
     "redis": "0.8.x",
     "ejs": "0.8.x",
     "nconf": "0.6.x",
     "email": "0.2.x",
     "i18n": "0.3.x",
-    "limiter": "~1"
+    "limiter": "~1",
+    "etherpad-lite-client": "*"
   },
   "engines": {
     "node": ">=0.6"

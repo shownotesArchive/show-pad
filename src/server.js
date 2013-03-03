@@ -1,10 +1,8 @@
 var express   = require('express')
-  , ShareJS   = require('share').server
   , ejslocals = require('ejs-locals')
   , async     = require('async')
   , log4js    = require('log4js')
   , cookie    = require('cookie')
-  , signature = require('cookie-signature')
   , nconf     = require('nconf')
   , email     = require('email').Email
   , ejs       = require('ejs')
@@ -12,11 +10,15 @@ var express   = require('express')
   , crypto    = require('crypto')
   , i18n      = require("i18n")
   , path      = require('path')
+  , eplapi    = require('etherpad-lite-client')
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator');
 
 var db            = require('./db.js')
   , api           = require('./api.js')
+  , etherpad      = null
+  , eplurl        = ""
+  , groupID       = null
   , app           = null
   , sessionStore  = null
   , sessionSecret = null;
@@ -29,6 +31,7 @@ console.info("Let's go");
 async.series([
   initConfig,
   initDatabase,
+  initEtherpad,
   initApi,
   initi18n,
   initServer,
@@ -65,6 +68,80 @@ function initDatabase(cb)
 {
   console.info("Initiating database..");
   db.init(nconf.get("database"), cb);
+}
+
+function initEtherpad(cb)
+{
+  console.info("Initiating etherpad..");
+  async.series(
+    [
+      // connect to epl
+      function (cb)
+      {
+        var conf = nconf.get('etherpad');
+        eplurl = "http://" + conf.host + ":" + conf.port;
+        etherpad = eplapi.connect(conf);
+        cb();
+      },
+      // create the group
+      function (cb)
+      {
+        etherpad.createGroupIfNotExistsFor(
+          {
+            groupMapper: "showpad"
+          },
+          function (err, data)
+          {
+            if(!err)
+            {
+              eplGroupID = data.groupID;
+              console.debug("our groupid is " + eplGroupID);
+            }
+            cb(err);
+          }
+        );
+      },
+      // delete all existing sessions in this group
+      function (cb)
+      {
+        etherpad.listSessionsOfGroup(
+        {
+          groupID: eplGroupID
+        },
+        function (err, data)
+        {
+          if(err)
+          {
+            console.error("Error whole deleting sessions: ");
+            console.error(err)
+            process.exit(1);
+          }
+          else
+          {
+            if(data == null)
+            {
+              cb();
+            }
+            else
+            {
+              var sessionIds = Object.keys(data);
+              console.debug("deleting " + sessionIds.length + " old sessions..");
+              async.forEach(
+                sessionIds,
+                function(item, done)
+                {
+                  etherpad.deleteSession({sessionID:item}, done);
+                },
+                function(err)
+                {
+                  cb(err);
+                }
+              );
+            }
+          }
+        });
+      }
+    ], cb);
 }
 
 function initApi(cb)
@@ -112,13 +189,6 @@ function initServer(cb)
         next();
       });
 
-    console.info("Initiating server-ShareJS..");
-    ShareJS.attach(app, 
-      {
-        db: { client: db.getClient() },
-        auth: authenticate
-      });
-
     app.use(express.bodyParser());
     app.use(expressValidator);
 
@@ -147,7 +217,7 @@ function initServer(cb)
 
     console.info("Initiating server-routes..");
     // routes
-    app.get('/', function(req, res) { res.render('index'); });
+    app.get('/', function(req, res) { res.render('index', { eplurl: eplurl, groupID: eplGroupID }); });
 
     // UI
     app.get('/login', function(req, res) { res.render('login'); });
@@ -158,11 +228,7 @@ function initServer(cb)
 
     app.get('/dashboard', function(req, res) { res.render('dashboard'); });
 
-    app.get('/logout', function(req, res)
-      {
-        req.session.user = null;
-        res.redirect('/');
-      });
+    app.get('/logout', processLogout);
 
     // email activation
     app.get('/activate/:username/:token', processEmailActivation);
@@ -231,12 +297,96 @@ function processLogin (req, res)
           }
           else
           {
-            console.info("[" + username + "] Logged in");
-            req.session.user = username;
-            res.redirect('/');
+            // groupID is defined in server.js
+            var authorID;
+            var sessionID;
+
+            async.series(
+              [
+                // create author
+                function (cb)
+                {
+                  etherpad.createAuthorIfNotExistsFor(
+                    {
+                      name: username,
+                      authorMapper: username
+                    },
+                    function (err, data)
+                    {
+                      if(!err)
+                      {
+                        authorID = data.authorID;
+                        console.debug("[" + username + "] AuthorID: " + authorID);
+                      }
+                      cb(err);
+                    });
+                },
+                // create session
+                function (cb)
+                {
+                  etherpad.createSession(
+                    {
+                      authorID: authorID,
+                      groupID: eplGroupID,
+                      validUntil: new Date().getTime() + 86400000
+                    },
+                    function (err, data)
+                    {
+                      if(!err)
+                      {
+                        sessionID = data.sessionID;
+                        console.debug("[" + username + "] SessionID: " + sessionID);
+                      }
+                      cb(err);
+                    });
+                }
+              ],
+              function (err, result)
+              {
+                if(err)
+                {
+                  console.info("[" + username + "] Login failed (epl): " + error);
+                  res.redirect('/login?error=epl&values=' + JSON.stringify(values));
+                }
+                else
+                {
+                  console.info("[" + username + "] Logged in");
+                  req.session.user = username;
+                  res.cookie("sessionID", sessionID, { maxAge: 900000, httpOnly: false});
+                  user.eplSession = sessionID;
+                  db.user.updateUser(user);
+                  res.redirect('/');
+                }
+              });
           }
         });
     });
+}
+
+function processLogout (req, res)
+{
+  var username = req.session.user;
+
+  // delete our session
+  req.session.user = null;
+  console.debug("[" + username + "] Logged out");
+
+  // delete epl session
+  if(res.locals.user)
+  {
+    var sid = res.locals.user.eplSession;
+    etherpad.deleteSession({sessionID: sid},
+      function (err, data)
+      {
+        if(err)
+          console.error("[" + username + "] could not delete epl-session: " + sid);
+        else
+          console.debug("[" + username + "] epl-session deleted: " + sid);
+
+        // redirect the user back to the index
+        res.redirect('/');
+      });
+  }
 }
 
 function processRegister (req, res)
@@ -433,90 +583,4 @@ function sendMail(template, locals, to, subject, cb)
         msg.send(_cb);
       }
     ], cb);
-}
-
-function authenticate(agent, action)
-{
-  async.waterfall([
-      // get the session-id
-      function (cb)
-      {
-        var cookies = cookie.parse(agent.headers.cookie);
-        var sid = cookies["connect.sid"];
-        sid = signature.unsign(sid.slice(2), sessionSecret);
-        cb(null, sid);
-      },
-      // get the session-object
-      function (sid, cb)
-      {
-        sessionStore.get(sid, cb);
-      },
-      // get the user
-      function (session, cb)
-      {
-        // when memoryStore does not give us a single parameter back..
-        if(!cb && typeof session == "function")
-          cb = session;
-
-        session = session || {};
-        var username = session.user;
-        if(username)
-          db.user.getUser(username, cb);
-        else
-          cb(null, null);
-      },
-      // process the action
-      function (user, cb)
-      {
-        var name = "unnamed";
-        if(user)
-          name = user.username;
-
-        switch(action.type)
-        {
-         // connecting for everyone, also set the name
-         case "connect":
-            agent.name = name;
-            handleAction(action, name, true);
-            break;
-
-          // creating for admins
-         case "create":
-            if(user && user.hasRole('admin'))
-              handleAction(action, name, true);
-            else
-              handleAction(action, name, false);
-            break;
-
-          // updating for registered users
-         case "update":
-            if(user)
-              handleAction(action, name, true);
-            else
-              handleAction(action, name, false);
-            break;
-
-          // allow read for everyone
-          case "read":
-            handleAction(action, name, true);
-            break;
-
-          // forbid delete for everyone
-          case "delete":
-            handleAction(action, name, false);
-            break;
-        }
-      }
-    ]);
-}
-
-function handleAction(action, username, accept)
-{
-  if(["update"].indexOf(action.type) == -1)
-    console.debug("[" + username + "] [" + action.docName + "] ShareJS-Action: " + action.type + (accept ? " accepted" : " rejected"));
-
-  if(accept)
-    action.accept();
-  else
-    action.reject();
 }

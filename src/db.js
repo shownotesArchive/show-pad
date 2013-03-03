@@ -23,11 +23,6 @@ exports.quit = function (cb)
   client.quit(cb);
 }
 
-exports.getClient = function ()
-{
-  return client;
-}
-
 function initRedis(cb)
 {
   client = redis.createClient(options.socket);
