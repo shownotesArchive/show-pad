@@ -3,7 +3,7 @@ ShowPad
 
 A realtime web application written in node.js whose aim it is to replace
 the current etherpad-solution and provide a perfect enviroment to write
-shownotes for various german podcasts. See also: http://shownot.es/
+shownotes for various podcasts. See also: http://shownot.es/
 
 The favicon is a modified version of the [shownotes-icon](https://github.com/shownotes/shownot.es/blob/master/favicon.ico).
 
@@ -27,3 +27,5 @@ Technologies used
   * [noisetexturegenerator](http://noisetexturegenerator.com/)
 
 Last but not least, the syncing is done by [ShareJS](http://sharejs.org/).
+
+[![flattr](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1160045/)
