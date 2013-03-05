@@ -10,20 +10,21 @@ var express   = require('express')
   , crypto    = require('crypto')
   , i18n      = require("i18n")
   , path      = require('path')
-  , eplapi    = require('etherpad-lite-client')
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator');
 
 var db            = require('./db.js')
   , api           = require('./api.js')
-  , etherpad      = null
-  , eplurl        = ""
-  , groupID       = null
   , app           = null
   , sessionStore  = null
   , sessionSecret = null;
 
+// exports for doctpyes
+exports.nconf = nconf;
+exports.db = db;
+
 var registerLimiters = {};
+var documentTypes = {};
 
 log4js.replaceConsole();
 console.info("Let's go");
@@ -31,7 +32,7 @@ console.info("Let's go");
 async.series([
   initConfig,
   initDatabase,
-  initEtherpad,
+  initDocTypes,
   initApi,
   initi18n,
   initServer,
@@ -70,78 +71,29 @@ function initDatabase(cb)
   db.init(nconf.get("database"), cb);
 }
 
-function initEtherpad(cb)
+function initDocTypes(cb)
 {
-  console.info("Initiating etherpad..");
-  async.series(
-    [
-      // connect to epl
-      function (cb)
+  console.info("Initiating doctypes..");
+  fs.readdir('./src/documenttypes', function (err, files)
+    {
+      if(err)
       {
-        var conf = nconf.get('etherpad');
-        eplurl = "http://" + conf.host + ":" + conf.port;
-        etherpad = eplapi.connect(conf);
+        console.error("Could not load doctypes: " + err);
         cb();
-      },
-      // create the group
-      function (cb)
-      {
-        etherpad.createGroupIfNotExistsFor(
-          {
-            groupMapper: "showpad"
-          },
-          function (err, data)
-          {
-            if(!err)
-            {
-              eplGroupID = data.groupID;
-              console.debug("our groupid is " + eplGroupID);
-            }
-            cb(err);
-          }
-        );
-      },
-      // delete all existing sessions in this group
-      function (cb)
-      {
-        etherpad.listSessionsOfGroup(
-        {
-          groupID: eplGroupID
-        },
-        function (err, data)
-        {
-          if(err)
-          {
-            console.error("Error whole deleting sessions: ");
-            console.error(err)
-            process.exit(1);
-          }
-          else
-          {
-            if(data == null)
-            {
-              cb();
-            }
-            else
-            {
-              var sessionIds = Object.keys(data);
-              console.debug("deleting " + sessionIds.length + " old sessions..");
-              async.forEach(
-                sessionIds,
-                function(item, done)
-                {
-                  etherpad.deleteSession({sessionID:item}, done);
-                },
-                function(err)
-                {
-                  cb(err);
-                }
-              );
-            }
-          }
-        });
+        return;
       }
-    ], cb);
+
+      console.debug("Found " + files.length + " doctypes!");
+
+      async.eachSeries(files,
+        function (file, cb)
+        {
+          var t = require('./documenttypes/' + file);
+          documentTypes[t.name] = t;
+          console.info("Initiating doctype: " + t.name + "...");
+          documentTypes[t.name].init(exports, cb);
+        }, cb);
+    });
 }
 
 function initApi(cb)
@@ -165,81 +117,84 @@ function initi18n(cb)
 function initServer(cb)
 {
   console.info("Initiating server..");
+
   app = express();
-  app.configure(function()
-  {
-    app.engine('ejs', ejslocals);
-    app.set('view engine', 'ejs');
-    app.use(express.static(path.resolve(__dirname + '/../static')));
-    app.use(express.cookieParser());
+  app.engine('ejs', ejslocals);
+  app.set('view engine', 'ejs');
+  app.use(express.static(path.resolve(__dirname + '/../static')));
+  app.use(express.cookieParser());
 
-    console.info("Initiating server-i18n..");
-    app.use(i18n.init);
+  console.info("Initiating server-i18n..");
+  app.use(i18n.init);
 
-    // binding template helpers to request (Credits to https://github.com/enyo #12)
-    app.use(function(req, res, next)
+  // binding template helpers to request (Credits to https://github.com/enyo #12)
+  app.use(function(req, res, next)
+    {
+      res.locals.__ = function() {
+        return i18n.__.apply(req, arguments);
+      };
+      res.locals.__n = function() {
+        return i18n.__n.apply(req, arguments);
+      };
+      // do not forget this, otherwise your app will hang
+      next();
+    });
+
+  app.use(express.bodyParser());
+  app.use(expressValidator);
+
+  // sessions
+  sessionStore = new express.session.MemoryStore();
+  app.use(express.session({ secret: sessionSecret, store: sessionStore }));
+
+  app.use(function(req, res, next)
+    {
+      res.locals.user = null;
+      res.locals.page = req.path;
+      if(!req.session.user)
       {
-        res.locals.__ = function() {
-          return i18n.__.apply(req, arguments);
-        };
-        res.locals.__n = function() {
-          return i18n.__n.apply(req, arguments);
-        };
-        // do not forget this, otherwise your app will hang
         next();
-      });
-
-    app.use(express.bodyParser());
-    app.use(expressValidator);
-
-    // sessions
-    sessionStore = new express.session.MemoryStore();
-    app.use(express.session({ secret: sessionSecret, store: sessionStore }));
-
-    app.use(function(req, res, next)
+      }
+      else
       {
-        res.locals.user = null;
-        res.locals.page = req.path;
-        if(!req.session.user)
-        {
-          next();
-        }
-        else
-        {
-          db.user.getUser(req.session.user, function (err, user)
-            {
-              if(!err)
-                res.locals.user = user;
-              next();
-            });
-        }
-      });
+        db.user.getUser(req.session.user, function (err, user)
+          {
+            if(!err)
+              res.locals.user = user;
+            next();
+          });
+      }
+    });
 
-    console.info("Initiating server-routes..");
-    // routes
-    app.get('/', function(req, res) { res.render('index', { eplurl: eplurl, groupID: eplGroupID }); });
+  for(var t in documentTypes)
+  {
+    documentTypes[t].initExpress(app);
+  }
 
-    // UI
-    app.get('/login', function(req, res) { res.render('login'); });
-    app.post('/login', processLogin);
+  console.info("Initiating server-routes..");
+  // routes
+  app.get('/', function(req, res) { res.render('index', {  }); }); // eplurl: eplurl, groupID: eplGroupID
 
-    app.get('/register', function(req, res) { res.render('register'); });
-    app.post('/register', processRegister);
+  // UI
+  app.get('/login', function(req, res) { res.render('login'); });
+  app.post('/login', processLogin);
 
-    app.get('/dashboard', function(req, res) { res.render('dashboard'); });
+  app.get('/register', function(req, res) { res.render('register'); });
+  app.post('/register', processRegister);
 
-    app.get('/logout', processLogout);
+  app.get('/dashboard', function(req, res) { res.render('dashboard'); });
 
-    // email activation
-    app.get('/activate/:username/:token', processEmailActivation);
+  app.get('/logout', processLogout);
 
-    // API
-    app.get('/api/:version/users', function (req, res) { api.handle('get-users', req, res); });
-    app.get('/api/:version/users/:name', function (req, res) { api.handle('get-user', req, res); });
-    app.post('/api/:version/users-dt', function (req, res) { api.handle('dt-set-user', req, res); });
+  // email activation
+  app.get('/activate/:username/:token', processEmailActivation);
 
-    cb(null);
-  });
+  // API
+  app.get('/api/:version/users', function (req, res) { api.handle('get-users', req, res); });
+  app.get('/api/:version/users/:name', function (req, res) { api.handle('get-user', req, res); });
+  app.post('/api/:version/users-dt', function (req, res) { api.handle('dt-set-user', req, res); });
+
+  cb(null);
 }
 
 function startServer(cb)
@@ -297,67 +252,28 @@ function processLogin (req, res)
           }
           else
           {
-            // groupID is defined in server.js
-            var authorID;
-            var sessionID;
+            if(err)
+            {
+              console.info("[" + username + "] Login failed (epl): " + error);
+              res.redirect('/login?error=epl&values=' + JSON.stringify(values));
+            }
+            else
+            {
+              console.info("[" + username + "] Logged in");
+              req.session.user = username;
 
-            async.series(
-              [
-                // create author
-                function (cb)
+              async.eachSeries(Object.keys(documentTypes),
+                function (type, cb)
                 {
-                  etherpad.createAuthorIfNotExistsFor(
-                    {
-                      name: username,
-                      authorMapper: username
-                    },
-                    function (err, data)
-                    {
-                      if(!err)
-                      {
-                        authorID = data.authorID;
-                        console.debug("[" + username + "] AuthorID: " + authorID);
-                      }
-                      cb(err);
-                    });
+                  type = documentTypes[type];
+                  console.debug("[" + username + "] starting " + type.name + "-login");
+                  type.onLogin(user, req, res, cb);
                 },
-                // create session
-                function (cb)
+                function (err, result)
                 {
-                  etherpad.createSession(
-                    {
-                      authorID: authorID,
-                      groupID: eplGroupID,
-                      validUntil: new Date().getTime() + 86400000
-                    },
-                    function (err, data)
-                    {
-                      if(!err)
-                      {
-                        sessionID = data.sessionID;
-                        console.debug("[" + username + "] SessionID: " + sessionID);
-                      }
-                      cb(err);
-                    });
-                }
-              ],
-              function (err, result)
-              {
-                if(err)
-                {
-                  console.info("[" + username + "] Login failed (epl): " + error);
-                  res.redirect('/login?error=epl&values=' + JSON.stringify(values));
-                }
-                else
-                {
-                  console.info("[" + username + "] Logged in");
-                  req.session.user = username;
-                  res.cookie("sessionID", sessionID, { maxAge: 900000, httpOnly: false});
-                  user.eplSession = sessionID;
-                  db.user.updateUser(user);
                   res.redirect('/');
-                }
-              });
+                });
+            }
           }
         });
     });
@@ -367,26 +283,21 @@ function processLogout (req, res)
 {
   var username = req.session.user;
 
-  // delete our session
-  req.session.user = null;
-  console.debug("[" + username + "] Logged out");
-
-  // delete epl session
-  if(res.locals.user)
-  {
-    var sid = res.locals.user.eplSession;
-    etherpad.deleteSession({sessionID: sid},
-      function (err, data)
-      {
-        if(err)
-          console.error("[" + username + "] could not delete epl-session: " + sid);
-        else
-          console.debug("[" + username + "] epl-session deleted: " + sid);
-
-        // redirect the user back to the index
-        res.redirect('/');
-      });
-  }
+async.eachSeries(Object.keys(documentTypes),
+    function (type, cb)
+    {
+      type = documentTypes[type];
+      console.debug("[" + username + "] starting " + type.name + "-logout");
+      type.onLogout(user, req, res, cb);
+    },
+    function (err, result)
+    {
+      // delete our session
+      req.session.user = null;
+      console.debug("[" + username + "] Logged out");
+      // redirect the user back to the index
+      res.redirect('/');
+    });
 }
 
 function processRegister (req, res)
@@ -499,8 +410,18 @@ function processRegister (req, res)
                 }
                 else
                 {
-                  console.info("[" + username + "] Registered");
-                  res.redirect('/login');
+                  async.eachSeries(Object.keys(documentTypes),
+                    function (type, cb)
+                    {
+                      type = documentTypes[type];
+                      console.debug("[" + username + "] starting " + type.name + "-register");
+                      type.onLogout(user, req, res, cb);
+                    },
+                    function (err, result)
+                    {
+                      console.info("[" + username + "] Registered");
+                      res.redirect('/login');
+                    });
                 }
               });
           }
