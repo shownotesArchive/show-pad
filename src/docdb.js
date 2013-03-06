@@ -48,3 +48,33 @@ exports.getDoc = function (docname, cb)
       }
     });
 }
+
+exports.getDocs = function (cb)
+{
+  async.waterfall([
+      // get all doc-names
+      function (_cb)
+      {
+        client.keys('doc:*', _cb);
+      },
+      // get all docs
+      function (_docs, _cb)
+      {
+        var multi = client.multi();
+        for(var id in _docs)
+        {
+          multi.get(_docs[id]);
+        }
+        multi.exec(_cb);
+      },
+      // parse all docs
+      function (_docs, _cb)
+      {
+        for(var id in _docs)
+        {
+          _docs[id] = JSON.parse(_users[id]);
+        }
+        _cb(null, _docs);
+      }
+    ], cb);
+}
