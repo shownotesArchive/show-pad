@@ -139,6 +139,7 @@ exports.onLogin = function (user, req, res, cb)
         server.db.user.updateUser(user);
         res.cookie("sessionID", sessionID, { maxAge: 900000, httpOnly: false});
         console.debug("[epl] [" + user.username + "] Logged in");
+        cb();
       }
     ], cb);
 }
