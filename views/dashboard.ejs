@@ -65,8 +65,9 @@ $('#usertable')
           }
         ]
     })
-    .makeEditable({
-        "sUpdateURL": '/api/1/users-dt/',
+    .makeEditable(
+    {
+        "sUpdateURL": '/api/1/users/?datatables=1',
         "aoColumns":
         [
             null,
