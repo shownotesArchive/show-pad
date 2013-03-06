@@ -1,4 +1,6 @@
 {
+    "index.activedocs": "Active docs",
+
     "login": "Login",
     "login.username": "Username",
     "login.password": "Password",

@@ -1,10 +1,10 @@
 var async  = require('async')
   , eplapi = require('etherpad-lite-client');
 
-var server
-  , etherpad = null
-  , eplurl   = ""
-  , groupID  = null;
+var server     = null
+  , etherpad   = null
+  , eplurl     = ""
+  , eplGroupID = null;
 
 exports.name = "etherpad";
 
@@ -91,7 +91,7 @@ exports.initExpress = function (app)
 
 exports.onLogin = function (user, req, res, cb)
 {
-  var authorID, groupID, sessionID;
+  var authorID, sessionID;
 
   async.series(
     [
@@ -165,4 +165,18 @@ exports.onLogout = function (req, res, cb)
         cb();
       });
   }
+}
+
+exports.onRequestDoc = function (req, res, user, doc, cb)
+{
+  var locals =
+    {
+      docname: doc.name,
+      groupID: eplGroupID,
+      eplurl: eplurl,
+      padId: req.params.docname
+    };
+
+  res.render('documenttypes/etherpad.ejs', locals);
+  cb();
 }

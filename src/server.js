@@ -98,6 +98,7 @@ function initDocTypes(cb)
 
 function initApi(cb)
 {
+  console.info("Initiating api..");
   api.init(db, cb);
 }
 
@@ -173,7 +174,8 @@ function initServer(cb)
 
   console.info("Initiating server-routes..");
   // routes
-  app.get('/', function(req, res) { res.render('index', {  }); }); // eplurl: eplurl, groupID: eplGroupID
+  app.get('/', function (req, res) { res.render('index'); });
+  app.get('/doc/:docname', processDoc);
 
   // UI
   app.get('/login', function(req, res) { res.render('login'); });
@@ -200,6 +202,42 @@ function startServer(cb)
 {
   console.info("Starting database..");
   app.listen(nconf.get("http:port"), nconf.get("http:ip"), cb);
+}
+
+function processDoc (req, res)
+{
+  var docname = req.params.docname;
+  var doc, doctype;
+
+  async.waterfall(
+    [
+      // request doc
+      function (cb)
+      {
+        db.doc.getDoc(docname, cb);
+      },
+      // get doc
+      function (_doc, cb)
+      {
+        if(!_doc)
+        {
+          res.render('doc', { error: "nodoc" });
+          return;
+        }
+
+        doc = _doc;
+        doctype = documentTypes[doc.type];
+        doctype.onRequestDoc(req, res, res.locals.user, doc, cb);
+      }
+    ],
+    function (err)
+    {
+      if(err)
+      {
+        console.log("Error while showing doc: " + err);
+        res.render('doc', { error: err });
+      }
+    });
 }
 
 function processLogin (req, res)

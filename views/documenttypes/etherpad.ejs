@@ -1,0 +1,26 @@
+<% layout('../doc.ejs') %>
+<% block('title', padId) -%>
+<% script('/js/etherpad.js') %>
+
+<div id="pad"></div>
+
+<script>
+// show pad
+$('#pad').pad(
+    {
+        'padId': '<%=groupID%>$<%=padId%>',
+        'showControls': false,
+        'showChat': false,
+        'host': '<%=eplurl%>',
+        'height': '100%',
+        'width': '100%'
+    });
+
+// full heigth
+$('body').css('height', '100%');
+$('body').css('width', '100%');
+$('body').css('position', 'absolute');
+
+var height = $(window).height() - 175;
+$('.container').css('height', height);
+</script>

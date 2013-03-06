@@ -2,34 +2,4 @@
 <% block('title', "Home") -%>
 <% script('js/etherpad.js') %>
 
-<div id="pad"></div>
-<div id="padlist"></div>
-
-<script>
-if(document.location.hash.length > 1)
-{
-    var padId = '<%=groupID%>$' + document.location.hash.slice(1);
-    $('#pad').pad(
-        {
-            'padId': padId,
-            'showControls': false,
-            'showChat': false,
-            'host': '<%=eplurl%>',
-            'height': '100%',
-            'width': '100%'
-        });
-    $('#fullscreen').show();
-    $('#pad').show();
-}
-else
-{
-    $('#padlist').show();
-}
-
-$('body').css('height', '100%');
-$('body').css('width', '100%');
-$('body').css('position', 'absolute');
-
-var height = $(window).height() - 175;
-$('.container').css('height', height);
-</script>
+<h3><%= __('index.activedocs') %></h3>
