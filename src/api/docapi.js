@@ -55,3 +55,16 @@ exports.setOneDT = function (body, res, params, query, answerRequest)
 {
   // do nothing
 }
+
+exports.createOne = function (body, res, params, query, answerRequest)
+{
+  var doc = body;
+
+  db.doc.createDoc(doc.docname, doc.type, function (err)
+    {
+      if(err)
+        answerRequest(res, 500, err, null);
+      else
+        answerRequest(res, 200, "ok", doc);
+    });
+}

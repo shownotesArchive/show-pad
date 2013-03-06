@@ -70,7 +70,7 @@ exports.handleRequest = function (req, res)
     if(query.datatables)
       endpoint.setOneDT(req.body, res, params, query, answerRequest);
     else
-      answerRequest(res, 400, "Not supported", null)
+      endpoint.createOne(req.body, res, params, query, answerRequest);
   }
 }
 

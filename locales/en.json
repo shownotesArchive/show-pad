@@ -32,11 +32,19 @@
 
     "dashboard": "Dashboard",
     "dashboard.users": "Users",
-    "dashboard.docs": "Documents",
     "dashboard.users.name": "Name",
     "dashboard.users.email": "E-Mail",
     "dashboard.users.role": "Role",
     "dashboard.users.selectrole": "Select role..",
     "dashboard.users.status": "Status",
-    "dashboard.users.selectstatus": "Select status.."
+    "dashboard.users.selectstatus": "Select status..",
+    "dashboard.docs": "Documents",
+    "dashboard.docs.name": "Name",
+    "dashboard.docs.type": "Type",
+    "dashboard.docs.create": "Create",
+    "dashboard.docs.create.name": "Name:",
+    "dashboard.docs.create.type": "Type:",
+    "dashboard.docs.create.submit": "Create",
+    "dashboard.docs.create.error.exists": "This name is already taken.",
+    "dashboard.docs.create.error.other": "That did not work."
 }

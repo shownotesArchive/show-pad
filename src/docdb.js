@@ -72,7 +72,7 @@ exports.getDocs = function (cb)
       {
         for(var id in _docs)
         {
-          _docs[id] = JSON.parse(_users[id]);
+          _docs[id] = JSON.parse(_docs[id]);
         }
         _cb(null, _docs);
       }

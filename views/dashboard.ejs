@@ -10,6 +10,10 @@
 <!-- ShowPad -->
 <% stylesheet('css/dashboard.css') %>
 
+<!-- Bootstrap-like select -->
+<% script('js/bootstrap-select.min.js') %>
+<% stylesheet('css/bootstrap-select.min.css') %> 
+
 <% script('http://twitter.github.com/bootstrap/1.4.0/bootstrap-tabs.js') %>
 
 <div id="tabs">
@@ -29,12 +33,77 @@
         </table>
     </div>
     <div class="tab-pane" id="docs">
-        <table id="padtable"></table>
+        <table id="padtable">
+            <thead>
+                <th><%= __('dashboard.docs.name') %></th>
+                <th><%= __('dashboard.docs.type') %></th>
+            </thead>
+        </table>
+        <br>
+        <div "newdoc">
+            <h3><%= __('dashboard.docs.create') %></h3>
+            <div class="alert alert-error" id="create-error" style="display:none"></div>
+            <div class="form-inline">
+                <label class="control-label" for="docname"><%= __('dashboard.docs.create.name') %></label>
+                <input type="text" id="docname" name="docname">
+
+                <label class="control-label" for="doctype"><%= __('dashboard.docs.create.type') %></label>
+                <select id="doctype" name="doctype" class="selectpicker">
+                    <option value="etherpad">Etherpad</option>
+                </select>
+                
+                <button class="btn primary" type="submit" id="create-doc"><%= __('dashboard.docs.create.submit') %></button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+$('select').selectpicker();
+
+$('#create-doc').click(function ()
+{
+    $.post('api/1/docs', { docname: $('#docname').val(), type: $('#doctype').val() })
+        .done(function (res)
+            {
+                var doc = JSON.parse(res).data;
+                padtable.fnAddData(
+                    {
+                        docname: doc.docname,
+                        type: doc.type
+                    });
+                $('#create-error').hide();
+            })
+        .fail(function (res)
+            {
+                var msg = JSON.parse(res.responseText).message;
+                switch(msg)
+                {
+                    case "docexists":
+                        $('#create-error').text("<%= __('dashboard.docs.create.error.exists') %>");
+                        break;
+                    default:
+                        $('#create-error').text("<%= __('dashboard.docs.create.error.other') %>");
+                        break;
+                }
+                $('#create-error').show();
+            });
+})
+
 $.fn.dataTableExt.sErrMode = 'throw';
+
+padtable = $('#padtable')
+    .dataTable(
+    {
+        "bProcessing": true,
+        "sAjaxSource": "/api/1/docs/?datatables=1",
+        "sAjaxDataProp": "data",
+        "aoColumns": [
+          { "mData": [ "docname" ] },
+          { "mData": [ "type" ] }
+        ]
+    });
+
 $('#usertable')
     .dataTable(
     {
@@ -90,6 +159,5 @@ $('#usertable')
             }
         ]
     });
-//$('#padtable').dataTable();
 </script>
  
