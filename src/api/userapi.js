@@ -51,8 +51,7 @@ exports.getMany = function (res, params, query, answerRequest)
           users[id].DT_RowId = users[id].username;
       }
 
-      var statusCode = users.length == 0 ? 204 : 200;
-      answerRequest(res, statusCode, "ok", users);
+      answerRequest(res, 200, "ok", users);
     }
   });
 }

@@ -46,8 +46,7 @@ exports.getMany = function (res, params, query, answerRequest)
           docs[id].DT_RowId = docs[id].docname;
       }
 
-      var statusCode = docs.length == 0 ? 204 : 200;
-      answerRequest(res, statusCode, "ok", docs);
+      answerRequest(res, 200, "ok", docs);
     }
   });
 }
