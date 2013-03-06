@@ -190,9 +190,8 @@ function initServer(cb)
   app.get('/activate/:username/:token', processEmailActivation);
 
   // API
-  app.get('/api/:version/users', function (req, res) { api.handle('get-users', req, res); });
-  app.get('/api/:version/users/:name', function (req, res) { api.handle('get-user', req, res); });
-  app.post('/api/:version/users-dt', function (req, res) { api.handle('dt-set-user', req, res); });
+  app.get('/api/:version/:endpoint/:entity?', api.handleRequest);
+  app.post('/api/:version/:endpoint/:entity?', api.handleRequest);
 
   cb(null);
 }
