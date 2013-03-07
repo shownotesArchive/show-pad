@@ -25,6 +25,7 @@ exports.db = db;
 
 var registerLimiters = {};
 var documentTypes = {};
+exports.documentTypes = documentTypes;
 
 log4js.replaceConsole();
 console.info("Let's go");
@@ -99,7 +100,7 @@ function initDocTypes(cb)
 function initApi(cb)
 {
   console.info("Initiating api..");
-  api.init(db, cb);
+  api.init(exports, cb);
 }
 
 function initi18n(cb)

@@ -1,10 +1,12 @@
-var db;
+var db
+  , server;
 
 exports.name = "docs";
 
-exports.init = function (_db, cb)
+exports.init = function (_db, _server, cb)
 {
   db = _db;
+  server = _server;
   cb();
 }
 
@@ -63,8 +65,19 @@ exports.createOne = function (body, res, params, query, answerRequest)
   db.doc.createDoc(doc.docname, doc.type, function (err)
     {
       if(err)
+      {
         answerRequest(res, 500, err, null);
+      }
       else
-        answerRequest(res, 200, "ok", doc);
+      {
+        server.documentTypes[doc.type].onCreateDoc(doc.docname,
+          function (err)
+          {
+            if(err)
+              answerRequest(res, 500, err, null);
+            else
+              answerRequest(res, 200, "ok", doc);
+          });
+      }
     });
 }

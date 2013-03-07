@@ -1,13 +1,15 @@
 var async  = require('async')
   , fs    = require('fs')
   , debug = false // disabled access control
+  , server
   , db;
 
 var endpoints = {};
 
-exports.init = function (_db, _cb)
+exports.init = function (_server, _cb)
 {
-  db = _db;
+  server = _server;
+  db = server.db;
 
   fs.readdir('./src/api', function (err, files)
   {
@@ -26,7 +28,7 @@ exports.init = function (_db, _cb)
 
         console.debug("Initiating endpoint: " + endpoint.name + "...");
         endpoints[endpoint.name] = endpoint;
-        endpoints[endpoint.name].init(db, cb);
+        endpoints[endpoint.name].init(db, server, cb);
       }, _cb);
   });
 }

@@ -2,7 +2,7 @@ var db;
 
 exports.name = "users";
 
-exports.init = function (_db, cb)
+exports.init = function (_db, _server, cb)
 {
   db = _db;
   cb();

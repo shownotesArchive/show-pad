@@ -167,6 +167,11 @@ exports.onLogout = function (req, res, cb)
   }
 }
 
+exports.onCreateDoc = function (docname, cb)
+{
+  etherpad.createGroupPad({ groupID: eplGroupID, padName: docname }, cb);
+}
+
 exports.onRequestDoc = function (req, res, user, doc, cb)
 {
   var locals =
