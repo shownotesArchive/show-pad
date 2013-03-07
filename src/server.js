@@ -319,9 +319,16 @@ function processLogin (req, res)
 
 function processLogout (req, res)
 {
-  var username = req.session.user;
+  var user = res.locals.user;
+  if(!user)
+  {
+      res.redirect('/');
+      return;
+  }
 
-async.eachSeries(Object.keys(documentTypes),
+  var username = user.username;
+
+  async.eachSeries(Object.keys(documentTypes),
     function (type, cb)
     {
       type = documentTypes[type];

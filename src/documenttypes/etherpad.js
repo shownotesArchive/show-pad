@@ -149,12 +149,14 @@ exports.onRegister = function (user, cb)
   // do nothing
 }
 
-exports.onLogout = function (req, res, cb)
+exports.onLogout = function (user, req, res, cb)
 {
   // delete epl session
-  if(res.locals.user)
+  var sid = user.eplSession;
+  var username = user.username;
+
+  if(sid)
   {
-    var sid = res.locals.user.eplSession;
     etherpad.deleteSession({sessionID: sid},
       function (err, data)
       {
