@@ -48,5 +48,6 @@
     "dashboard.docs.create.type": "Typ:",
     "dashboard.docs.create.submit": "Erstellen",
     "dashboard.docs.create.error.exists": "Dieser Name ist bereits belegt.",
-    "dashboard.docs.create.error.other": "Es ist ein Fehler beim aufgetreten."
+    "dashboard.docs.create.error.other": "Es ist ein Fehler beim aufgetreten.",
+    "dashboard.docs.create.success": "Das Dokument wurde erfolgreich erstellt!"
 }

@@ -43,6 +43,7 @@
         <div "newdoc">
             <h3><%= __('dashboard.docs.create') %></h3>
             <div class="alert alert-error" id="create-error" style="display:none"></div>
+            <div class="alert alert-success" id="create-success" style="display:none"><%= __('dashboard.docs.create.success') %></span></div>
             <div class="form-inline">
                 <label class="control-label" for="docname"><%= __('dashboard.docs.create.name') %></label>
                 <input type="text" id="docname" name="docname">
@@ -72,6 +73,7 @@ $('#create-doc').click(function ()
                         docname: doc.docname,
                         type: doc.type
                     });
+                $('#create-success').show();
                 $('#create-error').hide();
             })
         .fail(function (res)
@@ -86,6 +88,7 @@ $('#create-doc').click(function ()
                         $('#create-error').text("<%= __('dashboard.docs.create.error.other') %>");
                         break;
                 }
+                $('#create-success').hide();
                 $('#create-error').show();
             });
 })

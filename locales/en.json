@@ -48,5 +48,6 @@
     "dashboard.docs.create.type": "Type:",
     "dashboard.docs.create.submit": "Create",
     "dashboard.docs.create.error.exists": "This name is already taken.",
-    "dashboard.docs.create.error.other": "That did not work."
+    "dashboard.docs.create.error.other": "That did not work.",
+    "dashboard.docs.create.success": "The document has been successfully created!"
 }
