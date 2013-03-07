@@ -1,4 +1,6 @@
 {
+    "index.activedocs": "Active docs",
+
     "login": "Login",
     "login.username": "Benutzername",
     "login.password": "Passwort",
@@ -32,11 +34,19 @@
 
     "dashboard": "Dashboard",
     "dashboard.users": "Nutzer",
-    "dashboard.docs": "Dokumente",
     "dashboard.users.name": "Name",
     "dashboard.users.email": "E-Mail",
     "dashboard.users.role": "Rolle",
     "dashboard.users.selectrole": "Rolle auswählen..",
     "dashboard.users.status": "Status",
-    "dashboard.users.selectstatus": "Status auswählen.."
+    "dashboard.users.selectstatus": "Status auswählen..",
+    "dashboard.docs": "Dokumente",
+    "dashboard.docs.name": "Name",
+    "dashboard.docs.type": "Type",
+    "dashboard.docs.create": "Erstellen",
+    "dashboard.docs.create.name": "Name:",
+    "dashboard.docs.create.type": "Typ:",
+    "dashboard.docs.create.submit": "Erstellen",
+    "dashboard.docs.create.error.exists": "Dieser Name ist bereits belegt.",
+    "dashboard.docs.create.error.other": "Es ist ein Fehler beim aufgetreten."
 }
