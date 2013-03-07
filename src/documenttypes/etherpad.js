@@ -4,7 +4,8 @@ var async  = require('async')
 var server     = null
   , etherpad   = null
   , eplurl     = ""
-  , eplGroupID = null;
+  , eplGroupID = null
+  , sessionMaxAge = 86400000;
 
 exports.name = "etherpad";
 
@@ -120,7 +121,7 @@ exports.onLogin = function (user, req, res, cb)
           {
             authorID: authorID,
             groupID: eplGroupID,
-            validUntil: new Date().getTime() + 86400000
+            validUntil: new Date().getTime() + sessionMaxAge
           },
           function (err, data)
           {
@@ -137,7 +138,7 @@ exports.onLogin = function (user, req, res, cb)
       {
         user.eplSession = sessionID;
         server.db.user.updateUser(user);
-        res.cookie("sessionID", sessionID, { maxAge: 900000, httpOnly: false});
+        res.cookie("sessionID", sessionID, { maxAge: sessionMaxAge, httpOnly: false});
         console.debug("[epl] [" + user.username + "] Logged in");
         cb();
       }
