@@ -91,7 +91,7 @@ function initDocTypes(cb)
         {
           var t = require('./documenttypes/' + file);
           documentTypes[t.name] = t;
-          console.info("Initiating doctype: " + t.name + "...");
+          console.debug("Initiating doctype: " + t.name + "...");
           documentTypes[t.name].init(exports, cb);
         }, cb);
     });
@@ -126,7 +126,7 @@ function initServer(cb)
   app.use(express.static(path.resolve(__dirname + '/../static')));
   app.use(express.cookieParser());
 
-  console.info("Initiating server-i18n..");
+  console.debug("Initiating server-i18n..");
   app.use(i18n.init);
 
   // binding template helpers to request (Credits to https://github.com/enyo #12)
@@ -142,9 +142,11 @@ function initServer(cb)
       next();
     });
 
+  console.debug("Initiating server-forms..");
   app.use(express.bodyParser());
   app.use(expressValidator);
 
+  console.debug("Initiating server-sessions..");
   // sessions
   sessionStore = new express.session.MemoryStore();
   app.use(express.session({ secret: sessionSecret, store: sessionStore }));
@@ -168,12 +170,14 @@ function initServer(cb)
       }
     });
 
+  console.debug("Initiating doctypes (express)..");
   for(var t in documentTypes)
   {
+    console.debug("Initiating " + documentTypes[t].name + "...");
     documentTypes[t].initExpress(app);
   }
 
-  console.info("Initiating server-routes..");
+  console.debug("Initiating server-routes..");
   // routes
   app.get('/', function (req, res) { res.render('index'); });
   app.get('/doc/:docname', processDoc);
@@ -201,7 +205,7 @@ function initServer(cb)
 
 function startServer(cb)
 {
-  console.info("Starting database..");
+  console.info("Starting http..");
   app.listen(nconf.get("http:port"), nconf.get("http:ip"), cb);
 }
 
@@ -546,6 +550,7 @@ function sendMail(template, locals, to, subject, cb)
             subject: subject,
             body: content
           });
+        console.debug("Sending mail (" + template + ") to " + to);
         msg.send(_cb);
       }
     ], cb);

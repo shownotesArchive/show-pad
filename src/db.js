@@ -15,10 +15,12 @@ exports.init = function (_options, cb)
     initRedis,
     function (cb)
     {
+      console.debug("Initiating userdb..");
       userdb.init(client, cb);
     },
     function (cb)
     {
+      console.debug("Initiating docdb..");
       docdb.init(client, cb);
     }
   ], cb);
@@ -31,6 +33,7 @@ exports.quit = function (cb)
 
 function initRedis(cb)
 {
+  console.debug("Initiating redis..");
   client = redis.createClient(options.socket);
 
   client.on("connect", function ()

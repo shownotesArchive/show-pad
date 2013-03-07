@@ -13,7 +13,6 @@ exports.init = function (_server, cb)
 {
   server = _server;
 
-  console.info("Initiating etherpad..");
   async.series(
     [
       // connect to epl
@@ -36,7 +35,7 @@ exports.init = function (_server, cb)
             if(!err)
             {
               eplGroupID = data.groupID;
-              console.debug("our groupid is " + eplGroupID);
+              console.debug("[epl] our groupid is " + eplGroupID);
             }
             cb(err);
           }
@@ -66,7 +65,7 @@ exports.init = function (_server, cb)
             else
             {
               var sessionIds = Object.keys(data);
-              console.debug("deleting " + sessionIds.length + " old sessions..");
+              console.debug("[epl] deleting " + sessionIds.length + " old sessions..");
               async.forEach(
                 sessionIds,
                 function(item, done)
@@ -163,9 +162,9 @@ exports.onLogout = function (user, req, res, cb)
       function (err, data)
       {
         if(err)
-          console.error("[" + username + "] could not delete epl-session: " + sid);
+          console.error("[epl] [" + username + "] could not delete session: " + sid);
         else
-          console.debug("[" + username + "] epl-session deleted: " + sid);
+          console.debug("[epl] [" + username + "] session deleted: " + sid);
         cb();
       });
   }
