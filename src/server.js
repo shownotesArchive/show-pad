@@ -460,7 +460,7 @@ function processRegister (req, res)
                     {
                       type = documentTypes[type];
                       console.debug("[" + username + "] starting " + type.name + "-register");
-                      type.onLogout(user, req, res, cb);
+                      type.onRegister(username, cb);
                     },
                     function (err, result)
                     {

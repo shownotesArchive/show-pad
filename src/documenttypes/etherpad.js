@@ -145,9 +145,10 @@ exports.onLogin = function (user, req, res, cb)
     ], cb);
 }
 
-exports.onRegister = function (user, cb)
+exports.onRegister = function (username, cb)
 {
   // do nothing
+  cb();
 }
 
 exports.onLogout = function (user, req, res, cb)
