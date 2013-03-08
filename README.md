@@ -31,6 +31,9 @@ Thus ShowPad needs a running and working etherpad-lite installation and the foll
 * `port` the port on which your etherpad-lite listens, see your etherpad-lite `settings.json`
 * `apikey` can be found in the `APIKEY.txt`-file of your etherpad-lite installation
 
+You should als set `requireSession` to `true` and `editOnly` to `true` in your etherpad-lite `settings.json` as
+this is required for the authentication to work properly.
+
 **ShowPad and etherpad-lite have to be accessible using the same domain since ShowPad needs to set a cookie which is used by etherpad-lite!**
 
 

@@ -33,7 +33,6 @@ Returns all users in this form:
   ]
 ```
 Possible status codes:
-* `204`, there are no users, `data` is an empty array
 * `200`, everything went fine, get your users from `data`
 * `500`, there was an error while getting the user, see `message`
 
