@@ -42,10 +42,12 @@ exports.getMany = function (res, params, query, answerRequest)
     }
     else
     {
-      for(var id in docs)
+      if(query["datatables"])
       {
-        if(query["datatables"])
+        for(var id in docs)
+        {
           docs[id].DT_RowId = docs[id].docname;
+        }
       }
 
       answerRequest(res, 200, "ok", docs);
