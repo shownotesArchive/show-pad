@@ -43,10 +43,19 @@ async.series([
     console.info("All done!");
     cb(null);
   }
-]);
+],
+function (err)
+{
+  if(err)
+  {
+    console.error(err);
+    process.exit(1);
+  }
+});
 
 function initConfig(cb)
 {
+  console.info("Initiating configuration..");
   nconf.file({ file: 'config.json' });
 
   nconf.defaults({
@@ -59,11 +68,12 @@ function initConfig(cb)
   sessionSecret = nconf.get("sessionSecret");
   if(!sessionSecret || sessionSecret.length == 0)
   {
-    console.error("No session-secret given in config.json");
-    process.exit(1);
+    cb("No session-secret given in config.json");
   }
-
-  cb();
+  else
+  {
+    cb();
+  }
 }
 
 function initDatabase(cb)
