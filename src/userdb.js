@@ -1,11 +1,11 @@
-var client
+var cb
   , async  = require('async')
   , util   = require('util')
   , crypto = require('crypto');
 
-exports.init = function (_client, _cb)
+exports.init = function (_db, _cb)
 {
-  client =_client;
+  db =_db;
   _cb(null);
 }
 
@@ -51,7 +51,7 @@ exports.createUser = function (username, password, email, emailToken, cb)
       if(!err)
       {
         user.password = result;
-        client.set("user:" + username, JSON.stringify(user));
+        db.set("user:" + username, user);
       }
       cb(err);
     });
@@ -59,7 +59,7 @@ exports.createUser = function (username, password, email, emailToken, cb)
 
 exports.getUser = function (username, cb)
 {
-  client.get("user:" + username, function (err, user)
+  db.get("user:" + username, function (err, user)
     {
       if(!user)
       {
@@ -68,15 +68,14 @@ exports.getUser = function (username, cb)
       else
       {
         if(!err)
-          user = convertUserFromJSON(user);
+          addUserFunctions(user);
         cb(err, user);
       }
     });
 }
 
-function convertUserFromJSON(json)
+function addUserFunctions(user)
 {
-  var user = JSON.parse(json);
   user.hasRole = function (role, group)
     {
       for(var r in this.roles)
@@ -88,48 +87,22 @@ function convertUserFromJSON(json)
       }
       return false;
     }
-  return user;
 }
 
 exports.updateUser = function (user)
 {
   var username = user.username;
-  client.set("user:" + username, JSON.stringify(user));
+  db.set("user:" + username, user);
 }
 
 exports.deleteUser = function (username, cb)
 {
-  client.del("user:" + username, cb);
+  db.del("user:" + username, cb);
 }
 
 exports.getUsers = function (cb)
 {
-  async.waterfall([
-      // get all user-names
-      function (_cb)
-      {
-        client.keys('user:*', _cb);
-      },
-      // get all users
-      function (_users, _cb)
-      {
-        var multi = client.multi();
-        for(var id in _users)
-        {
-          multi.get(_users[id]);
-        }
-        multi.exec(_cb);
-      },
-      // parse all users
-      function (_users, _cb)
-      {
-        for(var id in _users)
-        {
-          _users[id] = JSON.parse(_users[id]);
-        }
-        _cb(null, _users);
-      }
-    ], cb);
+  db.getMany('user:*', cb);
 }
 
 exports.checkPassword = function (username, password, cb)

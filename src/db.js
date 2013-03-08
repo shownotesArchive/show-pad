@@ -16,12 +16,12 @@ exports.init = function (_options, cb)
     function (cb)
     {
       console.debug("Initiating userdb..");
-      userdb.init(client, cb);
+      userdb.init(exports, cb);
     },
     function (cb)
     {
       console.debug("Initiating docdb..");
-      docdb.init(client, cb);
+      docdb.init(exports, cb);
     }
   ], cb);
 }
@@ -29,6 +29,71 @@ exports.init = function (_options, cb)
 exports.quit = function (cb)
 {
   client.quit(cb);
+}
+
+exports.get = function (key, cb)
+{
+  client.get(key,
+    function (err, val)
+    {
+      if(err)
+      {
+        cb(err);
+      }
+      else
+      {
+        var obj = JSON.parse(val);
+        cb(null, obj);
+      }
+    });
+}
+
+exports.getMany = function (key, cb)
+{
+  var startPos, prefix, postfix;
+
+  startPos = key.indexOf('*');
+  prefix = key.substring(0, startPos);
+  if(startPos != key.length - 1)
+    postfix = key.substring(startPos);
+
+  async.waterfall([
+      // get all keys
+      function (_cb)
+      {
+        client.keys(prefix + '*', _cb);
+      },
+      // prepare a MULTI-request to get all values
+      function (_keys, _cb)
+      {
+        var multi = client.multi();
+        for(var id in _keys)
+        {
+          if(!postfix || _values[id].indexOf(postfix))
+            multi.get(_keys[id]);
+        }
+        multi.exec(_cb);
+      },
+      // parse all values
+      function (_values, _cb)
+      {
+        for(var id in _values)
+        {
+          _values[id] = JSON.parse(_values[id]);
+        }
+        _cb(null, _values);
+      }
+    ], cb);
+}
+
+exports.set = function (key, obj)
+{
+  client.set(key, JSON.stringify(obj));
+}
+
+exports.del = function (key, cb)
+{
+  client.del(key, cb);
 }
 
 function initRedis(cb)
