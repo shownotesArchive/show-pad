@@ -28,6 +28,11 @@ body
 	padding-top: 0px;
 }
 
+#register-form
+{
+	width: 394px;
+}
+
 #register-form .control-label
 {
     text-align: left;
@@ -42,7 +47,14 @@ body
 
 #register-submit
 {
-	margin-left: 307px;
+	margin-right: 9px;
+	margin-top: -5;
+	margin-bottom: 15px;
+}
+
+#login-form
+{
+	width: 334px;
 }
 
 #login-form .control-label
@@ -54,5 +66,8 @@ body
 
 #login-submit
 {
-	margin-left: 265px;
+	margin-right: 9px;
+	margin-top: -5;
+	margin-bottom: 15px;
+}
 }
