@@ -40,6 +40,7 @@
     "dashboard.users.selectrole": "Rolle auswählen..",
     "dashboard.users.status": "Status",
     "dashboard.users.selectstatus": "Status auswählen..",
+    "dashboard.users.error.update": "Die Änderungen konnten nicht gespeichert werden",
     "dashboard.docs": "Dokumente",
     "dashboard.docs.name": "Name",
     "dashboard.docs.type": "Type",

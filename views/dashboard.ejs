@@ -107,8 +107,8 @@ padtable = $('#padtable')
         ]
     });
 
-$('#usertable')
-    .dataTable(
+usertable = $('#usertable');
+usertable = usertable.dataTable(
     {
         bProcessing: true,
         sAjaxSource: "/api/1/users/?datatables=1",
@@ -136,10 +136,11 @@ $('#usertable')
                 },
           }
         ]
-    })
-    .makeEditable(
+    });
+
+usertable.makeEditable(
     {
-        sUpdateURL: '/api/1/users/?datatables=1',
+        sUpdateURL: updateUser,
         aoColumns:
         [
             null,
@@ -148,6 +149,7 @@ $('#usertable')
                 event: 'click',
                 indicator: '<%= __('dashboard.users.selectrole') %>',
                 loadtext: 'loading...',
+                id: "userRole",
                 type: 'select',
                 onblur: 'submit',
                 data: "{'admin':'Admin','user':'User'}"
@@ -156,11 +158,56 @@ $('#usertable')
                 event: 'click',
                 indicator: '<%= __('dashboard.users.selectstatus') %>',
                 loadtext: 'loading...',
+                id: "userStatus",
                 type: 'select',
                 onblur: 'submit',
                 data: "{'banned':'Banned','email':'Email','normal':'Normal'}"
             }
         ]
     });
+
+function updateUser(value, settings)
+{
+    // http://stackoverflow.com/questions/13316209/#13321785
+    var rowId = usertable.fnGetPosition(this)[0];
+    var rowName = settings.id;
+    var username = usertable.fnGetData(rowId, 0);
+    var returnValue = "<%= __('dashboard.users.error.update') %>";
+
+    var data = {};
+
+    if(rowName == "userRole")
+    {
+        data.roles = { user: {} };
+        if(value == "admin")
+            data.roles.admin = {};
+    }
+    else if(rowName == "userStatus")
+    {
+        data.status = value;
+    }
+
+    var response = $.ajax(
+        {
+            type: "PUT",
+            url: "/api/1/users/" + username,
+            async: false,
+            // do the serializing ourselves because jQuery is
+            // not able to send empty objects like our roles
+            // via ajax.
+            data: JSON.stringify(data),
+            contentType: "application/json"
+        }).success(function ()
+        {
+            // don't return an error
+            returnValue = value;
+        }).fail(function ()
+        {
+            // return an error later and reset the local value
+            settings.onreset();
+        });
+
+    return returnValue;
+}
 </script>
  
