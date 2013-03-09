@@ -12,15 +12,7 @@ $('#pad').pad(
         'showControls': false,
         'showChat': false,
         'host': '<%=eplurl%>',
-        'height': '100%',
+        'height': ($(window).height() - 175) + "px",
         'width': '100%'
     });
-
-// full heigth
-$('body').css('height', '100%');
-$('body').css('width', '100%');
-$('body').css('position', 'absolute');
-
-var height = $(window).height() - 175;
-$('.container').css('height', height);
 </script>
