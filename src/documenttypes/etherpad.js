@@ -52,7 +52,7 @@ exports.init = function (_server, cb)
         {
           if(err)
           {
-            console.error("Error whole deleting sessions: ");
+            console.error("Error while deleting sessions: ");
             console.error(err)
             process.exit(1);
           }
