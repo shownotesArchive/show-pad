@@ -50,18 +50,11 @@ exports.get = function (key, cb)
 
 exports.getMany = function (key, cb)
 {
-  var startPos, prefix, postfix;
-
-  startPos = key.indexOf('*');
-  prefix = key.substring(0, startPos);
-  if(startPos != key.length - 1)
-    postfix = key.substring(startPos);
-
   async.waterfall([
       // get all keys
       function (_cb)
       {
-        client.keys(prefix + '*', _cb);
+        client.keys(key, _cb);
       },
       // prepare a MULTI-request to get all values
       function (_keys, _cb)
@@ -69,8 +62,7 @@ exports.getMany = function (key, cb)
         var multi = client.multi();
         for(var id in _keys)
         {
-          if(!postfix || _values[id].indexOf(postfix))
-            multi.get(_keys[id]);
+          multi.get(_keys[id]);
         }
         multi.exec(_cb);
       },
