@@ -17,18 +17,13 @@ exports.createDoc = function (docname, type, cb)
       type: type
     };
 
-  exports.getDoc(docname, function (err)
+  exports.docExists(docname, function (err, exists)
     {
-      // we need to invert the error from getDoc..
-      if(err == "nodoc")
+      if(!exists)
       {
         db.set("doc:" + docname, doc);
-        cb(null);
       }
-      else
-      {
-        cb("docexists");
-      }
+      cb(exists ? "docexists" : null);
     });
 }
 
@@ -50,4 +45,29 @@ exports.getDoc = function (docname, cb)
 exports.getDocs = function (cb)
 {
   db.getMany('doc:*', cb);
+}
+
+exports.updateDoc = function (doc, cb)
+{
+  var docname = doc.docname;
+  exports.docExists(docname, function (err, exists)
+    {
+      var error = "nodoc";
+      if(exists)
+      {
+        db.set("doc:" + docname, doc);
+        error = null;
+      }
+      cb(error);
+    });
+}
+
+exports.deleteDoc = function (docname, cb)
+{
+  db.del("doc:" + docname, cb);
+}
+
+exports.docExists = function (docname, cb)
+{
+  db.keyExists("doc:" + docname, cb);
 }

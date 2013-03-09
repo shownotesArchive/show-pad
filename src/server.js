@@ -209,6 +209,8 @@ function initServer(cb)
   // API
   app.get('/api/:version/:endpoint/:entity?', api.handleRequest);
   app.post('/api/:version/:endpoint/:entity?', api.handleRequest);
+  app.put('/api/:version/:endpoint/:entity?', api.handleRequest);
+  app.delete('/api/:version/:endpoint/:entity?', api.handleRequest);
 
   cb(null);
 }
@@ -523,9 +525,20 @@ function processEmailActivation(req, res)
       {
         user.status = "normal";
         delete user.emailToken;
-        db.user.updateUser(user);
-        console.info("[" + username + "] Account activated");
-        res.redirect('/login');
+        db.user.updateUser(user,
+          function (err)
+          {
+            if(err)
+            {
+              console.info("[" + username + "] Account activation failed (db): " + err);
+              res.end('Error. Please contact an administrator.');
+            }
+            else
+            {
+              console.info("[" + username + "] Account activated");
+              res.redirect('/login');
+            }
+          });
       }
       else
       {

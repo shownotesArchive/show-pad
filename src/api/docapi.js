@@ -10,9 +10,9 @@ exports.init = function (_db, _server, cb)
   cb();
 }
 
-exports.getOne = function (res, params, query, answerRequest)
+exports.getOne = function (res, req, answerRequest)
 {
-  var docname = params.entity;
+  var docname = req.params.entity;
 
   db.doc.getDoc(docname,
     function (err, doc)
@@ -32,7 +32,7 @@ exports.getOne = function (res, params, query, answerRequest)
     });
 }
 
-exports.getMany = function (res, params, query, answerRequest)
+exports.getMany = function (res, req, answerRequest)
 {
   db.doc.getDocs(function (err, docs)
   {
@@ -42,7 +42,7 @@ exports.getMany = function (res, params, query, answerRequest)
     }
     else
     {
-      if(query["datatables"])
+      if(req.query["datatables"])
       {
         for(var id in docs)
         {
@@ -55,14 +55,21 @@ exports.getMany = function (res, params, query, answerRequest)
   });
 }
 
-exports.setOneDT = function (body, res, params, query, answerRequest)
+exports.createOne = function (res, req, answerRequest)
 {
-  // do nothing
-}
+  var doc = req.body;
+  var missing = [];
 
-exports.createOne = function (body, res, params, query, answerRequest)
-{
-  var doc = body;
+  if(!doc.docname)
+    missing.push("docname");
+  if(!doc.type)
+    missing.push("type");
+
+  if(missing.length != 0)
+  {
+    answerRequest(res, 400, "Missing values, see data.", missing);
+    return;
+  }
 
   db.doc.createDoc(doc.docname, doc.type, function (err)
     {
@@ -82,4 +89,29 @@ exports.createOne = function (body, res, params, query, answerRequest)
           });
       }
     });
+}
+
+exports.updateOne = function (res, req, answerRequest)
+{
+  db.doc.updateDoc(req.body,
+    function (err)
+    {
+      if(err)
+        answerRequest(res, 500, err, null);
+      else
+        answerRequest(res, 200, "ok", null);
+    });
+}
+
+exports.deleteOne = function (res, req, answerRequest)
+{
+  var docname = req.params.entity;
+  db.doc.deleteDoc(docname,
+    function (err)
+    {
+      if(err)
+        answerRequest(res, 500, err, null);
+      else
+        answerRequest(res, 200, "ok", null);
+    })
 }

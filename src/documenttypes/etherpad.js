@@ -136,10 +136,21 @@ exports.onLogin = function (user, req, res, cb)
       function (cb)
       {
         user.eplSession = sessionID;
-        server.db.user.updateUser(user);
-        res.cookie("sessionID", sessionID, { maxAge: sessionMaxAge, httpOnly: false});
-        console.debug("[epl] [" + user.username + "] Logged in");
-        cb();
+        server.db.user.updateUser(user,
+          function (err)
+          {
+            if(err)
+            {
+              console.debug("[epl] [" + user.username + "] Login failed");
+            }
+            else
+            {
+              res.cookie("sessionID", sessionID, { maxAge: sessionMaxAge, httpOnly: false});
+              console.debug("[epl] [" + user.username + "] Logged in");
+            }
+
+            cb(err);
+          });
       }
     ], cb);
 }

@@ -25,13 +25,9 @@ exports.createUser = function (username, password, email, emailToken, cb)
       // check if user exists
       function (_cb)
       {
-        exports.getUser(username, function (err)
+        exports.userExists(username, function (err, exists)
           {
-            // we need to invert the error from getUser..
-            if(err == "nouser")
-              _cb(null);
-            else
-              _cb("userexists");
+            _cb(exists ? "userexists" : null);
           });
       },
       // get random salt
@@ -89,10 +85,19 @@ function addUserFunctions(user)
     }
 }
 
-exports.updateUser = function (user)
+exports.updateUser = function (user, cb)
 {
   var username = user.username;
-  db.set("user:" + username, user);
+  exports.userExists(username, function (err, exists)
+    {
+      var error = "nouser";
+      if(exists)
+      {
+        db.set("user:" + username, user);
+        error = null;
+      }
+      cb(error);
+    });
 }
 
 exports.deleteUser = function (username, cb)
@@ -103,6 +108,11 @@ exports.deleteUser = function (username, cb)
 exports.getUsers = function (cb)
 {
   db.getMany('user:*', cb);
+}
+
+exports.userExists = function (username, cb)
+{
+  db.keyExists("user:" + username, cb);
 }
 
 exports.checkPassword = function (username, password, cb)

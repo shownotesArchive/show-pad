@@ -57,22 +57,47 @@ exports.handleRequest = function (req, res)
     return;
   }
 
+  var entityGiven = params.entity;
 
-  if(method == "GET")
+  /*
+      Special Functions:
+        init(_db, _server, cb)
+
+      API Functions: (res, req, answerRequest)
+        getMany
+        getOne
+        createOne
+        updateOne
+        deleteOne
+  */
+
+  if(method == "GET") // read
   {
-    var isMany = !params.entity;
-
-    if(isMany)
-      endpoint.getMany(res, params, query, answerRequest);
+    if(entityGiven)
+      endpoint.getOne(res, req, answerRequest);
     else
-      endpoint.getOne(res, params, query, answerRequest);
+      endpoint.getMany(res, req, answerRequest);
   }
-  else if(method == "POST")
+  else if(method == "POST") // create
   {
-    if(query.datatables)
-      endpoint.setOneDT(req.body, res, params, query, answerRequest);
+    if(entityGiven)
+      answerRequest(res, 405, "Method Not Allowed", null); // error
     else
-      endpoint.createOne(req.body, res, params, query, answerRequest);
+      endpoint.createOne(res, req, answerRequest);
+  }
+  else if(method == "PUT") // update
+  {
+    if(entityGiven)
+      endpoint.updateOne(res, req, answerRequest);
+    else
+      answerRequest(res, 405, "Method Not Allowed", null); // TODO, bulk update
+  }
+  else if(method == "DELETE") // remove
+  {
+    if(entityGiven)
+      endpoint.deleteOne(res, req, answerRequest);
+    else
+      answerRequest(res, 405, "Method Not Allowed", null); // would be delete all
   }
 }
 

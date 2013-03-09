@@ -8,9 +8,9 @@ exports.init = function (_db, _server, cb)
   cb();
 }
 
-exports.getOne = function (res, params, query, answerRequest)
+exports.getOne = function (res, req, answerRequest)
 {
-  var username = params.entity;
+  var username = req.params.entity;
 
   db.user.getUser(username,
     function (err, user)
@@ -32,7 +32,7 @@ exports.getOne = function (res, params, query, answerRequest)
     });
 }
 
-exports.getMany = function (res, params, query, answerRequest)
+exports.getMany = function (res, req, answerRequest)
 {
   db.user.getUsers(function (err, users)
   {
@@ -47,7 +47,7 @@ exports.getMany = function (res, params, query, answerRequest)
         delete users[id].salt;
         delete users[id].password;
 
-        if(query["datatables"])
+        if(req.query["datatables"])
           users[id].DT_RowId = users[id].username;
       }
 
@@ -56,48 +56,57 @@ exports.getMany = function (res, params, query, answerRequest)
   });
 }
 
-exports.setOneDT = function (body, res, params, query, cb)
-{
-  db.user.getUser(body.id,
-    function (err, user)
-    {
-      if(err == "nouser")
-      {
-        cb(res, 404, "User not found", null);
-      }
-      else if(err)
-      {
-        cb(res, 500, err, null);
-      }
-      else
-      {
-        if(body.columnId == 3 &&
-          (body.value == "banned" || body.value == "normal" || body.value == "email"))
-        {
-          user.status = body.value;
-        }
-        else if(body.columnId == 2 &&
-               (body.value == "admin" || body.value == "user"))
-        {
-          switch(body.value)
-          {
-            case "admin":
-              user.roles["admin"] = {};
-              break;
-            case "user":
-              delete user.roles.admin;
-              break;
-          }
-        }
-        else
-        {
-          res.statusCode = 400;
-          res.end();
-          return;
-        }
 
-        db.user.updateUser(user);
-        res.end(body.value);
-      }
+exports.createOne = function (res, req, answerRequest)
+{
+  var user = req.body;
+  var missing = [];
+
+  if(!user.username)
+    missing.push("username");
+  if(!user.password)
+    missing.push("password");
+  if(!user.email)
+    missing.push("email");
+
+  if(missing.length != 0)
+  {
+    answerRequest(res, 400, "Missing values, see data.", missing);
+    return;
+  }
+
+  db.user.createUser(user.username, user.password, user.email, null, function (err)
+    {
+      if(err)
+        answerRequest(res, 500, err, null);
+      else
+        answerRequest(res, 200, "ok", null);
+    });
+}
+
+exports.updateOne = function (res, req, answerRequest)
+{
+  var user = req.body;
+  user.username = req.params.entity;
+
+  db.user.updateUser(user,
+    function (err)
+    {
+      if(err)
+        answerRequest(res, 500, err, null);
+      else
+        answerRequest(res, 200, "ok", null);
+    });
+}
+
+exports.deleteOne = function (res, req, answerRequest)
+{
+  db.user.deleteUser(req.params.entity,
+    function (err)
+    {
+      if(err)
+        answerRequest(res, 500, err, null);
+      else
+        answerRequest(res, 200, "ok", null);
     });
 }

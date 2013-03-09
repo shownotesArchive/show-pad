@@ -88,6 +88,17 @@ exports.del = function (key, cb)
   client.del(key, cb);
 }
 
+exports.keyExists = function (key, cb)
+{
+  client.keys(key, function (err, keys)
+    {
+      if(!err && keys.length == 1)
+        cb(null, true);
+      else
+        cb(null, false);
+    });
+}
+
 function initRedis(cb)
 {
   console.debug("Initiating redis..");
