@@ -41,7 +41,7 @@ exports.handleRequest = function (req, res)
 
   var user = res.locals.user;
 
-  console.log("[API] REQUEST " + method + " " + req.url);
+  console.info("[API] REQUEST " + method + " " + req.url);
 
   if(!debug && (!user || !user.hasRole("admin")))
   {
@@ -78,7 +78,7 @@ exports.handleRequest = function (req, res)
 
 function answerRequest(res, statusCode, msg, data)
 {
-  console.log("[API] RESPONSE " + statusCode + ": " + msg);
+  console.info("[API] RESPONSE " + statusCode + ": " + msg);
 
   var response =
     {
