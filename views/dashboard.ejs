@@ -98,27 +98,27 @@ $.fn.dataTableExt.sErrMode = 'throw';
 padtable = $('#padtable')
     .dataTable(
     {
-        "bProcessing": true,
-        "sAjaxSource": "/api/1/docs/?datatables=1",
-        "sAjaxDataProp": "data",
-        "aoColumns": [
-          { "mData": [ "docname" ] },
-          { "mData": [ "type" ] }
+        bProcessing: true,
+        sAjaxSource: "/api/1/docs/?datatables=1",
+        sAjaxDataProp: "data",
+        aoColumns: [
+          { mData: [ "docname" ] },
+          { mData: [ "type" ] }
         ]
     });
 
 $('#usertable')
     .dataTable(
     {
-        "bProcessing": true,
-        "sAjaxSource": "/api/1/users/?datatables=1",
-        "sAjaxDataProp": "data",
-        "aoColumns": [
-          { "mData": [ "username" ] },
-          { "mData": [ "email" ] },
+        bProcessing: true,
+        sAjaxSource: "/api/1/users/?datatables=1",
+        sAjaxDataProp: "data",
+        aoColumns: [
+          { mData: [ "username" ] },
+          { mData: [ "email" ] },
           {
-            "mData": [ "roles" ],
-            "fnRender": function (oObj)
+            mData: [ "roles" ],
+            fnRender: function (oObj)
                 {
                     if(oObj.aData.roles["admin"] || oObj.aData.roles == "Admin")
                         return "Admin";
@@ -127,8 +127,8 @@ $('#usertable')
                 },
           },
           {
-            "mData": [ "status" ],
-            "fnRender": function (oObj)
+            mData: [ "status" ],
+            fnRender: function (oObj)
                 {
                     var status = oObj.aData.status;
                     status = status.charAt(0).toUpperCase() + status.slice(1);
@@ -139,8 +139,8 @@ $('#usertable')
     })
     .makeEditable(
     {
-        "sUpdateURL": '/api/1/users/?datatables=1',
-        "aoColumns":
+        sUpdateURL: '/api/1/users/?datatables=1',
+        aoColumns:
         [
             null,
             null,
