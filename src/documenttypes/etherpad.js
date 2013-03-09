@@ -135,8 +135,8 @@ exports.onLogin = function (user, req, res, cb)
       // save session and set cookie
       function (cb)
       {
-        user.eplSession = sessionID;
-        server.db.user.updateUser(user,
+        var userChanges = { username: user.username, eplSession: sessionID };
+        server.db.user.updateUser(userChanges,
           function (err)
           {
             if(err)

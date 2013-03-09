@@ -93,7 +93,10 @@ exports.createOne = function (res, req, answerRequest)
 
 exports.updateOne = function (res, req, answerRequest)
 {
-  db.doc.updateDoc(req.body,
+  var doc = req.body;
+  doc.docname = req.params.entity;
+
+  db.doc.updateDoc(doc,
     function (err)
     {
       if(err)

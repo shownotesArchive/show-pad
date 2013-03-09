@@ -85,19 +85,43 @@ function addUserFunctions(user)
     }
 }
 
-exports.updateUser = function (user, cb)
+exports.updateUser = function (userChanges, cb)
 {
-  var username = user.username;
-  exports.userExists(username, function (err, exists)
-    {
-      var error = "nouser";
-      if(exists)
+  var username = userChanges.username;
+  
+  async.waterfall(
+    [
+      // get the current doc
+      function (cb)
+      {
+        exports.getUser(username, cb);
+      },
+      // apply changes
+      function (user, cb)
+      {
+        if(!user)
+        {
+          cb("nouser");
+        }
+        else
+        {
+          for(var prop in userChanges)
+          {
+            if(prop != "username")
+              user[prop] = userChanges[prop];
+            if(userChanges[prop] == null)
+              delete user[prop];
+          }
+          cb(null, user);
+        }
+      },
+      // update the user
+      function (user, cb)
       {
         db.set("user:" + username, user);
-        error = null;
+        cb();
       }
-      cb(error);
-    });
+    ], cb);
 }
 
 exports.deleteUser = function (username, cb)

@@ -47,19 +47,43 @@ exports.getDocs = function (cb)
   db.getMany('doc:*', cb);
 }
 
-exports.updateDoc = function (doc, cb)
+exports.updateDoc = function (docChanges, cb)
 {
-  var docname = doc.docname;
-  exports.docExists(docname, function (err, exists)
-    {
-      var error = "nodoc";
-      if(exists)
+  var docname = docChanges.docname;
+
+  async.waterfall(
+    [
+      // get the current doc
+      function (cb)
+      {
+        exports.getDoc(docname, cb);
+      },
+      // apply changes
+      function (doc, cb)
+      {
+        if(!doc)
+        {
+          cb("nodoc");
+        }
+        else
+        {
+          for(var prop in docChanges)
+          {
+            if(prop != "docname")
+              doc[prop] = docChanges[prop];
+            if(docChanges[prop] == null)
+              delete user[prop];
+          }
+          cb(null, doc);
+        }
+      },
+      // update the doc
+      function (doc, cb)
       {
         db.set("doc:" + docname, doc);
-        error = null;
+        cb();
       }
-      cb(error);
-    });
+    ], cb);
 }
 
 exports.deleteDoc = function (docname, cb)

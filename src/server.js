@@ -523,9 +523,12 @@ function processEmailActivation(req, res)
 
       if(user.emailToken == token)
       {
-        user.status = "normal";
-        delete user.emailToken;
-        db.user.updateUser(user,
+        var userChanges = {};
+        userChanges.username = username;
+        userChanges.status = "normal";
+        userChanges.emailToken = null;
+
+        db.user.updateUser(userChanges,
           function (err)
           {
             if(err)
