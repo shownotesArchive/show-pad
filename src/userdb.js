@@ -114,6 +114,7 @@ exports.updateUser = function (userChanges, cb)
 
             if(prop == "password")
             {
+              gotPassword = true;
               hashPassword(userChanges[prop], user.salt,
                 function (err, hash)
                 {
