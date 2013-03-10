@@ -1,6 +1,7 @@
 <% layout('layout.ejs') %>
 <% block('title', __('register')) -%>
 <% script('js/jquery-queryParser.min.js') %>
+<% script('js/formhelpers.js') %>
 
 <form method="POST" class="form-horizontal" id="register-form">
     <div class="alert alert-error" id="other-error" style="display:none">
@@ -94,21 +95,5 @@ if(errors)
         $('#' + v).val(values[v]);
     }
 }
-
-$('#passwordr').keyup(function ()
-    {
-        if($('#passwordr').val() != $('#password').val() && $('#passwordr').val().length != 0)
-        {
-            $("#grp-passwordr").addClass('error');
-            $("#help-passwordr").show();
-            $('#register-submit').attr('disabled', 'disabled');
-        }
-        else
-        {
-            $("#grp-passwordr").removeClass('error');
-            $("#help-passwordr").hide();
-            if($('#passwordr').val().length != 0)
-                $('#register-submit').removeAttr('disabled');
-        }
-    });
+repeatPassword($('#password'), $('#passwordr'), $("#grp-passwordr"), $("#help-passwordr"), $('#register-submit'));
 </script>
