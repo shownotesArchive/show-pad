@@ -105,14 +105,34 @@ exports.updateUser = function (userChanges, cb)
         }
         else
         {
+          var gotPassword = false;
+
           for(var prop in userChanges)
           {
             if(prop != "username")
               user[prop] = userChanges[prop];
+
+            if(prop == "password")
+            {
+              hashPassword(userChanges[prop], user.salt,
+                function (err, hash)
+                {
+                  if(!err)
+                  {
+                    user.password = hash;
+                  }
+                  // call the main-callback because it's not called later
+                  cb(err, user);
+                })
+            }
+            
             if(userChanges[prop] == null)
               delete user[prop];
           }
-          cb(null, user);
+
+          // don't call the callback when we have to set the PW
+          if(!gotPassword)
+            cb(null, user);
         }
       },
       // update the user
