@@ -50,5 +50,23 @@
     "dashboard.docs.create.submit": "Create",
     "dashboard.docs.create.error.exists": "This name is already taken.",
     "dashboard.docs.create.error.other": "That did not work.",
-    "dashboard.docs.create.success": "The document has been successfully created!"
+    "dashboard.docs.create.success": "The document has been successfully created!",
+
+    "profile": "Profile",
+    "profile.title": "Change your account information",
+
+    "profile.email.newemail": "New E-Mail:",
+    "profile.email.oldpassword": "Password:",
+    "profile.email.submit": "Change e-mail",
+    "profile.email.error.other": "Your e-mail-address could not be changed. Please contact an administrator.",
+    "profile.email.status.success": "Your e-mail-address has been changed.",
+    "profile.email.status.same": "This is already your e-mail-address.",
+
+    "profile.password.newpassword": "New Password:",
+    "profile.password.newpasswordr": "Repeat new Password:",
+    "profile.password.oldpassword": "Current Password:",
+    "profile.password.submit": "Change password",
+    "profile.password.error.other": "Your password could not be changed. Please contact an administrator.",
+    "profile.password.error.pwmatch": "The passwords don't match.",
+    "profile.password.status.success": "Your password has been changed."
 }

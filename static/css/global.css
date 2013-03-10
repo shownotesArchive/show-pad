@@ -70,4 +70,22 @@ body
 	margin-top: -5;
 	margin-bottom: 15px;
 }
+
+.profile-form 
+{
+	width: 900px;
+}
+
+.profile-form button
+{
+	margin-top: -5px;
+	margin-bottom: 15px;
+	margin-right: 485px;
+}
+
+.profile-form .control-label
+{
+    text-align: left;
+    margin-left: 15px;
+    width: 180px;
 }

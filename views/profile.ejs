@@ -1,0 +1,127 @@
+<% layout('layout.ejs') %>
+<% block('title', __('profile.title')) -%>
+<% script('js/jquery-queryParser.min.js') %>
+<% script('js/formhelpers.js') %>
+
+<hr>
+<div class="alert" id="newemail-alert" style="display:none"></div>
+<form method="POST" class="form-horizontal profile-form">
+    <div class="alert alert-error" id="profile-error" style="display:none">
+    </div>
+    <div class="control-group" id="grp-newemail">
+        <label class="control-label" for="newemail"><%= __('profile.email.newemail') %></label>
+        <div class="controls">
+            <input type="text" id="newemail" name="newemail">
+        </div>
+    </div>
+    <div class="control-group" id="grp-oldpassword-email">
+        <label class="control-label" for="oldpassword-email"><%= __('profile.email.oldpassword') %></label>
+        <div class="controls">
+            <input type="password" id="oldpassword-email" name="oldpassword">
+        </div>
+    </div>
+    <input type="hidden" name="type" value="email" />
+    <button class="btn primary pull-right" type="submit" id="profile-submit-email"><%= __('profile.email.submit') %></button>
+</form>
+
+<hr style="clear:both">
+
+<div class="alert" id="newpassword-alert" style="display:none"></div>
+<form method="POST" class="form-horizontal profile-form">
+    <div class="control-group" id="grp-newpassword">
+        <label class="control-label" for="newpassword"><%= __('profile.password.newpassword') %></label>
+        <div class="controls">
+            <input type="password" id="newpassword" name="newpassword">
+        </div>
+    </div>
+    <div class="control-group" id="grp-newpasswordr" style="overflow-x:hidden;">
+        <label class="control-label" for="newpasswordr"><%= __('profile.password.newpasswordr') %></label>
+        <div class="controls">
+            <input type="password" id="newpasswordr" name="newpasswordr" style="overflow-x:hidden;">
+            <span class="help-inline" id="help-newpasswordr" style="display:none" style="overflow-x:hidden;">
+                <%= __('profile.password.error.pwmatch') %>
+            </span>
+        </div>
+    </div>
+    <div class="control-group" id="grp-oldpassword-password">
+        <label class="control-label" for="oldpassword-password"><%= __('profile.password.oldpassword') %></label>
+        <div class="controls">
+            <input type="password" id="oldpassword-password" name="oldpassword">
+        </div>
+    </div>
+    <input type="hidden" name="type" value="password" />
+    <button class="btn primary pull-right" type="submit" id="profile-submit-pw" disabled="disabled"><%= __('profile.password.submit') %></button>
+</form>
+
+<script>
+var errors = $.getQuery().errors;
+var status = $.getQuery().status;
+var values = $.getQuery().values;
+
+if(errors)
+{
+    errors = JSON.parse(errors);
+
+    for(var e in errors)
+    {
+        switch(errors[e])
+        {
+            // both current password
+            case "oldpassword-email":
+            case "oldpassword-password":
+                $("#grp-" + errors[e]).addClass('error');
+                break;
+
+            // change password
+            case "newemail":
+                $("#grp-newemail").addClass('error');
+                break;
+            case "password-db":
+                $('#newpassword-alert').addClass('alert-error');
+                $('#newpassword-alert').text("<%= __('profile.email.error.other') %>")
+                $('#newpassword-alert').show();
+                break;
+
+            // change email
+            case "newpassword-match":
+                $("#grp-newpasswordr").addClass('error');
+                $('#help-newpasswordr').show();
+                break;
+            case "email-db":
+                $('#newemail-alert').addClass('alert-error');
+                $('#newemail-alert').text("<%= __('profile.email.error.other') %>")
+                $('#newemail-alert').show();
+                break;
+        }
+    }
+}
+else if(status == "email-ok")
+{
+    $('#newemail-alert').addClass('alert-success');
+    $('#newemail-alert').text("<%= __('profile.email.status.success') %>");
+    $('#newemail-alert').show();
+}
+else if(status == "email-same")
+{
+    $('#newemail-alert').addClass('alert-info');
+    $('#newemail-alert').text("<%= __('profile.email.status.same') %>")
+    $('#newemail-alert').show();
+}
+else if(status == "password-ok")
+{
+    $('#newpassword-alert').addClass('alert-success');
+    $('#newpassword-alert').text("<%= __('profile.password.status.success') %>")
+    $('#newpassword-alert').show();
+}
+
+if(values && values != "undefined")
+{
+    values = JSON.parse(values);
+
+    for(var v in values)
+    {
+        $('#' + v).val(values[v]);
+    }
+}
+repeatPassword($('#newpassword'), $('#newpasswordr'), $("#grp-newpasswordr"), $("#help-newpasswordr"), $('#profile-submit-pw'));
+</script>

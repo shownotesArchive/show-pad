@@ -199,6 +199,9 @@ function initServer(cb)
   app.get('/register', function(req, res) { res.render('register'); });
   app.post('/register', processRegister);
 
+  app.get('/profile', function(req, res) { res.render('profile'); });
+  app.post('/profile', processProfile);
+
   app.get('/dashboard', function(req, res) { res.render('dashboard'); });
 
   app.get('/logout', processLogout);
@@ -498,6 +501,139 @@ function getErrorArray(errors)
     newErrors.push(errors[e].msg);
   }
   return newErrors;
+}
+
+function processProfile(req, res)
+{
+  var user = res.locals.user;
+
+  if(!user)
+  {
+    res.redirect('/login');
+    return;
+  }
+
+  var username = user.username;
+
+  req.assert('type', 'Invalid type').isIn(["password", "email"]);
+
+  var errors = req.validationErrors();
+
+  if(errors && errors.length != 0)
+  {
+    res.redirect('/profile?errors=["type"]');
+    return;
+  }
+
+  var type = req.param('type');
+
+  if(type == "password")
+  {
+    req.assert('newpassword', 'newpw-invalid').len(8, 255);
+    req.assert('newpassword', 'newpwr-invalid').len(8, 255);
+    req.assert('oldpassword', 'oldpassword-password').notEmpty();
+    
+    errors = req.validationErrors();
+
+    var newpassword = req.param('newpassword');
+    var newpasswordr = req.param('newpasswordr');
+    var password = req.param('oldpassword');
+
+    if(newpassword != newpasswordr)
+    {
+      if(!errors)
+        errors = [];
+      errors.push({ msg: 'newpassword-match' });
+    }
+
+    if(errors && errors.length != 0)
+    {
+      errors = getErrorArray(errors);
+      res.redirect('/profile?errors=' + JSON.stringify(errors));
+      return;
+    }
+
+    db.user.checkPassword(user.username, password,
+      function (err, isValid)
+      {
+        if(err || !isValid)
+        {
+          console.info("[" + username + "] Change password failed (password): " + err);
+          res.redirect('/profile?errors=["oldpassword-password"]&values=' + JSON.stringify(values));
+        }
+        else
+        {
+          var userChanges = { username: user.username, password: newpassword }
+          db.user.updateUser(userChanges,
+            function (err)
+            {
+              if(err)
+              {
+                console.info("[" + username + "] Change password failed (db): " + err);
+                res.redirect('/profile?errors=["password-db"]&values=' + JSON.stringify(values));
+              }
+              else
+              {
+                console.info("[" + username + "] Password changed");
+                res.redirect('/profile?status=password-ok');
+              }
+            });
+        }
+      });
+  }
+  else if(type == "email")
+  {
+    req.assert('newemail', 'newemail').isEmail();
+    req.assert('oldpassword', 'oldpassword-email').notEmpty();
+    
+    errors = req.validationErrors();
+
+    var newemail = req.param('newemail');
+    var password = req.param('oldpassword');
+
+    var values = { newemail: newemail }
+
+    if(errors && errors.length != 0)
+    {
+      errors = getErrorArray(errors);
+      res.redirect('/profile?errors=' + JSON.stringify(errors) + '&values=' + JSON.stringify(values));
+      return;
+    }
+
+    if(newemail == user.email)
+    {
+      res.redirect('/profile?status=email-same&values=' + JSON.stringify(values));
+      return;
+    }
+
+    db.user.checkPassword(user.username, password,
+      function (err, isValid)
+      {
+        if(err || !isValid)
+        {
+          console.info("[" + username + "] Change email failed (password): " + err);
+          res.redirect('/profile?errors=["oldpassword-email"]&values=' + JSON.stringify(values));
+        }
+        else
+        {
+          var userChanges = { username: user.username, email: newemail }
+          db.user.updateUser(userChanges,
+            function (err)
+            {
+              if(err)
+              {
+                console.info("[" + username + "] Change email failed (db): " + err);
+                res.redirect('/profile?errors=["email-db"]&values=' + JSON.stringify(values));
+              }
+              else
+              {
+                console.info("[" + username + "] Email changed to: " + newemail + ", was: " + user.email);
+                res.redirect('/profile?status=email-ok');
+              }
+            });
+        }
+      });
+  }
 }
 
 function processEmailActivation(req, res)

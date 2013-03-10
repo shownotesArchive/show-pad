@@ -50,5 +50,23 @@
     "dashboard.docs.create.submit": "Erstellen",
     "dashboard.docs.create.error.exists": "Dieser Name ist bereits belegt.",
     "dashboard.docs.create.error.other": "Es ist ein Fehler beim aufgetreten.",
-    "dashboard.docs.create.success": "Das Dokument wurde erfolgreich erstellt!"
+    "dashboard.docs.create.success": "Das Dokument wurde erfolgreich erstellt!",
+
+    "profile": "Profile",
+    "profile.title": "Change your account information",
+
+    "profile.email.newemail": "Neue E-Mail:",
+    "profile.email.oldpassword": "Passwort:",
+    "profile.email.submit": "E-Mail ändern",
+    "profile.email.error.other": "Deine E-Mail-Adresse konnte nicht geändert werden. Bitte melde Dich bei einem Administrator.",
+    "profile.email.status.success": "Deine E-Mail-Adresse wurde geändert.",
+    "profile.email.status.same": "Das ist bereits deine gespeicherte E-Mail-Adresse",
+
+    "profile.password.newpassword": "Neues Password:",
+    "profile.password.newpasswordr": "Neues Password wiederholen:",
+    "profile.password.oldpassword": "Jetziges Password:",
+    "profile.password.submit": "Passwort ändern",
+    "profile.password.error.other": "Deine Password konnte nicht geändert werden. Bitte melde Dich bei einem Administrator.",
+    "profile.password.error.pwmatch": "Die Passwörter stimmen nicht überein.",
+    "profile.password.status.success": "Dein Passwort wurde geändert."
 }
