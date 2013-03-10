@@ -30,16 +30,12 @@ exports.createUser = function (username, password, email, emailToken, cb)
             _cb(exists ? "userexists" : null);
           });
       },
-      // get random salt
+      // hash password
       function (_cb)
       {
-        crypto.randomBytes(48, _cb);
-      },
-      // hash password
-      function (salt, _cb)
-      {
-        user.salt = salt.toString('hex');
-        hashPassword(password, user.salt, _cb);
+        user.salt = crypto.randomBytes(128).toString('hex');
+        user.iterations = 90000 + Math.floor(Math.random()*10000);
+        hashPassword(password, user.salt, user.iterations, _cb);
       }
     ],
     function (err, result)
@@ -115,7 +111,9 @@ exports.updateUser = function (userChanges, cb)
             if(prop == "password")
             {
               gotPassword = true;
-              hashPassword(userChanges[prop], user.salt,
+              user.salt = crypto.randomBytes(128).toString('hex');
+              user.iterations = 90000 + Math.floor(Math.random()*10000);
+              hashPassword(userChanges[prop], user.salt, user.iterations,
                 function (err, hash)
                 {
                   if(!err)
@@ -177,7 +175,7 @@ exports.checkPassword = function (username, password, cb)
         if(_user)
         {
           user = _user;
-          hashPassword(password, _user.salt, _cb);
+          hashPassword(password, user.salt, user.iterations, _cb);
         }
         else
         {
@@ -193,9 +191,9 @@ exports.checkPassword = function (username, password, cb)
     ], cb);
 }
 
-function hashPassword(password, salt, cb)
+function hashPassword(password, salt, iterations, cb)
 {
-  crypto.pbkdf2(password, salt, 1200, 24, processHash);
+  crypto.pbkdf2(password, salt, iterations, 32, processHash);
 
   function processHash(err, key)
   {
