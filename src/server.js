@@ -406,11 +406,17 @@ function processRegister (req, res)
   }
 
   var emailToken;
+
+  var pageurl = nconf.get("pageurl");
+  // add '/' at the end of pageurl if needed
+  if(pageurl.charAt(pageurl.length - 1) != '/')
+    pageurl += '/';
+
   var mailLocals =
     {
       username: username,
-      page: nconf.get("pageurl"),
-      link: nconf.get("pageurl") + "/activate/" + username + "/"
+      page: pageurl,
+      link: pageurl + "activate/" + username + "/" // pageurl *always* ends with '/'
     };
 
   async.series([
