@@ -3,7 +3,7 @@
 <% script('js/jquery-queryParser.min.js') %>
 
 <form method="POST" class="form-horizontal" id="login-form">
-    <div class="alert alert-error" id="login-error" style="display:none">
+    <div class="alert alert-error" id="login-status" style="display:none">
     </div>
     <div class="control-group" id="grp-username">
         <label class="control-label" for="username"><%= __('login.username') %></label>
@@ -47,10 +47,16 @@ if(error)
         case "pw":
             error = "<%= __('login.error.invalid') %>";
             break;
+        // redirect from /activate
+        case "activated":
+            $('#login-status').removeClass('alert-error');
+            $('#login-status').addClass('alert-info');
+            error = "<%= __('login.activated') %>";
+            break;
     }
 
-    $('#login-error').text(error);
-    $('#login-error').show();
+    $('#login-status').text(error);
+    $('#login-status').show();
     $('#username').val(values["username"]);
 }
 </script>

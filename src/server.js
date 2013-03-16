@@ -681,7 +681,7 @@ function processEmailActivation(req, res)
             else
             {
               console.info("[" + username + "] Account activated");
-              res.redirect('/login');
+              res.redirect('/login?error=activated&values=["' + username + '"]');
             }
           });
       }

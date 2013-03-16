@@ -12,6 +12,8 @@
     "login.error.status.unknown": "The status of your account is unknown. Please contact an administrator.",
     "login.error.input": "Please check your input.",
     "login.error.invalid": "Invalid username/password-combination.",
+
+    "login.activated": "Your account has been activated!",
     
 
     "register": "Register",

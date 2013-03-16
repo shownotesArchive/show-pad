@@ -13,6 +13,8 @@
     "login.error.input": "Bitte überprüfe Deine Eingaben.",
     "login.error.invalid": "Ungültige Benutzername/Passwort-Kombination.",
 
+    "login.activated": "Dein Benutzerkonto wurde aktiviert!",
+
     
     "register": "Registrieren",
     "register.username": "Benutzername:",
