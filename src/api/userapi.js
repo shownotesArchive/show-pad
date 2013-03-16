@@ -25,8 +25,7 @@ exports.getOne = function (res, req, answerRequest)
       }
       else
       {
-        delete user.salt;
-        delete user.password;
+        prepareUser(users[id]);
         answerRequest(res, 200, "ok", user);
       }
     });
@@ -44,8 +43,7 @@ exports.getMany = function (res, req, answerRequest)
     {
       for(var id in users)
       {
-        delete users[id].salt;
-        delete users[id].password;
+        prepareUser(users[id]);
 
         if(req.query["datatables"])
           users[id].DT_RowId = users[id].username;
@@ -56,6 +54,12 @@ exports.getMany = function (res, req, answerRequest)
   });
 }
 
+function prepareUser(user)
+{
+  delete user.salt;
+  delete user.password;
+  delete user.iterations;
+}
 
 exports.createOne = function (res, req, answerRequest)
 {
