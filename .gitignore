@@ -3,6 +3,7 @@ config.json
 *.db
 .DS_Store
 thumbs.db
+.idea
 static/js/jquery-queryParser.min.js
 static/js/jquery.dataTables.editable.js
 static/js/jquery.jeditable.mini.js
