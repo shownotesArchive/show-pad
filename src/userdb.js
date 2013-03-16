@@ -105,9 +105,6 @@ exports.updateUser = function (userChanges, cb)
 
           for(var prop in userChanges)
           {
-            if(prop != "username")
-              user[prop] = userChanges[prop];
-
             if(prop == "password")
             {
               gotPassword = true;
@@ -124,9 +121,10 @@ exports.updateUser = function (userChanges, cb)
                   cb(err, user);
                 })
             }
-            
-            if(userChanges[prop] == null)
-              delete user[prop];
+            else
+            {
+              user[prop] = userChanges[prop];
+            }
           }
 
           // don't call the callback when we have to set the PW

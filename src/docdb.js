@@ -69,10 +69,7 @@ exports.updateDoc = function (docChanges, cb)
         {
           for(var prop in docChanges)
           {
-            if(prop != "docname")
-              doc[prop] = docChanges[prop];
-            if(docChanges[prop] == null)
-              delete user[prop];
+            doc[prop] = docChanges[prop];
           }
           cb(null, doc);
         }
