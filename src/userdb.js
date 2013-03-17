@@ -17,7 +17,7 @@ exports.createUser = function (username, password, email, emailToken, cb)
       email: email,
       emailToken: emailToken,
       status: "email",
-      roles: {"user": {}}
+      roles: ["user"]
     };
 
   async.waterfall(
@@ -59,26 +59,9 @@ exports.getUser = function (username, cb)
       }
       else
       {
-        if(!err)
-          addUserFunctions(user);
         cb(err, user);
       }
     });
-}
-
-function addUserFunctions(user)
-{
-  user.hasRole = function (role, group)
-    {
-      for(var r in this.roles)
-      {
-        if(r == "groupadmin" && group && r.group == group)
-          return true;
-        else if(r == role)
-          return true;
-      }
-      return false;
-    }
 }
 
 exports.updateUser = function (userChanges, cb)
@@ -153,7 +136,7 @@ exports.getUsers = function (cb)
 
 exports.userExists = function (username, cb)
 {
-  db.keyExists("user:" + username, cb);
+  db.objExists("user:" + username, cb);
 }
 
 exports.checkPassword = function (username, password, cb)

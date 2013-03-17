@@ -90,5 +90,5 @@ exports.deleteDoc = function (docname, cb)
 
 exports.docExists = function (docname, cb)
 {
-  db.keyExists("doc:" + docname, cb);
+  db.objExists("doc:" + docname, cb);
 }

@@ -24,7 +24,7 @@
 					<li><a href="/">Home</a></li>
 					<% if (user) { %>
 						<li><a href="/profile">Profile</a></li>
-						<% if (user.hasRole("admin")) { %>
+						<% if (user.roles.indexOf("admin") != -1) { %>
 							<li><a href="/dashboard">Dashboard</a></li>
 						<% } %>
 		            <% } else { %>

@@ -43,7 +43,7 @@ exports.handleRequest = function (req, res)
 
   console.info("[API] REQUEST " + method + " " + req.url);
 
-  if(!debug && (!user || !user.hasRole("admin")))
+  if(!debug && (!user || user.roles.indexOf("admin") == -1))
   {
     answerRequest(res, 401, "Unauthorized", null);
     return;

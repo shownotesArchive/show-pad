@@ -120,9 +120,10 @@ usertable = usertable.dataTable(
             mData: [ "roles" ],
             fnRender: function (oObj)
                 {
-                    if(oObj.aData.roles["admin"] || oObj.aData.roles == "Admin")
+                    var roles = oObj.aData.roles;
+                    if(roles.indexOf('admin') != -1 || roles == "Admin")
                         return "Admin";
-                    if(oObj.aData.roles["user"] || oObj.aData.roles == "User")
+                    if(roles.indexOf('user') != -1 || roles == "User")
                         return "User";
                 },
           },
@@ -178,9 +179,9 @@ function updateUser(value, settings)
 
     if(rowName == "userRole")
     {
-        data.roles = { user: {} };
+        data.roles = [ "user" ];
         if(value == "admin")
-            data.roles.admin = {};
+            data.roles.push("admin");
     }
     else if(rowName == "userStatus")
     {
@@ -192,11 +193,7 @@ function updateUser(value, settings)
             type: "PUT",
             url: "/api/1/users/" + username,
             async: false,
-            // do the serializing ourselves because jQuery is
-            // not able to send empty objects like our roles
-            // via ajax.
-            data: JSON.stringify(data),
-            contentType: "application/json"
+            data: data
         }).success(function ()
         {
             // don't return an error
