@@ -22,6 +22,24 @@ exports.createUser = function (username, password, email, emailToken, cb)
 
   async.waterfall(
     [
+      // get all emails
+      function (_cb)
+      {
+        db.getManyValues('user:*:email', _cb);
+      },
+      // check if email exists
+      function (emails, _cb)
+      {
+        for(var e in emails)
+        {
+          if(emails[e] == user.email)
+          {
+            cb("emailexists");
+            return;
+          }
+        }
+        cb();
+      },
       // check if user exists
       function (_cb)
       {

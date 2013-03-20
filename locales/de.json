@@ -24,6 +24,7 @@
     "register.submit": "Abschicken",
 
     "register.error.usernametaken": "Dieser Username ist bereits belegt.",
+    "register.error.emailtaken": "Diese E-Mail-Adresse ist bereits registriert.",
     "register.error.email": "Die Bestätigungsmail konnte nicht sendet werden.",
     "register.error.invalidemail": "Diese E-Mail Adresse ist nicht gültig.",
     "register.error.other": "Es ist ein Fehler aufgetreten. Bitte versuche es erneut oder melde Dich bei einem Administrator.",

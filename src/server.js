@@ -455,7 +455,7 @@ function processRegister (req, res)
           {
             console.info("[" + username + "] Register failed (db): " + err);
             var usererror;
-            if(err == "userexists")
+            if(err == "userexists" || err == "emailexists")
               usererror = [err];
             else
               usererror = ["other-error"];

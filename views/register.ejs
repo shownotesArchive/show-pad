@@ -17,9 +17,7 @@
         <label class="control-label" for="email"><%= __('register.email') %></label>
         <div class="controls">
             <input type="text" id="email" name="email">
-            <span class="help-inline" id="help-email" style="display:none">
-                <%= __('register.error.invalidemail') %>
-            </span>
+            <span class="help-inline" id="help-email"></span>
         </div>
     </div>
     <div class="control-group" id="grp-password">
@@ -59,7 +57,7 @@ if(errors)
                 break;
             case "email-invalid":
                 $("#grp-email").addClass('error');
-                $("#help-email").show();
+                $("#help-email").text("<%= __('register.error.invalidemail') %>");
                 break;
             case "pw-invalid":
                 $("#grp-password").addClass('error');
@@ -74,6 +72,10 @@ if(errors)
             case "userexists":
                 $("#grp-username").addClass('error');
                 $("#help-username").text("<%= __('register.error.usernametaken') %>");
+                break;
+            case "emailexists":
+                $("#grp-email").addClass('error');
+                $("#help-email").text("<%= __('register.error.emailtaken') %>");
                 break;
             case "email-error":
                 $("#other-error").text("<%= __('register.error.email') %>");

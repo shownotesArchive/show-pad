@@ -24,6 +24,7 @@
     "register.submit": "Register",
 
     "register.error.usernametaken": "Sorry, that username is already taken.",
+    "register.error.emailtaken": "Sorry, that email has already been used.",
     "register.error.email": "There was a problem while sending you an email.",
     "register.error.invalidemail": "This e-mail-address is not valild.",
     "register.error.other": "That did not work. Please try again or contact an administrator.",
