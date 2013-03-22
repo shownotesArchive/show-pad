@@ -10,6 +10,11 @@
   {
     "socket": "foo.sock"
   },
+  "recaptcha":
+  {
+    "publickey": "",
+    "privatekey": ""
+  },
   "mail":
   {
     "from": ""

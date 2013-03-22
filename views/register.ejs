@@ -36,6 +36,16 @@
             </span>
         </div>
     </div>
+    <% if ( captcha ) { %>
+    <div class="control-group" id="grp-captcha">
+        <script type="text/javascript">
+            var RecaptchaOptions = { theme : 'clean' };
+        </script>
+        <div class="controls">
+            <%- captcha %>
+        </div>
+    </div>
+    <% } %>
     <button class="btn primary pull-right" type="submit" id="register-submit" disabled="disabled"><%= __('register.submit') %></button>
 </form>
 
@@ -83,10 +93,6 @@ if(errors)
                 break;
             case "other-error":
                 $("#other-error").text("<%= __('register.error.other') %>");
-                $("#other-error").show();
-                break;
-            case "speed":
-                $("#other-error").text("<%= __('register.error.speed') %>");
                 $("#other-error").show();
                 break;
         }

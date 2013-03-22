@@ -22,7 +22,8 @@
     "email": "0.2.x",
     "i18n": "0.3.x",
     "limiter": "~1",
-    "etherpad-lite-client": "*"
+    "etherpad-lite-client": "*",
+    "recaptcha": "~1"
   },
   "engines": {
     "node": ">=0.6"

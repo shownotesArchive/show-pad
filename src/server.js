@@ -10,6 +10,7 @@ var express   = require('express')
   , crypto    = require('crypto')
   , i18n      = require("i18n")
   , path      = require('path')
+  , Recaptcha = require('recaptcha').Recaptcha
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator');
 
@@ -196,7 +197,17 @@ function initServer(cb)
   app.get('/login', function(req, res) { res.render('login'); });
   app.post('/login', processLogin);
 
-  app.get('/register', function(req, res) { res.render('register'); });
+  app.get('/register', function(req, res)
+    {
+      var locals = { captcha: "" };
+
+      if(registerLimiters[req.ip] && registerLimiters[req.ip].getTokensRemaining() < 1)
+      {
+        locals.captcha = getRecaptchaHTML();
+      }
+
+      res.render('register', locals);
+    });
   app.post('/register', processRegister);
 
   app.get('/profile', function(req, res) { res.render('profile'); });
@@ -423,17 +434,32 @@ function processRegister (req, res)
     // check the rate limiting
     function (cb)
     {
-      registerLimiters[req.ip].removeTokens(1, function(err, remainingRequests) {
-        if (remainingRequests < 0)
-        {
-          res.statusCode = 429;
-          res.redirect('/register?errors=' + JSON.stringify(["speed"]) + "&values=" + JSON.stringify(values));
-        }
-        else
-        {
-          cb();
-        }
-      });
+      registerLimiters[req.ip].removeTokens(1, cb);
+    },
+    // check captcha
+    function (cb)
+    {
+      if(registerLimiters[req.ip].getTokensRemaining() < 1)
+      {
+        evaluateRecaptcha(req,
+          function (err)
+          {
+            if(err)
+            {
+              console.log(err)
+              res.statusCode = 429;
+              res.redirect('/register?errors=["captcha"]&values=' + JSON.stringify(values));
+            }
+            else
+            {
+              cb();
+            }
+          });
+      }
+      else
+      {
+        cb();
+      }
     },
     // generate random string for activation mail
     function (cb)
@@ -722,4 +748,41 @@ function sendMail(template, locals, to, subject, cb)
         msg.send(_cb);
       }
     ], cb);
+}
+
+function getRecaptchaHTML()
+{
+  var recaptcha = new Recaptcha(nconf.get("recaptcha:publickey"), nconf.get("recaptcha:publickey"));
+  return recaptcha.toHTML();
+}
+
+function evaluateRecaptcha(req, cb)
+{
+  var data =
+    {
+      remoteip:  req.connection.remoteAddress,
+      challenge: req.body.recaptcha_challenge_field,
+      response:  req.body.recaptcha_response_field
+    };
+
+  if(!data.challenge || !data.response)
+  {
+    cb("nocaptcha");
+  }
+  else
+  {
+    var recaptcha = new Recaptcha(nconf.get("recaptcha:publickey"), nconf.get("recaptcha:publickey"), data);
+
+    recaptcha.verify(function(success, error_code)
+    {
+      if (success)
+      {
+        cb("invalid");
+      }
+      else
+      {
+        cb(null);
+      }
+    });
+  }
 }

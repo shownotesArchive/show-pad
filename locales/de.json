@@ -29,7 +29,6 @@
     "register.error.invalidemail": "Diese E-Mail Adresse ist nicht gültig.",
     "register.error.other": "Es ist ein Fehler aufgetreten. Bitte versuche es erneut oder melde Dich bei einem Administrator.",
     "register.error.passwordmatch": "Die Passwörter stimmen nicht überein.",
-    "register.error.speed": "Versuche es in 30 Sekunden nochmal.",
 
     "register.email.subject": "Aktiviere Dein Shownotes-Konto!",
     "register.email.invalidlink": "Ungültiger Link.",
