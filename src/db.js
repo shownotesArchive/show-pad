@@ -192,7 +192,7 @@ exports.set = function (key, val)
         multi.del(propKey); // empty the list
         for (var i in val[prop])
         {
-          multi.lpush(propKey, stringifyIfNeeded(val[prop][i]));
+          multi.rpush(propKey, stringifyIfNeeded(val[prop][i]));
         }
       }
       else // normal obj or string
