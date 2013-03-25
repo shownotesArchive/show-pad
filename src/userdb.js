@@ -34,11 +34,11 @@ exports.createUser = function (username, password, email, emailToken, cb)
         {
           if(emails[e] == user.email)
           {
-            cb("emailexists");
+            _cb("emailexists");
             return;
           }
         }
-        cb();
+        _cb();
       },
       // check if user exists
       function (_cb)
