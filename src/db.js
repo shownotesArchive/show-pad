@@ -283,6 +283,7 @@ exports.del = function (key, cb)
       {
         multi.del(keys[i]);
       }
+      multi.del(key);
       multi.srem(type, name);
       multi.exec(_cb);
     }
