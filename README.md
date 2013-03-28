@@ -36,6 +36,30 @@ this is required for the authentication to work properly.
 
 **ShowPad and etherpad-lite have to be accessible using the same domain since ShowPad needs to set a cookie which is used by etherpad-lite!**
 
+### E-Mail
+ShowPad needs to send emails for the account-activation, you can choose between `sendmail`, which just tries to use
+the `sendmail`-command to send emails or `smtp` which connects to a "real" mailserver to send emails.
+See [nodemailer](http://www.nodemailer.com/) for more details and options.
+
+The mail-config inside `config.json` looks like this:
+```javascript
+"mail":
+{
+  "type": "smtp", // or 'sendmail'
+  "from": "admin@google.com", // the email-address to use as sender
+  "settings": // not needed for 'sendmail'
+  {
+    host: "smtp.gmail.com",
+    secureConnection: true,
+    port: 465,
+    auth:
+    {
+      user: "user@gmail.com",
+      pass: "userpass"
+    }
+  }
+}
+```
 
 Technologies used
 -----------------
@@ -49,6 +73,7 @@ Technologies used
   * configuration: [nconf](https://github.com/flatiron/nconf)
   * cookies: [cookie](https://github.com/shtylman/node-cookie) + [cookie-signature](https://github.com/visionmedia/node-cookie-signature)
   * validating forms: [express-validator](https://github.com/ctavan/express-validator)
+  * captchas: [node-recaptcha](https://github.com/mirhampt/node-recaptcha)
   * and many others! see [`package.json`](https://github.com/shownotes/show-pad/blob/master/package.json)
 * Clientside
   * [jQuery](http://jquery.com/)
@@ -56,6 +81,7 @@ Technologies used
   * [twitter bootstrap](http://twitter.github.com/bootstrap/)
   * [noisetexturegenerator](http://noisetexturegenerator.com/)
   * [datatables](http://datatables.net/)
+  * [recaptcha](http://www.google.com/recaptcha)
   * [jquery-datatables-editable](https://code.google.com/p/jquery-datatables-editable/) + [jEditable](http://www.appelsiini.net/projects/jeditable)
 
 [![flattr](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1160045/)

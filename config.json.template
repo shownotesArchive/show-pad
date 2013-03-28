@@ -17,7 +17,19 @@
   },
   "mail":
   {
-    "from": ""
+    "type": "smtp",
+    "from": "",
+    "options":
+    {
+      "host": "",
+      "secureConnection": true,
+      "port": 465,
+      "auth":
+      {
+        "user": "",
+        "pass": ""
+      }
+    }
   },
   "etherpad":
   {

@@ -4,19 +4,20 @@ var express   = require('express')
   , log4js    = require('log4js')
   , cookie    = require('cookie')
   , nconf     = require('nconf')
-  , email     = require('email').Email
   , ejs       = require('ejs')
   , fs        = require('fs')
   , crypto    = require('crypto')
   , i18n      = require("i18n")
   , path      = require('path')
   , Recaptcha = require('recaptcha').Recaptcha
+  , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator');
 
 var db            = require('./db.js')
   , api           = require('./api.js')
   , app           = null
+  , mailTransport = null
   , sessionStore  = null
   , sessionSecret = null;
 
@@ -33,6 +34,7 @@ console.info("Let's go");
 
 async.series([
   initConfig,
+  initMail,
   initDatabase,
   initDocTypes,
   initApi,
@@ -75,6 +77,14 @@ function initConfig(cb)
   {
     cb();
   }
+}
+
+function initMail(cb)
+{
+  var type = nconf.get('mail:type');
+  console.info("Initiating mail (" + type + ")..");
+  mailTransport = nodemailer.createTransport(type, nconf.get('mail:options'));
+  cb();
 }
 
 function initDatabase(cb)
@@ -737,15 +747,16 @@ function sendMail(template, locals, to, subject, cb)
       // send mail
       function (content, _cb)
       {
-        var msg = new email(
+        var mailOptions =
           {
             from: nconf.get("mail:from"),
             to: to,
             subject: subject,
-            body: content
-          });
+            text: content
+          };
+
         console.debug("Sending mail (" + template + ") to " + to);
-        msg.send(_cb);
+        mailTransport.sendMail(mailOptions, _cb);
       }
     ], cb);
 }

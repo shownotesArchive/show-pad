@@ -19,7 +19,7 @@
     "redis": "0.8.x",
     "ejs": "0.8.x",
     "nconf": "0.6.x",
-    "email": "0.2.x",
+    "nodemailer": "0.4.x",
     "i18n": "0.3.x",
     "limiter": "~1",
     "etherpad-lite-client": "*",
