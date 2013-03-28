@@ -173,7 +173,7 @@ exports.onLogout = function (user, req, res, cb)
       function (err, data)
       {
         if(err)
-          console.error("[epl] [" + username + "] could not delete session: " + sid);
+          console.error("[epl] [" + username + "] could not delete session: " + sid + ", " + err);
         else
           console.debug("[epl] [" + username + "] session deleted: " + sid);
         cb();
@@ -184,6 +184,19 @@ exports.onLogout = function (user, req, res, cb)
 exports.onCreateDoc = function (docname, cb)
 {
   etherpad.createGroupPad({ groupID: eplGroupID, padName: docname }, cb);
+}
+
+exports.onDeleteDoc = function (docname, cb)
+{
+  etherpad.deletePad({padID: eplGroupID + "$" + docname},
+    function (err)
+    {
+      if(err)
+        console.error("[epl] could not delete pad: " + docname + ", " + err);
+      else
+        console.debug("[epl] pad deleted: " + docname);
+      cb(err);
+    });
 }
 
 exports.onRequestDoc = function (req, res, user, doc, cb)

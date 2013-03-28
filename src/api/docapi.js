@@ -1,3 +1,5 @@
+var async = require('async');
+
 var db
   , server;
 
@@ -109,12 +111,37 @@ exports.updateOne = function (res, req, answerRequest)
 exports.deleteOne = function (res, req, answerRequest)
 {
   var docname = req.params.entity;
-  db.doc.deleteDoc(docname,
-    function (err)
-    {
-      if(err)
-        answerRequest(res, 500, err, null);
-      else
-        answerRequest(res, 200, "ok", null);
-    })
+
+  async.waterfall(
+    [
+      // get the document-type
+      function (cb)
+      {
+        db.doc.getDoc(docname, cb);
+      },
+      // delete the document
+      function (doc, cb)
+      {
+        db.doc.deleteDoc(docname,
+          function (err)
+          {
+            if(err)
+            {
+              answerRequest(res, 500, err, null);
+            }
+            else
+            {
+              server.documentTypes[doc.type].onDeleteDoc(docname,
+                function (err)
+                {
+                  if(err)
+                    answerRequest(res, 500, err, null);
+                  else
+                    answerRequest(res, 200, "ok", doc);
+                });
+            }
+          });
+      }
+    ]
+  );
 }
