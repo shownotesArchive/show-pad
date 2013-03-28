@@ -377,7 +377,7 @@ function processLogout (req, res)
 
 function processRegister (req, res)
 {
-  req.assert('username', 'username-invalid').notEmpty().isAlpha();
+  req.assert('username', 'username-invalid').notEmpty().isAlphanumeric();
   req.assert('email', 'email-invalid').isEmail();
   req.assert('password', 'pw-invalid').len(8, 255);
   req.assert('passwordr', 'pwr-invalid').len(8, 255);
