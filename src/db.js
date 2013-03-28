@@ -215,7 +215,7 @@ function flattenObject(obj, name)
 
   if(typeof obj == "object")
   {
-    if(obj.length == 0)
+    if(Object.keys(obj).length == 0)
     {
       console.warn("Empty object: " + name + " will be discarded.");
     }
