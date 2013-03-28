@@ -25,7 +25,7 @@ exports.getOne = function (res, req, answerRequest)
       }
       else
       {
-        prepareUser(users[id]);
+        prepareUser(user);
         answerRequest(res, 200, "ok", user);
       }
     });

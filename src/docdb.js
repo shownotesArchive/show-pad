@@ -44,7 +44,7 @@ exports.getDoc = function (docname, cb)
 
 exports.getDocs = function (cb)
 {
-  db.getMany('doc:*', cb);
+  db.getMany('doc', cb);
 }
 
 exports.updateDoc = function (docChanges, cb)

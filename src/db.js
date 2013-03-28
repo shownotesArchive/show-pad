@@ -41,69 +41,73 @@ function getObjFromValues(values, prefixLen)
     var val = values[redisKey];
     if (isNumber(val))
       val = parseFloat(val);
-    obj[objKey] = val;
+    setDeepProperty(obj, objKey, val);
   }
 
   return obj;
 }
+
+function setDeepProperty(obj, key, val)
+{
+  var firstSep = key.indexOf(':');
+  if(firstSep == -1)
+  {
+    obj[key] = val;
+  }
+  else
+  {
+    var firstKey = key.substr(0, firstSep);
+    if(!obj[firstKey])
+      obj[firstKey] = {};
+    setDeepProperty(obj[firstKey], key.substr(firstSep + 1), val);
+  }
+}
+
 exports.get = function (key, cb)
 {
   async.waterfall([
-      // get the datatype
+      // get all keys for the object
       function (_cb)
       {
-        client.get("__datatype:" + key, _cb);
+        client.smembers(key, _cb);
       },
-      // get the data
-      function (datatype, _cb)
+      // get all values
+      function (keys, _cb)
       {
-        if(datatype == "object")
-        {
-          exports.getManyValues(key + ":*",
-            function (err, values)
+        exports.getManyValues(keys,
+          function (err, values)
+          {
+            if(err)
             {
-              if(err)
-              {
-                cb(err);
-                return;
-              }
+              cb(err);
+              return;
+            }
 
-              var prefixLen = key.length + 1; // ':' => +1
-              var obj = getObjFromValues(values, prefixLen);
-              _cb(null, obj);
-            });
-        }
-        else if(datatype == "simple")
-        {
-          client.get(key, _cb);
-        }
-        else
-        {
-          _cb("unkndatatype");
-        }
+            var prefixLen = key.length + 1; // ':' => +1
+            var obj = getObjFromValues(values, prefixLen);
+            _cb(null, obj);
+          });
       }
     ], cb);
 }
 
-exports.getManyValues = function (key, cb)
+exports.getObjectsOfType = function (type, cb)
 {
-  var keys;
+  client.smembers(type, cb);
+}
+
+exports.getManyValues = function (keys, cb)
+{
   var types;
 
   async.waterfall([
-      // get all keys
+      // get all types
       function (_cb)
       {
-        client.keys(key, _cb);
-      },
-      // get all types
-      function (_keys, _cb)
-      {
-        keys = _keys;
         var multi = client.multi();
-        for(var id in _keys)
+        for(var id in keys)
         {
-          multi.type(_keys[id]);
+          multi.type(keys[id]);
         }
         multi.exec(_cb);
       },
@@ -118,7 +122,7 @@ exports.getManyValues = function (key, cb)
           if(types[i] == "string")
             multi.get(keys[i]);
           else if(types[i] == "list")
-            multi.lrange(keys[i], 0, -1);
+            multi.lrange(keys[i], 0, -2); // skip last member since it's just the placeholder
         }
         multi.exec(_cb);
       },
@@ -135,36 +139,30 @@ exports.getManyValues = function (key, cb)
     ], cb);
 }
 
-exports.getMany = function (key, cb)
+exports.getMany = function (type, cb)
 {
-  var prefixLen = key.split(':')[0].length + 1;
-
   async.waterfall([
-      // the the raw data
-      function (cb)
+      // get names of objects
+      function (_cb)
       {
-        exports.getManyValues(key, cb);
+        exports.getObjectsOfType(type, _cb);
+      },
+      // load the objects
+      function (names, _cb)
+      {
+        async.map(names,
+          function (name, __cb)
+          {
+            exports.get(type + ":" + name, __cb);
+          }, _cb);
       },
       // convert to individual objects
-      function (values, cb)
+      function (rawObjects, cb)
       {
-        var groupedValues = {};
-        for(var i in values)
-        {
-          var val = values[i];
-          var key = i.substr(prefixLen).split(':');
-          var objName = key[0];
-          var propName = key[1];
-
-          if(!groupedValues[objName])
-            groupedValues[objName] = {};
-          groupedValues[objName][propName] = val;
-        }
-
         var objects = [];
-        for(var i in groupedValues)
+        for(var i in rawObjects)
         {
-          objects.push(getObjFromValues(groupedValues[i]));
+          objects.push(getObjFromValues(rawObjects[i]));
         }
         cb(null, objects);
       }
@@ -173,100 +171,127 @@ exports.getMany = function (key, cb)
 
 exports.set = function (key, val)
 {
+  var flatObj = flattenObject(val, key);
+  var keyParts = key.split(':');
+  var type = keyParts[0];
+  var name = keyParts[1];
+
   var multi = client.multi();
 
-  if(typeof val == "object")
-  {
-    multi.set("__datatype:" + key, "object");
+  multi.sadd(key, Object.keys(flatObj));
+  multi.sadd(type, name);
 
-    for (var prop in val)
+  for (var subKey in flatObj)
+  {
+    var subVal = flatObj[subKey];
+
+    if(subVal == null)
     {
-      var propKey = key + ":" + prop;
-
-      if(val[prop] == null)
-      {
-        multi.del(propKey); // null => remove from db
-      }
-      else if(val[prop] instanceof Array)
-      {
-        multi.del(propKey); // empty the list
-        for (var i in val[prop])
-        {
-          multi.rpush(propKey, stringifyIfNeeded(val[prop][i]));
-        }
-      }
-      else // normal obj or string
-      {
-        multi.set(propKey, stringifyIfNeeded(val[prop]));
-      }
+      multi.del(subKey);
+      multi.srem(key, subKey);
     }
-  }
-  else
-  {
-    multi.set("__datatype:" + key, "simple");
-    multi.set(key, val);
+    else if(subVal instanceof Array)
+    {
+      multi.del(subKey); // empty the list
+      for (var i in subVal)
+      {
+        multi.rpush(subKey, subVal[i]);
+      }
+      // placeholder to keep redis from deleting empty lists
+      multi.rpush(subKey, "___");
+    }
+    else
+    {
+      multi.set(subKey, subVal);
+    }
   }
 
   multi.exec();
 }
 
+function flattenObject(obj, name)
+{
+  var flatObj = {};
+
+  if(typeof obj == "object")
+  {
+    if(obj.length == 0)
+    {
+      console.warn("Empty object: " + name + " will be discarded.");
+    }
+
+    for (var prop in obj)
+    {
+      var propKey = name + ":" + prop;
+
+      if(obj[prop] == null)
+      {
+        flatObj[propKey] = null;
+      }
+      else if(obj[prop] instanceof Array)
+      {
+        flatObj[propKey] = [];
+        for (var i in obj[prop])
+        {
+          if(typeof obj[prop][i] == "object")
+          {
+            throw "Objects in arrays are not supported, since they are stored as lists in redis.";
+          }
+          else
+          {
+            flatObj[propKey][i] = obj[prop][i];
+          }
+        }
+      }
+      else // object, string or number
+      {
+        mergeObjects(flatObj, flattenObject(obj[prop], propKey));
+      }
+    }
+  }
+  else
+  {
+    flatObj[name] = obj;
+  }
+
+  return flatObj;
+}
+
+function mergeObjects(o1, o2)
+{
+  for (var prop in o2)
+    o1[prop] = o2[prop];
+}
+
 exports.del = function (key, cb)
 {
+  var keyParts = key.split(':');
+  var type = keyParts[0];
+  var name = keyParts[1];
+
   async.waterfall([
-    // get the datatype
+    // get all keys for the object
     function (_cb)
     {
-      client.get("__datatype:" + key, _cb);
+      client.smembers(key, _cb);
     },
-    // delete
-    function (datatype, _cb)
+    // delete all keys and remove object from index
+    function (keys, _cb)
     {
-      client.del("__datatype:" + key);
-      if(datatype == "object")
+      var multi = client.multi();
+      for(var i in keys)
       {
-        client.keys(key + ":*",
-          function (err, keys)
-          {
-            if(err)
-            {
-              cb(err);
-              return;
-            }
-
-            var multi = client.multi();
-            for(var i in keys)
-            {
-              multi.del(keys[i]);
-            }
-            multi.exec(_cb);
-          });
+        multi.del(keys[i]);
       }
-      else if(datatype == "simple")
-      {
-        client.del(key, _cb);
-      }
-      else
-      {
-        _cb("unkndatatype");
-      }
+      multi.srem(type, name);
+      multi.exec(_cb);
     }
   ], cb);
 }
 
-exports.keyExists = function (key, cb)
-{
-  client.keys(key, function (err, keys)
-    {
-      if(!err && keys.length == 1)
-        cb(null, true);
-      else
-        cb(null, false);
-    });
-}
-
 exports.objExists = function (key, cb)
 {
-  exports.keyExists("__datatype:" + key, cb);
+  client.exists(key, cb);
 }
 
 function initRedis(cb)
@@ -276,6 +301,16 @@ function initRedis(cb)
 
   client.on("connect", function ()
     {
+      /*
+      var obj = {a: "b", "b": "a", "c": [0, 1, 2], "d": { "foo": "bar", "fuz": { "spengr": "co" } }, "e": {}};
+      exports.set("foo:zero", obj);
+      exports.get("foo:zero",
+        function (err, obj2)
+        {
+          console.log(obj);
+          console.log(obj2);
+        });
+        */
       cb(null);
     });
 

@@ -22,23 +22,14 @@ exports.createUser = function (username, password, email, emailToken, cb)
 
   async.waterfall(
     [
-      // get all emails
+      // check if email exists
       function (_cb)
       {
-        db.getManyValues('user:*:email', _cb);
-      },
-      // check if email exists
-      function (emails, _cb)
-      {
-        for(var e in emails)
-        {
-          if(emails[e] == user.email)
+        exports.emailExists(user.email,
+          function (exists)
           {
-            _cb("emailexists");
-            return;
-          }
-        }
-        _cb();
+            _cb(exists ? "emailexists" : null);
+          });
       },
       // check if user exists
       function (_cb)
@@ -51,19 +42,63 @@ exports.createUser = function (username, password, email, emailToken, cb)
       // hash password
       function (_cb)
       {
-        user.salt = crypto.randomBytes(128).toString('hex');
-        user.iterations = 90000 + Math.floor(Math.random()*10000);
-        hashPassword(password, user.salt, user.iterations, _cb);
+        setNewPassword(user, password, _cb);
       }
     ],
-    function (err, result)
+    function (err)
     {
       if(!err)
       {
-        user.password = result;
         db.set("user:" + username, user);
       }
       cb(err);
+    });
+}
+
+exports.emailExists = function (emailToCheck, cb)
+{
+  async.waterfall(
+    [
+      // get all user-names
+      function (_cb)
+      {
+        db.getObjectsOfType("user", _cb);
+      },
+      // get all emails
+      function (names, _cb)
+      {
+        async.map(names,
+          function (name, __cb)
+          {
+            __cb(null, "user:" + name + ":email");
+          },
+          function (err, names)
+          {
+            db.getManyValues(names, _cb);
+          });
+      },
+      // check if email exits
+      function (emails, _cb)
+      {
+        for (var user in emails)
+        {
+          if(emails[user] == emailToCheck)
+          {
+            _cb(null, true);
+            return;
+          }
+        }
+        _cb(null, false);
+      }
+    ],
+    function (err, exists)
+    {
+      if(err)
+      {
+        console.warn("Error while checking email: " + err);
+        exists = true;
+      }
+      cb(exists);
     });
 }
 
@@ -109,18 +144,8 @@ exports.updateUser = function (userChanges, cb)
             if(prop == "password")
             {
               gotPassword = true;
-              user.salt = crypto.randomBytes(128).toString('hex');
-              user.iterations = 90000 + Math.floor(Math.random()*10000);
-              hashPassword(userChanges[prop], user.salt, user.iterations,
-                function (err, hash)
-                {
-                  if(!err)
-                  {
-                    user.password = hash;
-                  }
-                  // call the main-callback because it's not called later
-                  cb(err, user);
-                })
+              setNewPassword(user, userChanges[prop],
+                function (err) { cb(err, user); });
             }
             else
             {
@@ -149,7 +174,7 @@ exports.deleteUser = function (username, cb)
 
 exports.getUsers = function (cb)
 {
-  db.getMany('user:*', cb);
+  db.getMany('user', cb);
 }
 
 exports.userExists = function (username, cb)
@@ -200,4 +225,27 @@ function hashPassword(password, salt, iterations, cb)
       key = Buffer(key, 'binary').toString('hex');
     cb(err, key);
   }
+}
+
+function setNewPassword(user, password, _cb)
+{
+  var salt = crypto.randomBytes(128).toString('hex');
+  var iterations = 90000 + Math.floor(Math.random()*10000);
+
+  hashPassword(password, salt, iterations,
+    function (err, hash)
+    {
+      if(err)
+      {
+        console.warn("Error while hashing PW: " + err);
+        _cb(err);
+      }
+      else
+      {
+        user.salt = salt;
+        user.iterations = iterations;
+        user.password = hash;
+        _cb(null);
+      }
+    });
 }
