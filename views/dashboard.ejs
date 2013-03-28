@@ -102,7 +102,14 @@ padtable = $('#padtable')
         sAjaxSource: "/api/1/docs/?datatables=1",
         sAjaxDataProp: "data",
         aoColumns: [
-          { mData: [ "docname" ] },
+          {
+              mData: [ "docname" ],
+              fnRender: function (oObj)
+              {
+                  var docname = oObj.aData.docname;
+                  return "<a href='<%= pageurl %>doc/" + docname + "'>" + docname + "</a>";
+              }
+          },
           { mData: [ "type" ] }
         ]
     });
@@ -125,7 +132,7 @@ usertable = usertable.dataTable(
                         return "Admin";
                     if(roles.indexOf('user') != -1 || roles == "User")
                         return "User";
-                },
+                }
           },
           {
             mData: [ "status" ],
@@ -134,7 +141,7 @@ usertable = usertable.dataTable(
                     var status = oObj.aData.status;
                     status = status.charAt(0).toUpperCase() + status.slice(1);
                     return status;
-                },
+                }
           }
         ]
     });

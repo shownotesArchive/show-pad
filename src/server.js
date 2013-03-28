@@ -18,6 +18,7 @@ var db            = require('./db.js')
   , api           = require('./api.js')
   , app           = null
   , mailTransport = null
+  , pageurl       = null
   , sessionStore  = null
   , sessionSecret = null;
 
@@ -67,6 +68,11 @@ function initConfig(cb)
           'port': 8080
       }
   });
+
+  pageurl = nconf.get("pageurl");
+  // add '/' at the end of pageurl if needed
+  if(pageurl.charAt(pageurl.length - 1) != '/')
+    pageurl += '/';
 
   sessionSecret = nconf.get("sessionSecret");
   if(!sessionSecret || sessionSecret.length == 0)
@@ -223,7 +229,7 @@ function initServer(cb)
   app.get('/profile', function(req, res) { res.render('profile'); });
   app.post('/profile', processProfile);
 
-  app.get('/dashboard', function(req, res) { res.render('dashboard'); });
+  app.get('/dashboard', function(req, res) { res.render('dashboard', { pageurl: pageurl }); });
 
   app.get('/logout', processLogout);
 
@@ -427,12 +433,6 @@ function processRegister (req, res)
   }
 
   var emailToken;
-
-  var pageurl = nconf.get("pageurl");
-  // add '/' at the end of pageurl if needed
-  if(pageurl.charAt(pageurl.length - 1) != '/')
-    pageurl += '/';
-
   var mailLocals =
     {
       username: username,
