@@ -72,6 +72,7 @@ $('#create-doc').click(function ()
                 var doc = JSON.parse(res).data;
                 padtable.fnAddData(
                     {
+                        DT_RowId: doc.docname,
                         docname: doc.docname,
                         type: doc.type
                     });
