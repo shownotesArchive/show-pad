@@ -35,6 +35,9 @@
 
 
     "dashboard": "Dashboard",
+    "dashboard.delete": "Delete",
+    "dashboard.delete.confirm": "Do you really want to delete $THING?",
+    "dashboard.delete.fail": "There was an error while deleting $THING.",
     "dashboard.users": "Users",
     "dashboard.users.name": "Name",
     "dashboard.users.email": "E-Mail",

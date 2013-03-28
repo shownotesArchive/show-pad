@@ -36,6 +36,9 @@
 
 
     "dashboard": "Dashboard",
+    "dashboard.delete": "Löschen",
+    "dashboard.delete.confirm": "Soll $THING wirklich gelöscht werden?",
+    "dashboard.delete.fail": "$THING konnte nicht gelöscht werden.",
     "dashboard.users": "Nutzer",
     "dashboard.users.name": "Name",
     "dashboard.users.email": "E-Mail",
