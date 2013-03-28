@@ -516,7 +516,7 @@ function processRegister (req, res)
                     function (err, result)
                     {
                       console.info("[" + username + "] Registered");
-                      res.redirect('/login');
+                      res.redirect('/login?error=registered&values=[]');
                     });
                 }
               });

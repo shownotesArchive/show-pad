@@ -14,7 +14,7 @@
     "login.error.invalid": "Invalid username/password-combination.",
 
     "login.activated": "Your account has been activated!",
-    
+    "login.registered": "Your account has been created. Please follow the instructions in your mailbox.",
 
     "register": "Register",
     "register.username": "Username:",

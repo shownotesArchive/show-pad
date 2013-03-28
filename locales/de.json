@@ -14,6 +14,7 @@
     "login.error.invalid": "Ungültige Benutzername/Passwort-Kombination.",
 
     "login.activated": "Dein Benutzerkonto wurde aktiviert!",
+    "login.registered": "Dein Benutzerkonto wurde erstellt. Bitte folge den Anweisungen in deinem Posteingang.",
 
     
     "register": "Registrieren",

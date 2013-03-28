@@ -53,6 +53,12 @@ if(error)
             $('#login-status').addClass('alert-info');
             error = "<%= __('login.activated') %>";
             break;
+        // redirect from /register
+        case "registered":
+            $('#login-status').removeClass('alert-error');
+            $('#login-status').addClass('alert-info');
+            error = "<%= __('login.registered') %>";
+            break;
     }
 
     $('#login-status').text(error);
