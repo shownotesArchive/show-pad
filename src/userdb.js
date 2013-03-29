@@ -1,7 +1,90 @@
-var cb
+var db
   , async  = require('async')
   , util   = require('util')
   , crypto = require('crypto');
+
+function User (username)
+{
+  if(!username)
+    throw "Invalid arguments";
+  this.username = username;
+  this.email = null;
+  this.status = null;
+  this.roles = [];
+  this.activateEmailTokens = {};
+  this.activatePasswordTokens = {};
+}
+
+User.prototype =
+{
+  constructor: User,
+
+  /* Activate Email */
+  addActivateEmailToken: function (token, email)
+  {
+    this.activateEmailTokens[token] = { email: email };
+  },
+  applyActivateEmailToken: function (tokenToCheck)
+  {
+    for (var token in this.activateEmailTokens)
+    {
+      if(token == tokenToCheck)
+      {
+        this.email = this.activateEmailTokens[token].email;
+        this.activateEmailTokens[token].email = null;
+        return true;
+      }
+    }
+    return false;
+  },
+
+  /* Activate Password */
+  addActivatePasswordToken: function (token, password, cb)
+  {
+    var newPassword = {};
+    setNewPassword(newPassword, password,
+      function (err)
+      {
+        if(!err)
+        {
+          // newPassword contains hash, salt and iterations
+          this.activatePasswordTokens[token] = newPassword;
+        }
+        cb(err);
+      });
+  },
+  applyActivatePasswordToken: function (tokenToCheck)
+  {
+    for (var token in this.activatePasswordTokens)
+    {
+      if(token == tokenToCheck)
+      {
+        this.password = this.activateEmailTokens[token].password;
+        this.salt = this.activateEmailTokens[token].salt;
+        this.iterations = this.activateEmailTokens[token].iterations;
+
+        for (var prop in this.activateEmailTokens[token])
+          this.activateEmailTokens[token][prop] = null;
+
+        return true;
+      }
+    }
+    return false;
+  },
+
+  /* util */
+  hasRole: function (role)
+  {
+    return this.roles.indexOf(role) != -1;
+  },
+  fromRawData: function (rawUser)
+  {
+    for (var prop in rawUser)
+    {
+      this[prop] = rawUser[prop];
+    }
+  }
+}
 
 exports.init = function (_db, _cb)
 {
@@ -11,14 +94,10 @@ exports.init = function (_db, _cb)
 
 exports.createUser = function (username, password, email, emailToken, cb)
 {
-  var user =
-    {
-      username: username,
-      email: email,
-      emailToken: emailToken,
-      status: "email",
-      roles: ["user"]
-    };
+  var user = new User(username);
+  user.status = "email";
+  user.roles.push("user");
+  user.addActivateEmailToken(emailToken, email);
 
   async.waterfall(
     [
@@ -112,7 +191,9 @@ exports.getUser = function (username, cb)
       }
       else
       {
-        cb(err, user);
+        var objUser = new User(user.username);
+        objUser.fromRawData(user);
+        cb(err, objUser);
       }
     });
 }
@@ -174,7 +255,20 @@ exports.deleteUser = function (username, cb)
 
 exports.getUsers = function (cb)
 {
-  db.getMany('user', cb);
+  db.getMany('user',
+    function (err, users)
+    {
+      if(users)
+      {
+        for (var id in users)
+        {
+          var objUser = new User(users[id].username);
+          objUser.fromRawData(users[id]);
+          users[id] = objUser;
+        }
+      }
+      cb(err, users);
+    });
 }
 
 exports.userExists = function (username, cb)

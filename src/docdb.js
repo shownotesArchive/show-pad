@@ -3,6 +3,26 @@ var db
   , util   = require('util')
   , crypto = require('crypto');
 
+function Doc (docname, type)
+{
+  if(!docname || !type)
+    throw "Invalid arguments";
+  this.docname = docname;
+  this.type = type;
+}
+
+Doc.prototype =
+{
+  constructor: Doc,
+  fromRawData: function (rawDoc)
+  {
+    for (var prop in rawDoc)
+    {
+      this[prop] = rawDoc[prop];
+    }
+  }
+}
+
 exports.init = function (_db, _cb)
 {
   db = _db;
@@ -11,11 +31,7 @@ exports.init = function (_db, _cb)
 
 exports.createDoc = function (docname, type, cb)
 {
-  var doc =
-    {
-      docname: docname,
-      type: type
-    };
+  var doc = new Doc(docname, type);
 
   exports.docExists(docname, function (err, exists)
     {
@@ -37,14 +53,29 @@ exports.getDoc = function (docname, cb)
       }
       else
       {
-        cb(err, doc);
+        var objDoc = new Doc(doc.docname, doc.type);
+        objDoc.fromRawData(doc);
+        cb(err, objDoc);
       }
     });
 }
 
 exports.getDocs = function (cb)
 {
-  db.getMany('doc', cb);
+  db.getMany('doc',
+    function (err, docs)
+    {
+      if(docs)
+      {
+        for (var id in docs)
+        {
+          var objDoc = new Doc(docs[id].docname, docs[id].type);
+          objDoc.fromRawData(docs[id]);
+          docs[id] = objDoc;
+        }
+      }
+      cb(err, docs);
+    });
 }
 
 exports.updateDoc = function (docChanges, cb)

@@ -234,7 +234,7 @@ function initServer(cb)
   app.get('/logout', processLogout);
 
   // email activation
-  app.get('/activate/:username/:token', processEmailActivation);
+  app.get('/activate/:username([a-zA-Z0-9]+)/:token', processEmailActivation);
 
   // API
   app.get('/api/:version/:endpoint/:entity?', api.handleRequest);
@@ -304,7 +304,7 @@ function processLogin (req, res)
     return;
   }
 
-  var user = db.user.getUser(username, function (err, user)
+  db.user.getUser(username, function (err, user)
     {
       if(err)
       {
@@ -681,43 +681,48 @@ function processProfile(req, res)
 function processEmailActivation(req, res)
 {
   var username = req.params.username;
+  var token = req.params.token;
 
-  if(!username.match(/^[a-zA-Z0-9]+$/))
-  {
-    res.end('Invalid link.');
-    return;
-  }
-
-  var user = db.user.getUser(username, function (err, user)
+  db.user.getUser(username, function (err, user)
     {
-      if(err || user.status != "email")
+      if(err)
       {
-        console.info("[" + username + "] Account activation failed (status)");
+        console.info("[" + username + "] Email activation failed (db): " + err);
         res.end('Invalid link.');
         return;
       }
 
-      var token = req.params.token;
-
-      if(user.emailToken == token)
+      var success = user.applyActivateEmailToken(token);
+      if(success)
       {
         var userChanges = {};
         userChanges.username = username;
-        userChanges.status = "normal";
-        userChanges.emailToken = null;
+        userChanges.activateEmailTokens = user.activateEmailTokens;
+        userChanges.email = user.email;
+
+        if(user.status == "email")
+          userChanges.status = "normal";
 
         db.user.updateUser(userChanges,
           function (err)
           {
             if(err)
             {
-              console.info("[" + username + "] Account activation failed (db): " + err);
+              console.info("[" + username + "] Email activation failed (db): " + err);
               res.end('Error. Please contact an administrator.');
             }
             else
             {
-              console.info("[" + username + "] Account activated");
-              res.redirect('/login?error=activated&values=["' + username + '"]');
+              if(user.status == "email")
+              {
+                console.info("[" + username + "] Account activated (" + user.email + ")");
+                res.redirect('/login?error=activated&values=["' + username + '"]');
+              }
+              else
+              {
+                console.info("[" + username + "] Email " + user.email + " activated");
+                res.redirect('/login' + loginParam);
+              }
             }
           });
       }

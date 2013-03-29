@@ -222,6 +222,9 @@ function flattenObject(obj, name)
 
     for (var prop in obj)
     {
+      if(!obj.hasOwnProperty(prop))
+        continue;
+
       var propKey = name + ":" + prop;
 
       if(obj[prop] == null)
