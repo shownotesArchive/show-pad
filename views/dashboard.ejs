@@ -25,27 +25,31 @@
     <div class="tab-pane active" id="users">
         <table id="usertable">
             <thead>
-                <th><%= __('dashboard.users.name') %></th>
-                <th><%= __('dashboard.users.email') %></th>
-                <th><%= __('dashboard.users.role') %></th>
-                <th><%= __('dashboard.users.status') %></th>
-                <th></th>
+                <tr>
+                    <th><%= __('dashboard.users.name') %></th>
+                    <th><%= __('dashboard.users.email') %></th>
+                    <th><%= __('dashboard.users.role') %></th>
+                    <th><%= __('dashboard.users.status') %></th>
+                    <th></th>
+                </tr>
             </thead>
         </table>
     </div>
     <div class="tab-pane" id="docs">
         <table id="padtable">
             <thead>
-                <th><%= __('dashboard.docs.name') %></th>
-                <th><%= __('dashboard.docs.type') %></th>
-                <th></th>
+                <tr>
+                    <th><%= __('dashboard.docs.name') %></th>
+                    <th><%= __('dashboard.docs.type') %></th>
+                    <th></th>
+                </tr>
             </thead>
         </table>
         <br>
         <div>
             <h3><%= __('dashboard.docs.create') %></h3>
             <div class="alert alert-error" id="create-error" style="display:none"></div>
-            <div class="alert alert-success" id="create-success" style="display:none"><%= __('dashboard.docs.create.success') %></span></div>
+            <div class="alert alert-success" id="create-success" style="display:none"><%= __('dashboard.docs.create.success') %></div>
             <div class="form-inline">
                 <label class="control-label" for="docname"><%= __('dashboard.docs.create.name') %></label>
                 <input type="text" id="docname" name="docname">
@@ -59,6 +63,7 @@
             </div>
         </div>
     </div>
+  </div>
 </div>
 
 <script>
