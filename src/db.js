@@ -74,12 +74,18 @@ exports.get = function (key, cb)
       // get all values
       function (keys, _cb)
       {
+        if(keys.length == 0)
+        {
+          _cb("noobj");
+          return;
+        }
+
         exports.getManyValues(keys,
           function (err, values)
           {
             if(err)
             {
-              cb(err);
+              _cb(err);
               return;
             }
 
