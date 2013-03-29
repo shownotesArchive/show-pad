@@ -13,6 +13,7 @@ function User (username)
   this.roles = [];
   this.activateEmailTokens = {};
   this.activatePasswordTokens = {};
+  this.createTime = +new Date();
 }
 
 User.prototype =
@@ -22,7 +23,7 @@ User.prototype =
   /* Activate Email */
   addActivateEmailToken: function (token, email)
   {
-    this.activateEmailTokens[token] = { email: email };
+    this.activateEmailTokens[token] = { email: email, time: +new Date() };
   },
   applyActivateEmailToken: function (tokenToCheck)
   {
@@ -31,7 +32,10 @@ User.prototype =
       if(token == tokenToCheck)
       {
         this.email = this.activateEmailTokens[token].email;
-        this.activateEmailTokens[token].email = null;
+
+        for (var prop in this.activateEmailTokens[token])
+          this.activateEmailTokens[token][prop] = null;
+
         return true;
       }
     }
@@ -47,6 +51,7 @@ User.prototype =
       {
         if(!err)
         {
+          newPassword.time = +new Date();
           // newPassword contains hash, salt and iterations
           this.activatePasswordTokens[token] = newPassword;
         }
@@ -59,12 +64,12 @@ User.prototype =
     {
       if(token == tokenToCheck)
       {
-        this.password = this.activateEmailTokens[token].password;
-        this.salt = this.activateEmailTokens[token].salt;
-        this.iterations = this.activateEmailTokens[token].iterations;
+        this.password = this.activatePasswordTokens[token].password;
+        this.salt = this.activatePasswordTokens[token].salt;
+        this.iterations = this.activatePasswordTokens[token].iterations;
 
-        for (var prop in this.activateEmailTokens[token])
-          this.activateEmailTokens[token][prop] = null;
+        for (var prop in this.activatePasswordTokens[token])
+          this.activatePasswordTokens[token][prop] = null;
 
         return true;
       }
