@@ -71,6 +71,7 @@
                 <tr>
                     <th><%= __('dashboard.groups.short') %></th>
                     <th><%= __('dashboard.groups.name') %></th>
+                    <th><%= __('dashboard.groups.type') %></th>
                     <th></th>
                 </tr>
             </thead>
@@ -86,6 +87,12 @@
                 
                 <label class="control-label" for="groupshort"><%= __('dashboard.groups.create.short') %></label>
                 <input type="text" id="groupshort" name="groupshort">
+
+                <label class="control-label" for="grouptype"><%= __('dashboard.groups.create.type') %></label>
+                <select id="grouptype" name="grouptype" >
+                    <option value="open"><%= __('dashboard.groups.create.type.open') %></option>
+                    <option value="closed"><%= __('dashboard.groups.create.type.closed') %></option>
+                </select>
 
                 <button class="btn primary" type="submit" id="create-group"><%= __('dashboard.groups.create.submit') %></button>
             </div>
@@ -133,7 +140,13 @@ $('#create-doc').click(function ()
 
 $('#create-group').click(function ()
 {
-    var thing = { short: $('#groupshort').val(), name: $('#groupname').val() };
+    var thing =
+    {
+        short: $('#groupshort').val(),
+        name: $('#groupname').val(),
+        type: $('#grouptype').val()
+    };
+
     var errors =
     {
         groupexists: "<%= __('dashboard.groups.create.error.exists') %>",
@@ -211,6 +224,7 @@ grouptable = $('#grouptable')
             aoColumns: [
                 { mData: [ "short" ] },
                 { mData: [ "name" ] },
+                { mData: [ "type" ] },
                 {
                     mData: null,
                     bSortable: false,

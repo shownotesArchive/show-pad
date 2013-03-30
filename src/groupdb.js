@@ -2,12 +2,17 @@ var db
   , async  = require('async')
   , util   = require('util');
 
-function Group (short, name)
+function Group (short, name, type)
 {
   if(!name || !short)
     throw "Invalid arguments";
+  if(!type)
+    type = "closed";
+  if(type != "open" && type != "closed")
+    throw "Invalid arguments";
   this.name = name;
   this.short = short;
+  this.type = type;
 }
 
 Group.prototype =
@@ -21,9 +26,9 @@ exports.init = function (_db, _cb)
   _cb(null);
 }
 
-exports.createGroup = function (short, name, cb)
+exports.createGroup = function (short, name, type, cb)
 {
-  var group = new Group(short, name);
+  var group = new Group(short, name, type);
 
   exports.groupExists(group.short,
     function (err, exists)
@@ -45,7 +50,7 @@ exports.getGroup = function (short, cb)
     }
     else
     {
-      var objGroup = new Group(group.short, group.name);
+      var objGroup = new Group(group.short, group.name, group.type);
       cb(err, objGroup);
     }
   });
@@ -96,7 +101,7 @@ exports.getGroups = function (cb)
       {
         for (var id in groups)
         {
-          var objGroup = new Group(groups[id].short, groups[id].name);
+          var objGroup = new Group(groups[id].short, groups[id].name, groups[id].type);
           groups[id] = objGroup;
         }
       }

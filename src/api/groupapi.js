@@ -66,6 +66,8 @@ exports.createOne = function (res, req, answerRequest)
     missing.push("name");
   if(!group.short)
     missing.push("short");
+  if(!group.type)
+    missing.push("type");
 
   if(missing.length != 0)
   {
@@ -73,7 +75,7 @@ exports.createOne = function (res, req, answerRequest)
     return;
   }
 
-  db.group.createGroup(group.short, group.name, function (err)
+  db.group.createGroup(group.short, group.name, group.type, function (err)
   {
     if(err)
     {
