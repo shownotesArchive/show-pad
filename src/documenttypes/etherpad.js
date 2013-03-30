@@ -58,7 +58,7 @@ exports.initExpress = function (app)
 /* Users */
 exports.onLogin = function (user, res, cb)
 {
-  var authorID, sessionIDs = [];
+  var authorID, sessionIDs = [], groups;
 
   async.series(
     [
@@ -80,10 +80,34 @@ exports.onLogin = function (user, res, cb)
             cb(err);
           });
       },
-      // create sessions for all groups of this user
+      // get all groups
       function (cb)
       {
-        async.each(user.groups,
+        server.db.group.getGroups(
+          function (err, _groups)
+          {
+            if(!err)
+              groups = _groups;
+            cb(err);
+          }
+        );
+      },
+      // create sessions for all groups of this user and all open groups
+      function (cb)
+      {
+        var sessionGroups = [];
+
+        for (var id in groups)
+        {
+          if(groups[id].type == "open")
+          {
+            sessionGroups.push(groups[id].short);
+          }
+        }
+
+        sessionGroups = sessionGroups.concat(user.groups);
+
+        async.each(sessionGroups,
           function (showGroup, cb)
           {
             etherpad.createSession(
