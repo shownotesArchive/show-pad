@@ -66,6 +66,8 @@ exports.createOne = function (res, req, answerRequest)
     missing.push("docname");
   if(!doc.type)
     missing.push("type");
+  if(!doc.group)
+    missing.push("group");
 
   if(missing.length != 0)
   {
@@ -73,7 +75,7 @@ exports.createOne = function (res, req, answerRequest)
     return;
   }
 
-  db.doc.createDoc(doc.docname, doc.type, function (err)
+  db.doc.createDoc(doc.docname, doc.type, doc.group, function (err)
     {
       if(err)
       {
@@ -81,7 +83,7 @@ exports.createOne = function (res, req, answerRequest)
       }
       else
       {
-        server.documentTypes[doc.type].onCreateDoc(doc.docname,
+        server.documentTypes.onCreateDoc(doc,
           function (err)
           {
             if(err)
@@ -114,7 +116,7 @@ exports.deleteOne = function (res, req, answerRequest)
 
   async.waterfall(
     [
-      // get the document-type
+      // get the document
       function (cb)
       {
         db.doc.getDoc(docname, cb);
@@ -131,7 +133,7 @@ exports.deleteOne = function (res, req, answerRequest)
             }
             else
             {
-              server.documentTypes[doc.type].onDeleteDoc(docname,
+              server.documentTypes.onDeleteDoc(doc,
                 function (err)
                 {
                   if(err)

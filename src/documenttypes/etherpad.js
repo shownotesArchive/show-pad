@@ -4,16 +4,17 @@ var async  = require('async')
 var server     = null
   , etherpad   = null
   , eplurl     = ""
-  , eplGroupID = null
+  , eplGroupIDs = {}
   , sessionMaxAge = 86400000;
 
 exports.name = "etherpad";
 
+/* Init */
 exports.init = function (_server, cb)
 {
   server = _server;
 
-  async.series(
+  async.waterfall(
     [
       // connect to epl
       function (cb)
@@ -23,63 +24,28 @@ exports.init = function (_server, cb)
         etherpad = eplapi.connect(conf);
         cb();
       },
-      // create the group
+      // get all showpad-groups
       function (cb)
       {
-        etherpad.createGroupIfNotExistsFor(
-          {
-            groupMapper: "showpad"
-          },
-          function (err, data)
-          {
-            if(!err)
-            {
-              eplGroupID = data.groupID;
-              console.debug("[epl] our groupid is " + eplGroupID);
-            }
-            cb(err);
-          }
-        );
+        server.db.group.getGroups(cb);
       },
-      // delete all existing sessions in this group
+      // create the corresponding epl-groups
+      function (groups, cb)
+      {
+        async.each(groups,
+          function (group, _cb)
+          {
+            exports.onCreateGroup(group, _cb);
+          }, cb);
+      },
+      // delete all existing sessions
       function (cb)
       {
-        etherpad.listSessionsOfGroup(
-        {
-          groupID: eplGroupID
-        },
-        function (err, data)
-        {
-          if(err)
+        async.each(Object.keys(eplGroupIDs),
+          function (showGroup, cb)
           {
-            console.error("Error while deleting sessions: ");
-            console.error(err)
-            process.exit(1);
-          }
-          else
-          {
-            if(data == null)
-            {
-              cb();
-            }
-            else
-            {
-              var sessionIds = Object.keys(data);
-              console.debug("[epl] deleting " + sessionIds.length + " old sessions..");
-              async.forEach(
-                sessionIds,
-                function(item, done)
-                {
-                  etherpad.deleteSession({sessionID:item}, done);
-                },
-                function(err)
-                {
-                  cb(err);
-                }
-              );
-            }
-          }
-        });
+            deleteGroupSessions(showGroup, cb);
+          }, cb);
       }
     ], cb);
 }
@@ -89,9 +55,10 @@ exports.initExpress = function (app)
   // do nothing
 }
 
-exports.onLogin = function (user, req, res, cb)
+/* Users */
+exports.onLogin = function (user, res, cb)
 {
-  var authorID, sessionID;
+  var authorID, sessionIDs = [];
 
   async.series(
     [
@@ -113,29 +80,40 @@ exports.onLogin = function (user, req, res, cb)
             cb(err);
           });
       },
-      // create session
+      // create sessions for all groups of this user
       function (cb)
       {
-        etherpad.createSession(
+        async.each(user.groups,
+          function (showGroup, cb)
           {
-            authorID: authorID,
-            groupID: eplGroupID,
-            validUntil: new Date().getTime() + sessionMaxAge
-          },
-          function (err, data)
-          {
-            if(!err)
-            {
-              sessionID = data.sessionID;
-              console.debug("[epl] [" + user.username + "] SessionID: " + sessionID);
-            }
-            cb(err);
-          });
+            etherpad.createSession(
+              {
+                authorID: authorID,
+                groupID: eplGroupIDs[showGroup],
+                validUntil: new Date().getTime() + sessionMaxAge
+              },
+              function (err, data)
+              {
+                if(!err)
+                {
+                  sessionIDs.push(data.sessionID);
+                  console.debug("[epl] [" + user.username + "] " + showGroup + " (" + eplGroupIDs[showGroup] + ") SessionID: " + data.sessionID);
+                }
+                cb(err);
+              });
+          }, cb);
       },
       // save session and set cookie
       function (cb)
       {
-        var userChanges = { username: user.username, eplSession: sessionID };
+        var cookieStr = "";
+        for (var id in sessionIDs)
+        {
+          cookieStr += sessionIDs[id] + ';';
+        }
+        cookieStr = cookieStr.substr(0, cookieStr.length - 1);
+
+        var userChanges = { username: user.username, eplAuthor: authorID };
         server.db.user.updateUser(userChanges,
           function (err)
           {
@@ -145,7 +123,7 @@ exports.onLogin = function (user, req, res, cb)
             }
             else
             {
-              res.cookie("sessionID", sessionID, { maxAge: sessionMaxAge, httpOnly: false});
+              res.cookie("sessionID", cookieStr, { maxAge: sessionMaxAge, httpOnly: false});
               console.debug("[epl] [" + user.username + "] Logged in");
             }
 
@@ -155,40 +133,121 @@ exports.onLogin = function (user, req, res, cb)
     ], cb);
 }
 
-exports.onRegister = function (username, cb)
+exports.onCreateUser = function (user, cb)
 {
   // do nothing
   cb();
 }
 
-exports.onLogout = function (user, req, res, cb)
+exports.onLogout = function (user, res, cb)
 {
   // delete epl session
-  var sid = user.eplSession;
+  var aid = user.eplAuthor;
   var username = user.username;
 
-  if(sid)
+  if(aid)
   {
-    etherpad.deleteSession({sessionID: sid},
-      function (err, data)
+    async.waterfall(
+      [
+        // get sessions of user
+        function (_cb)
+        {
+          etherpad.listSessionsOfAuthor({ authorID: aid }, _cb);
+        },
+        // delete sessions
+        function (sessions, _cb)
+        {
+          async.each(sessions,
+            function (session, cb)
+            {
+              etherpad.deleteSession({sessionID: sid},
+                function (err, data)
+                {
+                  cb();
+                });
+            }, cb);
+        }
+      ],
+      function (err)
       {
         if(err)
           console.error("[epl] [" + username + "] could not delete session: " + sid + ", " + err);
         else
           console.debug("[epl] [" + username + "] session deleted: " + sid);
-        cb();
-      });
+      }
+    );
+  }
+  else
+  {
+    cb();
   }
 }
 
-exports.onCreateDoc = function (docname, cb)
+/* Groups */
+exports.onCreateGroup = function (group, cb)
 {
-  etherpad.createGroupPad({ groupID: eplGroupID, padName: docname }, cb);
+  etherpad.createGroupIfNotExistsFor(
+    {
+      groupMapper: "showpad_" + group.short
+    },
+    function (err, data)
+    {
+      if(!err)
+      {
+        eplGroupIDs[group.short] = data.groupID;
+        console.debug("[epl] groupid for " + group.short + " is " + data.groupID);
+      }
+      cb(err);
+    }
+  );
 }
 
-exports.onDeleteDoc = function (docname, cb)
+function deleteGroupSessions(showGroup, cb)
 {
-  etherpad.deletePad({padID: eplGroupID + "$" + docname},
+  etherpad.listSessionsOfGroup(
+    {
+      groupID: eplGroupIDs[showGroup]
+    },
+    function (err, data)
+    {
+      if(err)
+      {
+        console.error("Error while deleting sessions of " +  + ": ");
+        console.error(err)
+        process.exit(1);
+      }
+      if(data == null)
+      {
+        cb();
+        return;
+      }
+
+      var sessionIds = Object.keys(data);
+      console.debug("[epl] deleting " + sessionIds.length + " old sessions of " + showGroup + "..");
+      async.forEach(
+        sessionIds,
+        function(item, done)
+        {
+          etherpad.deleteSession({sessionID:item}, done);
+        }, cb);
+    });
+}
+
+/* Docs */
+exports.onCreateDoc = function (doc, cb)
+{
+  var groupID = eplGroupIDs[doc.group];
+  var padName = doc.docname;
+
+  etherpad.createGroupPad({ groupID: groupID, padName: padName }, cb);
+}
+
+exports.onDeleteDoc = function (doc, cb)
+{
+  var docname = doc.docname;
+  var groupID = eplGroupIDs[doc.group];
+
+  etherpad.deletePad({padID: groupID + "$" + docname},
     function (err)
     {
       if(err)
@@ -204,7 +263,7 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
   var locals =
     {
       docname: doc.name,
-      groupID: eplGroupID,
+      groupID: eplGroupIDs[doc.group],
       eplurl: eplurl,
       padId: req.params.docname
     };

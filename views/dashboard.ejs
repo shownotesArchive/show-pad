@@ -56,6 +56,11 @@
                     <option value="etherpad">Etherpad</option>
                 </select>
                 
+                <label class="control-label" for="docgroup"><%= __('dashboard.docs.create.group') %></label>
+                <select id="docgroup" name="docgroup" >
+                    <option value="etherpad">Loading..</option>
+                </select>
+
                 <button class="btn primary" type="submit" id="create-doc"><%= __('dashboard.docs.create.submit') %></button>
             </div>
         </div>
@@ -90,10 +95,33 @@
 </div>
 
 <script>
+var groups = [];
+var response =
+    $.ajax("/api/1/groups/")
+        .success(function()
+            {
+                var resp = JSON.parse(response.responseText);
+                groups = resp.data;
+
+                $("#docgroup").empty();
+                for (var id in groups)
+                {
+                    var short = groups[id].short;
+                    var name = groups[id].name;
+
+                    $("#docgroup").append(new Option(name + " (" + short + ")", short));
+                }
+            });
 
 $('#create-doc').click(function ()
 {
-    var thing = { docname: $('#docname').val(), type: $('#doctype').val() };
+    var thing =
+    {
+        docname: $('#docname').val(),
+        type: $('#doctype').val(),
+        group: $('#docgroup').val()
+    };
+
     var errors =
     {
         docexists: "<%= __('dashboard.docs.create.error.exists') %>",

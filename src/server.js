@@ -16,20 +16,22 @@ var express   = require('express')
 
 var db            = require('./db.js')
   , api           = require('./api.js')
+  , documentTypes = require('./documenttypes.js')
   , app           = null
   , mailTransport = null
   , pageurl       = null
   , sessionStore  = null
   , sessionSecret = null;
 
-// exports for doctpyes
+// rate limiters
+var registerLimiters = {};
+
+// exports
+exports.documentTypes = documentTypes;
 exports.nconf = nconf;
 exports.db = db;
 
-var registerLimiters = {};
-var documentTypes = {};
-exports.documentTypes = documentTypes;
-
+// startup
 log4js.replaceConsole();
 console.info("Let's go");
 
@@ -102,26 +104,7 @@ function initDatabase(cb)
 function initDocTypes(cb)
 {
   console.info("Initiating doctypes..");
-  fs.readdir('./src/documenttypes', function (err, files)
-    {
-      if(err)
-      {
-        console.error("Could not load doctypes: " + err);
-        cb();
-        return;
-      }
-
-      console.debug("Found " + files.length + " doctypes!");
-
-      async.eachSeries(files,
-        function (file, cb)
-        {
-          var t = require('./documenttypes/' + file);
-          documentTypes[t.name] = t;
-          console.debug("Initiating doctype: " + t.name + "...");
-          documentTypes[t.name].init(exports, cb);
-        }, cb);
-    });
+  documentTypes.init(exports, cb);
 }
 
 function initApi(cb)
@@ -198,11 +181,7 @@ function initServer(cb)
     });
 
   console.debug("Initiating doctypes (express)..");
-  for(var t in documentTypes)
-  {
-    console.debug("Initiating " + documentTypes[t].name + "...");
-    documentTypes[t].initExpress(app);
-  }
+  documentTypes.onExpressInit(app);
 
   console.debug("Initiating server-routes..");
   // routes
@@ -266,15 +245,15 @@ function processDoc (req, res)
       // get doc
       function (_doc, cb)
       {
-        if(!_doc)
+        doc = _doc;
+
+        if(!doc)
         {
           res.render('doc', { error: "nodoc" });
           return;
         }
 
-        doc = _doc;
-        doctype = documentTypes[doc.type];
-        doctype.onRequestDoc(req, res, res.locals.user, doc, cb);
+        documentTypes.onRequestDoc(req, res, res.locals.user, doc, cb);
       }
     ],
     function (err)
@@ -345,14 +324,7 @@ function processLogin (req, res)
             {
               console.info("[" + username + "] Logged in");
               req.session.user = username;
-
-              async.eachSeries(Object.keys(documentTypes),
-                function (type, cb)
-                {
-                  type = documentTypes[type];
-                  console.debug("[" + username + "] starting " + type.name + "-login");
-                  type.onLogin(user, req, res, cb);
-                },
+              documentTypes.onLogin(user, res,
                 function (err, result)
                 {
                   res.redirect('/');
@@ -372,20 +344,12 @@ function processLogout (req, res)
       return;
   }
 
-  var username = user.username;
-
-  async.eachSeries(Object.keys(documentTypes),
-    function (type, cb)
-    {
-      type = documentTypes[type];
-      console.debug("[" + username + "] starting " + type.name + "-logout");
-      type.onLogout(user, req, res, cb);
-    },
-    function (err, result)
+  documentTypes.onLogout(user, res,
+    function (err)
     {
       // delete our session
       req.session.user = null;
-      console.debug("[" + username + "] Logged out");
+      console.debug("[" + user.username + "] Logged out");
       // redirect the user back to the index
       res.redirect('/');
     });
@@ -516,13 +480,7 @@ function processRegister (req, res)
                 }
                 else
                 {
-                  async.eachSeries(Object.keys(documentTypes),
-                    function (type, cb)
-                    {
-                      type = documentTypes[type];
-                      console.debug("[" + username + "] starting " + type.name + "-register");
-                      type.onRegister(username, cb);
-                    },
+                  documentTypes.onCreateUser(user,
                     function (err, result)
                     {
                       console.info("[" + username + "] Registered");

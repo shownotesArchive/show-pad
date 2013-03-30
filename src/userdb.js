@@ -11,6 +11,7 @@ function User (username)
   this.email = null;
   this.status = null;
   this.roles = [];
+  this.groups = [];
   this.activateEmailTokens = {};
   this.activatePasswordTokens = {};
   this.createTime = +new Date();
@@ -81,6 +82,10 @@ User.prototype =
   hasRole: function (role)
   {
     return this.roles.indexOf(role) != -1;
+  },
+  inGroup: function (group)
+  {
+    return this.groups.indexOf(role) != -1;
   },
   fromRawData: function (rawUser)
   {

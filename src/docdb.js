@@ -3,12 +3,13 @@ var db
   , util   = require('util')
   , crypto = require('crypto');
 
-function Doc (docname, type)
+function Doc (docname, type, group)
 {
-  if(!docname || !type)
+  if(!docname || !type || !group)
     throw "Invalid arguments";
   this.docname = docname;
   this.type = type;
+  this.group = group;
 }
 
 Doc.prototype =
@@ -29,9 +30,9 @@ exports.init = function (_db, _cb)
   _cb(null);
 }
 
-exports.createDoc = function (docname, type, cb)
+exports.createDoc = function (docname, type, group, cb)
 {
-  var doc = new Doc(docname, type);
+  var doc = new Doc(docname, type, group);
 
   exports.docExists(docname, function (err, exists)
     {
@@ -53,7 +54,7 @@ exports.getDoc = function (docname, cb)
       }
       else
       {
-        var objDoc = new Doc(doc.docname, doc.type);
+        var objDoc = new Doc(doc.docname, doc.type, doc.group);
         objDoc.fromRawData(doc);
         cb(err, objDoc);
       }
@@ -69,7 +70,7 @@ exports.getDocs = function (cb)
       {
         for (var id in docs)
         {
-          var objDoc = new Doc(docs[id].docname, docs[id].type);
+          var objDoc = new Doc(docs[id].docname, docs[id].type, docs[id].group);
           objDoc.fromRawData(docs[id]);
           docs[id] = objDoc;
         }

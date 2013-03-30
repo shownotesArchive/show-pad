@@ -81,6 +81,14 @@ exports.createOne = function (res, req, answerRequest)
     }
     else
     {
+      server.documentTypes.onCreateGroup(group,
+        function (err)
+        {
+          if(err)
+            answerRequest(res, 500, err, null);
+          else
+            answerRequest(res, 200, "ok", group);
+        });
       answerRequest(res, 200, "ok", group);
     }
   });

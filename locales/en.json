@@ -52,6 +52,7 @@
     "dashboard.docs.create": "Create",
     "dashboard.docs.create.name": "Name:",
     "dashboard.docs.create.type": "Type:",
+    "dashboard.docs.create.group": "Group:",
     "dashboard.docs.create.submit": "Create",
     "dashboard.docs.create.error.exists": "This name is already taken.",
     "dashboard.docs.create.error.other": "That did not work.",
