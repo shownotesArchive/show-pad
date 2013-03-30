@@ -20,6 +20,7 @@
   <ul class="nav nav-tabs" data-tabs="tabs">
     <li class="active"><a href="#users" data-toggle="tab"><%= __('dashboard.users') %></a></li>
     <li><a href="#docs" data-toggle="tab"><%= __('dashboard.docs') %></a></li>
+    <li><a href="#groups" data-toggle="tab"><%= __('dashboard.groups') %></a></li>
   </ul>
   <div id="my-tab-content" class="tab-content">
     <div class="tab-pane active" id="users">
@@ -48,8 +49,8 @@
         <br>
         <div>
             <h3><%= __('dashboard.docs.create') %></h3>
-            <div class="alert alert-error" id="create-error" style="display:none"></div>
-            <div class="alert alert-success" id="create-success" style="display:none"><%= __('dashboard.docs.create.success') %></div>
+            <div class="alert alert-error" id="docs-create-error" style="display:none"></div>
+            <div class="alert alert-success" id="docs-create-success" style="display:none"><%= __('dashboard.docs.create.success') %></div>
             <div class="form-inline">
                 <label class="control-label" for="docname"><%= __('dashboard.docs.create.name') %></label>
                 <input type="text" id="docname" name="docname">
@@ -63,6 +64,32 @@
             </div>
         </div>
     </div>
+    <div class="tab-pane" id="groups">
+        <table id="grouptable">
+            <thead>
+                <tr>
+                    <th><%= __('dashboard.groups.short') %></th>
+                    <th><%= __('dashboard.groups.name') %></th>
+                    <th></th>
+                </tr>
+            </thead>
+        </table>
+        <br>
+        <div>
+            <h3><%= __('dashboard.docs.create') %></h3>
+            <div class="alert alert-error" id="groups-create-error" style="display:none"></div>
+            <div class="alert alert-success" id="groups-create-success" style="display:none"><%= __('dashboard.groups.create.success') %></div>
+            <div class="form-inline">
+                <label class="control-label" for="groupname"><%= __('dashboard.groups.create.name') %></label>
+                <input type="text" id="groupname" name="groupname">
+                
+                <label class="control-label" for="groupshort"><%= __('dashboard.groups.create.short') %></label>
+                <input type="text" id="groupshort" name="groupshort">
+
+                <button class="btn primary" type="submit" id="create-group"><%= __('dashboard.groups.create.submit') %></button>
+            </div>
+        </div>
+    </div>
   </div>
 </div>
 
@@ -71,35 +98,59 @@ $('select').selectpicker();
 
 $('#create-doc').click(function ()
 {
-    $.post('api/1/docs', { docname: $('#docname').val(), type: $('#doctype').val() })
-        .done(function (res)
+    var thing = { docname: $('#docname').val(), type: $('#doctype').val() };
+    var errors =
+    {
+        docexists: "<%= __('dashboard.docs.create.error.exists') %>",
+        default: "<%= __('dashboard.docs.create.error.other') %>"
+    };
+
+    createThing('docs', thing, thing.docname, errors);
+})
+
+$('#create-group').click(function ()
+{
+    var thing = { short: $('#groupshort').val(), name: $('#groupname').val() };
+    var errors =
+    {
+        groupexists: "<%= __('dashboard.groups.create.error.exists') %>",
+        default: "<%= __('dashboard.groups.create.error.other') %>"
+    };
+
+    createThing('groups', thing, thing.short, errors);
+})
+
+function createThing(type, thing, name, errors)
+{
+    var createSuccess = $('#' + type + '-create-success');
+    var createError = $('#' + type + '-create-error');
+
+    $.post('api/1/' + type, thing)
+            .done(function (res)
             {
-                var doc = JSON.parse(res).data;
-                padtable.fnAddData(
-                    {
-                        DT_RowId: doc.docname,
-                        docname: doc.docname,
-                        type: doc.type
-                    });
-                $('#create-success').show();
-                $('#create-error').hide();
+                var rtnThing = JSON.parse(res).data;
+                var table = getTableForType(type);
+
+                rtnThing.DT_RowId = name;
+                table.fnAddData(rtnThing);
+
+                createSuccess.show();
+                createError.hide();
             })
-        .fail(function (res)
+            .fail(function (res)
             {
                 var msg = JSON.parse(res.responseText).message;
-                switch(msg)
-                {
-                    case "docexists":
-                        $('#create-error').text("<%= __('dashboard.docs.create.error.exists') %>");
-                        break;
-                    default:
-                        $('#create-error').text("<%= __('dashboard.docs.create.error.other') %>");
-                        break;
-                }
-                $('#create-success').hide();
-                $('#create-error').show();
+
+                if(errors[msg])
+                    msg = errors[msg];
+                else
+                    msg = errors["default"];
+                
+                createError.text(msg);
+                createSuccess.hide();
+                createError.show();
             });
-})
+}
 
 $.fn.dataTableExt.sErrMode = 'throw';
 
@@ -127,6 +178,24 @@ padtable = $('#padtable')
           }
         ]
     });
+
+grouptable = $('#grouptable')
+        .dataTable(
+        {
+            bProcessing: true,
+            sAjaxSource: "/api/1/groups/?datatables=1",
+            sAjaxDataProp: "data",
+            aoColumns: [
+                { mData: [ "short" ] },
+                { mData: [ "name" ] },
+                {
+                    mData: null,
+                    bSortable: false,
+                    sDefaultContent: '',
+                    fnRender: function (oObj) { return addRowButtons(oObj, 'groups') }
+                }
+            ]
+        });
 
 usertable = $('#usertable');
 usertable = usertable.dataTable(
@@ -224,18 +293,7 @@ function deleteThing(element)
                 url: "/api/1/" + type + "/" + id
             }).success(function ()
             {
-                var table = null;
-
-                switch(type)
-                {
-                    case "users":
-                        table = usertable;
-                        break;
-                    case "docs":
-                        table = padtable;
-                        break;
-                }
-
+                var table = getTableForType(type);
                 table.fnDeleteRow(index, null, true);
             }).fail(function ()
             {
@@ -283,5 +341,24 @@ function updateUser(value, settings)
 
     return returnValue;
 }
+
+function getTableForType(type)
+{
+    var table = null;
+
+    switch(type)
+    {
+        case "users":
+            table = usertable;
+            break;
+        case "docs":
+            table = padtable;
+            break;
+        case "groups":
+            table = grouptable;
+            break;
+    }
+
+    return table;
+}
 </script>
- 

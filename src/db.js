@@ -2,11 +2,13 @@ var redis  = require('redis')
   , async  = require('async')
   , userdb = require('./userdb.js')
   , docdb  = require('./docdb.js')
+  , groupdb = require('./groupdb.js')
   , options
   , client;
 
 exports.user = userdb;
 exports.doc = docdb;
+exports.group = groupdb;
 
 exports.init = function (_options, cb)
 {
@@ -22,6 +24,11 @@ exports.init = function (_options, cb)
     {
       console.debug("Initiating docdb..");
       docdb.init(exports, cb);
+    },
+    function (cb)
+    {
+      console.debug("Initiating groupdb..");
+      groupdb.init(exports, cb);
     }
   ], cb);
 }
