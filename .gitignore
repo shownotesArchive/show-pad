@@ -8,5 +8,3 @@ static/js/jquery-queryParser.min.js
 static/js/jquery.dataTables.editable.js
 static/js/jquery.jeditable.mini.js
 static/js/etherpad.js
-static/js/bootstrap-select.min.js
-static/css/bootstrap-select.min.css

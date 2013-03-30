@@ -10,10 +10,6 @@
 <!-- ShowPad -->
 <% stylesheet('css/dashboard.css') %>
 
-<!-- Bootstrap-like select -->
-<% script('js/bootstrap-select.min.js') %>
-<% stylesheet('css/bootstrap-select.min.css') %> 
-
 <% script('http://twitter.github.com/bootstrap/1.4.0/bootstrap-tabs.js') %>
 
 <div id="tabs">
@@ -56,7 +52,7 @@
                 <input type="text" id="docname" name="docname">
 
                 <label class="control-label" for="doctype"><%= __('dashboard.docs.create.type') %></label>
-                <select id="doctype" name="doctype" class="selectpicker">
+                <select id="doctype" name="doctype" >
                     <option value="etherpad">Etherpad</option>
                 </select>
                 
@@ -94,7 +90,6 @@
 </div>
 
 <script>
-$('select').selectpicker();
 
 $('#create-doc').click(function ()
 {
