@@ -20,7 +20,7 @@ exports.init = function (_server, _cb)
     }
     else
     {
-      console.log("API-Key is " + apikey);
+      console.log("API-Key is " + tmpapikeyey);
       apikey = tmpapikeyey;
     }
   }

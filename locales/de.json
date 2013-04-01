@@ -24,7 +24,7 @@
 
     "register": "Registrieren",
     "register.username": "Benutzername:",
-    "register.email": "E-Mail:",
+    "register.email": "E-Mail-Adresse:",
     "register.password": "Passwort:",
     "register.passwordr": "Passwort Wiederholung:",
     "register.submit": "Abschicken",
@@ -46,7 +46,7 @@
     "dashboard.delete.fail": "$THING konnte nicht gelöscht werden.",
     "dashboard.users": "Nutzer",
     "dashboard.users.name": "Name",
-    "dashboard.users.email": "E-Mail",
+    "dashboard.users.email": "E-Mail-Adresse",
     "dashboard.users.role": "Rolle",
     "dashboard.users.selectrole": "Rolle auswählen..",
     "dashboard.users.status": "Status",
