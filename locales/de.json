@@ -1,6 +1,12 @@
 {
     "index.activedocs": "Active docs",
 
+    "header.home": "Hauptseite",
+    "header.profile": "Profil",
+    "header.dashboard": "Dashboard",
+    "header.register": "Registrieren",
+    "header.login": "Login",
+
     "login": "Login",
     "login.username": "Benutzername",
     "login.password": "Passwort",

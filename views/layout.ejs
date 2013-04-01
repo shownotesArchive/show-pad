@@ -21,15 +21,15 @@
 			<a class="brand" href="/">ShowPad</a>
 			<div class="navbar-inner">
 				<ul class="nav">
-					<li><a href="/">Home</a></li>
+					<li><a href="/"><%= __('header.home') %></a></li>
 					<% if (user) { %>
-						<li><a href="/profile">Profile</a></li>
+						<li><a href="/profile"><%= __('header.profile') %></a></li>
 						<% if (user.hasRole("admin")) { %>
-							<li><a href="/dashboard">Dashboard</a></li>
+							<li><a href="/dashboard"><%= __('header.dashboard') %></a></li>
 						<% } %>
 		            <% } else { %>
-						<li><a href="/register">Register</a></li>
-						<li><a href="/login">Login</a></li>
+						<li><a href="/register"><%= __('header.register') %></a></li>
+						<li><a href="/login"><%= __('header.login') %></a></li>
 		            <% } %>
 				</ul>
 
