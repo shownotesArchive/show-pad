@@ -208,7 +208,7 @@ function initServer(cb)
   app.get('/profile', function(req, res) { res.render('profile'); });
   app.post('/profile', processProfile);
 
-  app.get('/dashboard', function(req, res) { res.render('dashboard', { pageurl: pageurl }); });
+  app.get('/dashboard', function(req, res) { res.render('dashboard', { pageurl: pageurl, locale: req.locale }); });
 
   app.get('/logout', processLogout);
 

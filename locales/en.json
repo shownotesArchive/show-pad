@@ -5,7 +5,6 @@
     "header.profile": "Profile",
     "header.dashboard": "Dashboard",
     "header.register": "Register",
-    "header.login": "Login",
 
     "login": "Login",
     "login.username": "Username",

@@ -197,6 +197,7 @@ padtable = $('#padtable')
         bProcessing: true,
         sAjaxSource: "/api/1/docs/?datatables=1",
         sAjaxDataProp: "data",
+        oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
         aoColumns: [
           {
               mData: [ "docname" ],
@@ -223,6 +224,7 @@ grouptable = $('#grouptable')
             bProcessing: true,
             sAjaxSource: "/api/1/groups/?datatables=1",
             sAjaxDataProp: "data",
+            oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
             aoColumns: [
                 { mData: [ "short" ] },
                 { mData: [ "name" ] },
@@ -242,6 +244,7 @@ usertable = usertable.dataTable(
         bProcessing: true,
         sAjaxSource: "/api/1/users/?datatables=1",
         sAjaxDataProp: "data",
+        oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
         aoColumns: [
           { mData: [ "username" ] },
           { mData: [ "email" ] },
