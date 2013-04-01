@@ -68,11 +68,11 @@
     "profile.email.status.success": "Deine E-Mail-Adresse wurde geändert.",
     "profile.email.status.same": "Das ist bereits deine gespeicherte E-Mail-Adresse",
 
-    "profile.password.newpassword": "Neues Password:",
-    "profile.password.newpasswordr": "Neues Password wiederholen:",
-    "profile.password.oldpassword": "Jetziges Password:",
+    "profile.password.newpassword": "Neues Passwort:",
+    "profile.password.newpasswordr": "Neues Passwort wiederholen:",
+    "profile.password.oldpassword": "Altes Passwort bestätigen:",
     "profile.password.submit": "Passwort ändern",
-    "profile.password.error.other": "Deine Password konnte nicht geändert werden. Bitte melde Dich bei einem Administrator.",
+    "profile.password.error.other": "Deine Passwort konnte nicht geändert werden. Bitte melde Dich bei einem Administrator.",
     "profile.password.error.pwmatch": "Die Passwörter stimmen nicht überein.",
     "profile.password.status.success": "Dein Passwort wurde geändert."
 }
