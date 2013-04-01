@@ -153,17 +153,41 @@ exports.emailExists = function (emailToCheck, cb)
       {
         db.getObjectsOfType("user", _cb);
       },
-      // get all emails
+      // get all user-fields
       function (names, _cb)
       {
         async.map(names,
           function (name, __cb)
           {
-            __cb(null, "user:" + name + ":email");
+            __cb(null, "user:" + name);
           },
-          function (err, names)
+          function (err, emailfields)
           {
-            db.getManyValues(names, _cb);
+            db.getManyValues(emailfields, _cb);
+          });
+      },
+      // get all emails
+      function (users, _cb)
+      {
+        async.concat(Object.keys(users),
+          function (username, __cb)
+          {
+            var emails = [];
+
+            for (var field in users[username])
+            {
+              var fullname = users[username][field];
+              var fieldname = fullname.split(':')[2];
+              if(fieldname == "activateEmailTokens" && fullname.indexOf(':email') == fullname.length - 6
+                || fieldname == "email")
+                emails.push(fullname);
+            }
+
+            __cb(null, emails);
+          },
+          function (err, emailKeys)
+          {
+            db.getManyValues(emailKeys, _cb);
           });
       },
       // check if email exits

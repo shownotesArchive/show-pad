@@ -136,6 +136,10 @@ exports.getManyValues = function (keys, cb)
             multi.get(keys[i]);
           else if(types[i] == "list")
             multi.lrange(keys[i], 0, -2); // skip last member since it's just the placeholder
+          else if(types[i] == "set")
+            multi.smembers(keys[i]);
+          else
+            console.warn("Unknown db-type: " + types[i]);
         }
         multi.exec(_cb);
       },
