@@ -233,7 +233,8 @@ function startServer(cb)
 function processDoc (req, res)
 {
   var docname = req.params.docname;
-  var doc, doctype;
+  var user = res.locals.user;
+  var doc, group;
 
   async.waterfall(
     [
@@ -250,9 +251,31 @@ function processDoc (req, res)
         if(!doc)
         {
           res.render('doc', { error: "nodoc" });
-          return;
+          cb("nodoc");
         }
+        else
+        {
+          db.group.getGroup(doc.group, cb);
+        }
+      },
+      // get the doc-group
+      function (_group, cb)
+      {
+        group = _group;
 
+        if(user && (group.type == "open" || user.inGroup(group.short)))
+        {
+          cb();
+        }
+        else
+        {
+          cb("auth");
+        }
+      },
+      // try to show the document using the documenttype
+      function (cb)
+      {
+        res.locals.err = null;
         documentTypes.onRequestDoc(req, res, res.locals.user, doc, cb);
       }
     ],
@@ -261,7 +284,15 @@ function processDoc (req, res)
       if(err)
       {
         console.log("Error while showing doc: " + err);
-        res.render('doc', { error: err });
+
+        var locals = {docname: docname};
+
+        if(err != "auth" && err != "nodoc")
+          locals.err = "other";
+        else
+          locals.err = err;
+
+        res.render('doc', locals);
       }
     });
 }

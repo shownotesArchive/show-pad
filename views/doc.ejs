@@ -1,3 +1,8 @@
 <% layout('layout.ejs') %>
 
-<%- body %>
+<% if ( err ) { %>
+    <% block('title', docname) -%>
+    <span style="color:darkred"><%= __('showdoc.error') %>: <%= __('showdoc.error.' + err) %></span>
+<% } else { %>
+    <%- body %>
+<% } %>

@@ -39,6 +39,10 @@
     "register.email.subject": "Aktiviere Dein Shownotes-Konto!",
     "register.email.invalidlink": "Ungültiger Link.",
 
+    "showdoc.error": "Fehler",
+    "showdoc.error.nodoc": "Das Dokument existiert nicht.",
+    "showdoc.error.auth": "Du bist nicht berechtigt dieses Dokument zu öffnen.",
+    "showdoc.error.other": "Das Dokument konnte nicht geladen werden.",
 
     "dashboard": "Dashboard",
     "dashboard.delete": "Löschen",

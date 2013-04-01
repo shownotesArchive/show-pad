@@ -85,7 +85,7 @@ User.prototype =
   },
   inGroup: function (group)
   {
-    return this.groups.indexOf(role) != -1;
+    return this.groups.indexOf(group) != -1;
   },
   fromRawData: function (rawUser)
   {
