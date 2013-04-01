@@ -133,7 +133,7 @@ exports.onLogin = function (user, res, cb)
         var cookieStr = "";
         for (var id in sessionIDs)
         {
-          cookieStr += sessionIDs[id] + ';';
+          cookieStr += sessionIDs[id] + ',';
         }
         cookieStr = cookieStr.substr(0, cookieStr.length - 1);
 
