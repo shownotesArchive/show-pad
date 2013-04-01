@@ -72,7 +72,7 @@ exports.onCreateUser = function (user, cb)
     {
       type = documentTypes[type];
       console.debug("[" + user.username + "] starting " + type.name + "-register");
-      type.onCreateUser(username, cb);
+      type.onCreateUser(user, cb);
     }, cb);
 }
 

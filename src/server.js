@@ -480,7 +480,7 @@ function processRegister (req, res)
                 }
                 else
                 {
-                  documentTypes.onCreateUser(user,
+                  documentTypes.onCreateUser({ username: username, email: email },
                     function (err, result)
                     {
                       console.info("[" + username + "] Registered");

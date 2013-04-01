@@ -195,9 +195,9 @@ exports.onLogout = function (user, res, cb)
       function (err)
       {
         if(err)
-          console.error("[epl] [" + username + "] could not delete session: " + sid + ", " + err);
+          console.error("[epl] [" + username + "] could not delete session: " + err);
         else
-          console.debug("[epl] [" + username + "] session deleted: " + sid);
+          console.debug("[epl] [" + username + "] session deleted");
       }
     );
   }
