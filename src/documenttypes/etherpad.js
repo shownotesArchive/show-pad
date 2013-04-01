@@ -181,6 +181,9 @@ exports.onLogout = function (user, res, cb)
         // delete sessions
         function (sessions, _cb)
         {
+          if(!sessions)
+            sessions = [];
+
           async.each(sessions,
             function (session, cb)
             {
@@ -189,7 +192,7 @@ exports.onLogout = function (user, res, cb)
                 {
                   cb();
                 });
-            }, cb);
+            }, _cb);
         }
       ],
       function (err)
@@ -198,6 +201,7 @@ exports.onLogout = function (user, res, cb)
           console.error("[epl] [" + username + "] could not delete session: " + err);
         else
           console.debug("[epl] [" + username + "] session deleted");
+        cb();
       }
     );
   }
