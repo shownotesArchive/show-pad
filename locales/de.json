@@ -21,6 +21,7 @@
 
     "login.activated": "Dein Benutzerkonto wurde aktiviert!",
     "login.registered": "Dein Benutzerkonto wurde erstellt. Bitte folge den Anweisungen in deinem Posteingang.",
+    "login.emailchanged": "Deine Email-Adresse wurde geändert.",
 
     "register": "Registrieren",
     "register.username": "Benutzername:",
@@ -90,8 +91,12 @@
     "profile.email.oldpassword": "Passwort:",
     "profile.email.submit": "E-Mail ändern",
     "profile.email.error.other": "Deine E-Mail-Adresse konnte nicht geändert werden. Bitte melde Dich bei einem Administrator.",
-    "profile.email.status.success": "Deine E-Mail-Adresse wurde geändert.",
-    "profile.email.status.same": "Das ist bereits deine gespeicherte E-Mail-Adresse",
+    "profile.email.error.emailtaken": "Diese E-Mail-Adresse ist bereits registriert.",
+    "profile.email.status.changepending": "Du hast diese Änderung bereits beantragt. Soll die Bestätigungsemail <a href='$LINK'>erneut verschickt werden</a>?",
+    "profile.email.status.success": "Bitte folge den Anweisungen in deinem Posteingang.",
+    "profile.email.status.resent": "Bitte folge den Anweisungen in deinem Posteingang.",
+    "profile.email.status.same": "Das ist bereits Deine gespeicherte E-Mail-Adresse",
+    "profile.changeemail.subject": "Änderung Deiner E-Mail-Addresse im ShowPad",
 
     "profile.password.newpassword": "Neues Passwort:",
     "profile.password.newpasswordr": "Neues Passwort wiederholen:",

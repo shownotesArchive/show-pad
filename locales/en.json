@@ -21,6 +21,7 @@
 
     "login.activated": "Your account has been activated!",
     "login.registered": "Your account has been created. Please follow the instructions in your mailbox.",
+    "login.emailchanged": "Your email-address has been changed.",
 
     "register": "Register",
     "register.username": "Username:",
@@ -90,8 +91,12 @@
     "profile.email.oldpassword": "Password:",
     "profile.email.submit": "Change e-mail",
     "profile.email.error.other": "Your e-mail-address could not be changed. Please contact an administrator.",
-    "profile.email.status.success": "Your e-mail-address has been changed.",
+    "profile.email.error.emailtaken": "Sorry, that email has already been used.",
+    "profile.email.status.changepending": "You have already requested this change. Do you want us to <a href='$LINK'>resend the confirmation</a>?",
+    "profile.email.status.success": "Please follow the instructions given in your mailbox.",
+    "profile.email.status.resent": "Please follow the instructions given in your mailbox.",
     "profile.email.status.same": "This is already your e-mail-address.",
+    "profile.changeemail.subject": "Change of your email-address at ShowPad",
 
     "profile.password.newpassword": "New Password:",
     "profile.password.newpasswordr": "Repeat new Password:",

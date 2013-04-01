@@ -92,6 +92,25 @@ if(errors)
                 $('#newemail-alert').text("<%= __('profile.email.error.other') %>")
                 $('#newemail-alert').show();
                 break;
+            case "emailtaken":
+                $('#newemail-alert').addClass('alert-error');
+                $('#newemail-alert').text("<%= __('profile.email.error.emailtaken') %>")
+                $('#newemail-alert').show();
+                break;
+            case "emailchange-pending":
+                var msg = "<%- __('profile.email.status.changepending') %>";
+                var newemail = JSON.parse(values)["newemail"];
+                msg = msg.replace('$LINK', '/profile?resend=' + encodeURIComponent(newemail));
+
+                $('#newemail-alert').addClass('alert-warning');
+                $('#newemail-alert').html(msg);
+                $('#newemail-alert').show();
+                break;
+            case "resent":
+                $('#newemail-alert').addClass('alert-warning');
+                $('#newemail-alert').text("<%- __('profile.email.status.resent') %>");
+                $('#newemail-alert').show();
+                break;
         }
     }
 }

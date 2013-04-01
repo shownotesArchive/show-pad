@@ -205,7 +205,7 @@ function initServer(cb)
     });
   app.post('/register', processRegister);
 
-  app.get('/profile', function(req, res) { res.render('profile'); });
+  app.get('/profile', processGetProfile);
   app.post('/profile', processProfile);
 
   app.get('/dashboard', function(req, res) { res.render('dashboard', { pageurl: pageurl, locale: req.locale }); });
@@ -580,6 +580,59 @@ function getErrorArray(errors)
   return newErrors;
 }
 
+function processGetProfile(req, res)
+{
+  var user = res.locals.user;
+
+  if(!user)
+  {
+    res.redirect('/login');
+    return;
+  }
+
+  if(req.query["resend"])
+  {
+    var email = req.query["resend"];
+    var foundToken = null;
+
+    for (var token in user.activateEmailTokens)
+    {
+      var tokenEmail = user.activateEmailTokens[token].email;
+
+      if(tokenEmail == email)
+      {
+        foundToken = token;
+        break;
+      }
+    }
+
+    if(!foundToken)
+    {
+      console.log("Email " + email + " in " + user.username + " could not be found.");
+      res.redirect('/profile');
+      return;
+    }
+
+    var emailTemplate = "activation-" + req.locale;
+    var mailLocals =
+    {
+      username: user.username,
+      page: pageurl,
+      link: pageurl + "activate/" + user.username + "/" + foundToken
+    };
+
+    sendMail(emailTemplate, mailLocals, email, res.locals.__("profile.changeemail.subject"),
+      function ()
+      {
+        res.redirect('/profile?errors=["resent"]&values=[]');
+      });
+  }
+  else
+  {
+    res.render('profile');
+  }
+}
+
 function processProfile(req, res)
 {
   var user = res.locals.user;
@@ -683,17 +736,83 @@ function processProfile(req, res)
       return;
     }
 
-    db.user.checkPassword(user.username, password,
-      function (err, isValid)
-      {
-        if(err || !isValid)
+    var emailToken;
+
+    async.series(
+      [
+        // check password
+        function (cb)
         {
-          console.info("[" + username + "] Change email failed (password): " + err);
-          res.redirect('/profile?errors=["oldpassword-email"]&values=' + JSON.stringify(values));
-        }
-        else
+          db.user.checkPassword(user.username, password,
+            function (err, isValid)
+            {
+              if(err || !isValid)
+              {
+                console.info("[" + username + "] Change email failed (password): " + err);
+                res.redirect('/profile?errors=["oldpassword-email"]&values=' + JSON.stringify(values));
+                cb("oldpassword-email");
+              }
+              else
+              {
+                cb();
+              }
+            });
+        },
+        // check if user has already requested that change
+        function (cb)
         {
-          var userChanges = { username: user.username, email: newemail }
+          for (var token in user.activateEmailTokens)
+          {
+            var email = user.activateEmailTokens[token].email;
+
+            if(email == newemail)
+            {
+              console.info("[" + username + "] Change email failed (pending)");
+              res.redirect('/profile?errors=["emailchange-pending"]&values=' + JSON.stringify(values));
+              cb("emailchange-pending");
+              return;
+            }
+          }
+          cb();
+        },
+        // check if new email exists
+        function (cb)
+        {
+          db.user.emailExists(newemail,
+            function (err, exists)
+            {
+              if(err || exists)
+              {
+                console.info("[" + username + "] Change email failed (emailexists): " + err);
+                res.redirect('/profile?errors=["emailtaken"]&values=' + JSON.stringify(values));
+                cb("emailexists");
+              }
+              else
+              {
+                cb();
+              }
+            });
+        },
+        // send email
+        function (cb)
+        {
+          emailToken = crypto.randomBytes(16).toString('hex');
+          var emailTemplate = "activation-" + req.locale;
+          var mailLocals =
+            {
+              username: username,
+              page: pageurl,
+              link: pageurl + "activate/" + username + "/" + emailToken
+            };
+
+          sendMail(emailTemplate, mailLocals, newemail, res.locals.__("profile.changeemail.subject"), cb);
+        },
+        // save token to db
+        function (cb)
+        {
+          user.addActivateEmailToken(emailToken, newemail);
+          var userChanges = { username: user.username, activateEmailTokens: user.activateEmailTokens };
+
           db.user.updateUser(userChanges,
             function (err)
             {
@@ -709,7 +828,8 @@ function processProfile(req, res)
               }
             });
         }
-      });
+      ]
+    );
   }
 }
 
@@ -756,7 +876,7 @@ function processEmailActivation(req, res)
               else
               {
                 console.info("[" + username + "] Email " + user.email + " activated");
-                res.redirect('/login' + loginParam);
+                res.redirect('/login?error=changed&values=["' + username + '"]');
               }
             }
           });
