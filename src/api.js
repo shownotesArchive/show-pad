@@ -1,6 +1,6 @@
 var async  = require('async')
   , fs    = require('fs')
-  , debug = false // disabled access control
+  , apikey = null
   , server
   , db;
 
@@ -10,6 +10,24 @@ exports.init = function (_server, _cb)
 {
   server = _server;
   db = server.db;
+
+  var tmpapikeyey = server.nconf.get("apikey");
+  if(tmpapikeyey && tmpapikeyey.length != 0)
+  {
+    if(tmpapikeyey.length < 30)
+    {
+      console.warn("Your API-Key is too short. Please use at least 30 characters.");
+    }
+    else
+    {
+      console.log("API-Key is " + apikey);
+      apikey = tmpapikeyey;
+    }
+  }
+  else
+  {
+    console.warn("No API-Key defined.");
+  }
 
   fs.readdir('./src/api', function (err, files)
   {
@@ -43,8 +61,16 @@ exports.handleRequest = function (req, res)
 
   console.info("[API] REQUEST " + method + " " + req.url);
 
-  if(!debug && (!user || !user.hasRole("admin")))
+  var apikeyValid = apikey != null && query["apikey"] == apikey;
+  var adminValid = !!user && user.hasRole("admin");
+
+  if(!apikeyValid && !adminValid)
   {
+    var username = "none"
+    if(user)
+      username = user.username;
+
+    console.warn("API-Auth failed, APIKey=" + apikeyValid + ", Admin=" + adminValid + " (" + username + ")");
     answerRequest(res, 401, "Unauthorized", null);
     return;
   }
