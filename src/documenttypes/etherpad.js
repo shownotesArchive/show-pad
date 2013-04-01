@@ -299,3 +299,36 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
   res.render('documenttypes/etherpad.ejs', locals);
   cb();
 }
+
+/* Pad text */
+exports.setText = function (doc, text, cb)
+{
+  var groupID = eplGroupIDs[doc.group];
+  var docname = doc.docname;
+
+  etherpad.setText({padID: groupID + "$" + docname, text: text},
+    function (err)
+    {
+      if(err)
+        console.error("[epl] could not set pad-text: " + docname + ", " + err);
+      else
+        console.debug("[epl] pad-text set: " + docname);
+      cb(err);
+    });
+}
+
+exports.getText = function (doc, cb)
+{
+  var groupID = eplGroupIDs[doc.group];
+  var docname = doc.docname;
+
+  etherpad.getText({padID: groupID + "$" + docname},
+    function (err, data)
+    {
+      if(err)
+        console.error("[epl] could not get pad-text: " + docname + ", " + err);
+      else
+        console.debug("[epl] got pad-text: " + docname);
+      cb(err, data);
+    });
+}

@@ -117,3 +117,24 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
   else
     doctype.onRequestDoc(req, res, user, doc, cb);
 }
+
+/* Doc Text */
+exports.getText = function (doc, cb)
+{
+  var doctype = documentTypes[doc.type];
+
+  if(!doctype)
+    cb("nodoctype");
+  else
+    doctype.getText(doc, cb);
+}
+
+exports.setText = function (doc, text, cb)
+{
+  var doctype = documentTypes[doc.type];
+
+  if(!doctype)
+    cb("nodoctype");
+  else
+    doctype.setText(doc, text, cb);
+}
