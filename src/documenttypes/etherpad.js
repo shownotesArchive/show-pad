@@ -332,3 +332,20 @@ exports.getText = function (doc, cb)
       cb(err, data);
     });
 }
+
+/* other */
+exports.getLastModifed = function (doc, cb)
+{
+  var groupID = eplGroupIDs[doc.group];
+  var docname = doc.docname;
+
+  etherpad.getLastEdited({padID: groupID + "$" + docname},
+    function (err, data)
+    {
+      if(err)
+        console.error("[epl] could not get pad-lastEdited: " + docname + ", " + err);
+      else
+        console.debug("[epl] got pad-lastEdited: " + docname);
+      cb(err, data);
+    });
+}

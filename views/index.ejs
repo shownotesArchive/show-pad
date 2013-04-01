@@ -3,3 +3,18 @@
 <% script('js/etherpad.js') %>
 
 <h3><%= __('index.activedocs') %></h3>
+<ul>
+    <% for (var i = 0; i < docs.length; i++) {
+       var date = new Date(docs[i].modified);
+    %>
+        <li>
+            <a href="<%=pageurl%>doc/<%=docs[i].docname%>"><%=docs[i].docname%></a>
+            (<%=__('index.docs.at')%> <%=pad(date.getDate())%>.<%=pad(date.getMonth())%>.<%=date.getFullYear()%>)
+        </li>
+    <% } %>
+</ul>
+
+<%
+function pad(n) {
+return (n < 10) ? ("0" + n) : n;
+} %>

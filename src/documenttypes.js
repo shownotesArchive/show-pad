@@ -138,3 +138,14 @@ exports.setText = function (doc, text, cb)
   else
     doctype.setText(doc, text, cb);
 }
+
+/* other */
+exports.getLastModifed = function (doc, cb)
+{
+  var doctype = documentTypes[doc.type];
+
+  if(!doctype)
+    cb("nodoctype");
+  else
+    doctype.getLastModifed(doc, cb);
+}

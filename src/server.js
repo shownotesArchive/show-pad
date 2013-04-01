@@ -185,7 +185,7 @@ function initServer(cb)
 
   console.debug("Initiating server-routes..");
   // routes
-  app.get('/', function (req, res) { res.render('index'); });
+  app.get('/', processIndex);
   app.get('/doc/:docname', processDoc);
 
   // UI
@@ -228,6 +228,52 @@ function startServer(cb)
 {
   console.info("Starting http..");
   app.listen(nconf.get("http:port"), nconf.get("http:ip"), cb);
+}
+
+function processIndex (req, res)
+{
+  async.waterfall(
+    [
+      // get all docs
+      function (cb)
+      {
+        db.doc.getDocs(cb);
+      },
+      // get all last-modfieds for docs
+      function (docs, cb)
+      {
+        async.map(docs, documentTypes.getLastModifed,
+          function (err, times) { cb(null, docs, times); });
+      },
+      // create a nice list for the client and render it
+      function (docs, times, cb)
+      {
+        var clientDocs = [];
+
+        for (var i = 0; i < docs.length; i++)
+        {
+          var doc = docs[i];
+          var time = times[i];
+          clientDocs.push({ docname: doc.docname, modified: time.lastEdited });
+        }
+
+        clientDocs.sort( function (a, b) { return b.modified - a.modified; });
+        clientDocs.splice(5);
+
+        cb(null, clientDocs);
+      }
+    ],
+    function (err, result)
+    {
+      if(err)
+      {
+        console.error("Error while rendering index: " + err);
+        result = [];
+      }
+
+      res.render('index', { docs: result, pageurl: pageurl });
+    }
+  )
 }
 
 function processDoc (req, res)

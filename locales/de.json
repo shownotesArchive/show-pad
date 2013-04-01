@@ -1,5 +1,6 @@
 {
-    "index.activedocs": "Active docs",
+    "index.activedocs": "Zur Zeit aktive Pads:",
+    "index.docs.at": "am",
 
     "header.home": "Hauptseite",
     "header.profile": "Profil",
