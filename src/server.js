@@ -277,7 +277,7 @@ function processIndex (req, res)
         result = [];
       }
 
-      res.render('index', { docs: result, pageurl: pageurl });
+      res.render('index', { docs: result });
     }
   )
 }

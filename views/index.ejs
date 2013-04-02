@@ -8,7 +8,7 @@
        var date = new Date(docs[i].modified);
     %>
         <li>
-            <a href="<%=pageurl%>doc/<%=docs[i].docname%>"><%=docs[i].docname%></a>
+            <a href="/doc/<%=docs[i].docname%>"><%=docs[i].docname%></a>
             (<%=__('index.docs.at')%> <%=pad(date.getDate())%>.<%=pad(date.getMonth())%>.<%=date.getFullYear()%>)
         </li>
     <% } %>
