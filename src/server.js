@@ -286,7 +286,8 @@ function processDoc (req, res)
 {
   var docname = req.params.docname;
   var user = res.locals.user;
-  var doc, group;
+  var username = user ? user.username : "none";
+  var doc, group, docname, locals = {};
 
   async.waterfall(
     [
@@ -307,6 +308,8 @@ function processDoc (req, res)
         }
         else
         {
+          docname = doc.docname;
+          locals.docname = docname;
           db.group.getGroup(doc.group, cb);
         }
       },
@@ -319,6 +322,10 @@ function processDoc (req, res)
         {
           cb();
         }
+        else if(group.type == "open")
+        {
+          cb("readonly");
+        }
         else
         {
           cb("auth");
@@ -328,16 +335,34 @@ function processDoc (req, res)
       function (cb)
       {
         res.locals.err = null;
+        console.log("[" + username + "] " + docname + ", showing doc");
         documentTypes.onRequestDoc(req, res, res.locals.user, doc, cb);
       }
     ],
     function (err)
     {
-      if(err)
+      if(err == "readonly")
       {
-        console.log("Error while showing doc: " + err);
 
-        var locals = {docname: docname};
+        documentTypes.getText(doc,
+          function (err, text)
+          {
+            if(err)
+            {
+              console.err("[" + username + "] " + docname + ", error while showing doc in readonly-view: " + err);
+            }
+            else
+            {
+              console.log("[" + username + "] " + docname + ", showing doc in readonly-view");
+              locals.err = "readonly";
+              locals.readonlytext = text;
+              res.render('doc', locals);
+            }
+          })
+      }
+      else if(err)
+      {
+        console.warn("[" + username + "] " + docname + ", error while showing doc: " + err);
 
         if(err != "auth" && err != "nodoc")
           locals.err = "other";

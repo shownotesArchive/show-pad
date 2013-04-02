@@ -126,7 +126,13 @@ exports.getText = function (doc, cb)
   if(!doctype)
     cb("nodoctype");
   else
-    doctype.getText(doc, cb);
+    doctype.getText(doc,
+      function (err, text)
+      {
+        if(text && text.text)
+          text = text.text;
+        cb(err, text);
+      });
 }
 
 exports.setText = function (doc, text, cb)
