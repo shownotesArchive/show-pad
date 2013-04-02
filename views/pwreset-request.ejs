@@ -1,0 +1,41 @@
+<% layout('layout.ejs') %>
+<% block('title', __('pwreset.request')) -%>
+<% script('js/jquery-queryParser.min.js') %>
+
+<form method="POST" class="form-horizontal" id="pwreset-form">
+    <div class="alert alert-error" id="pwreset-error" style="display:none">
+    </div>
+    <div class="control-group" id="grp-username">
+        <label class="control-label" for="username"><%= __('pwreset.request.username') %></label>
+        <div class="controls">
+            <input type="text" id="username" name="username">
+            <span class="help-inline" id="help-username"></span>
+        </div>
+    </div>
+    <div class="control-group" id="grp-submit">
+        <label class="control-label"></label>
+        <div class="controls">
+            <button class="btn primary" type="submit" id="pwreset-submit"><%= __('pwreset.request.submit') %></button>
+        </div>
+    </div>
+</form>
+
+<script>
+    var error = $.getQuery().error;
+
+    if(error)
+    {
+        switch(error)
+        {
+            case "input":
+                $("#grp-username").addClass("error");
+                break;
+            case "done":
+                $("#pwreset-error").text("<%= __('pwreset.request.error.done') %>");
+                $("#pwreset-error").removeClass("alert-error");
+                $("#pwreset-error").addClass("alert-info");
+                $("#pwreset-error").show();
+                break;
+        }
+    }
+</script>

@@ -13,7 +13,7 @@ function User (username)
   this.roles = [];
   this.groups = [];
   this.activateEmailTokens = {};
-  this.activatePasswordTokens = {};
+  this.pwResetToken = null;
   this.createTime = +new Date();
 }
 
@@ -36,41 +36,6 @@ User.prototype =
 
         for (var prop in this.activateEmailTokens[token])
           this.activateEmailTokens[token][prop] = null;
-
-        return true;
-      }
-    }
-    return false;
-  },
-
-  /* Activate Password */
-  addActivatePasswordToken: function (token, password, cb)
-  {
-    var newPassword = {};
-    setNewPassword(newPassword, password,
-      function (err)
-      {
-        if(!err)
-        {
-          newPassword.time = +new Date();
-          // newPassword contains hash, salt and iterations
-          this.activatePasswordTokens[token] = newPassword;
-        }
-        cb(err);
-      });
-  },
-  applyActivatePasswordToken: function (tokenToCheck)
-  {
-    for (var token in this.activatePasswordTokens)
-    {
-      if(token == tokenToCheck)
-      {
-        this.password = this.activatePasswordTokens[token].password;
-        this.salt = this.activatePasswordTokens[token].salt;
-        this.iterations = this.activatePasswordTokens[token].iterations;
-
-        for (var prop in this.activatePasswordTokens[token])
-          this.activatePasswordTokens[token][prop] = null;
 
         return true;
       }

@@ -1,0 +1,55 @@
+<% layout('layout.ejs') %>
+<% block('title', __('pwreset')) -%>
+<% script('/js/jquery-queryParser.min.js') %>
+<% script('/js/formhelpers.js') %>
+
+<form method="POST" class="form-horizontal" id="pwreset-form">
+    <div class="alert alert-error" id="pwreset-error" style="display:none">
+    </div>
+    <div class="control-group" id="grp-password">
+        <label class="control-label" for="password"><%= __('pwreset.password') %></label>
+        <div class="controls">
+            <input type="password" id="password" name="password">
+            <span class="help-inline" id="help-password"></span>
+        </div>
+    </div>
+    <div class="control-group" id="grp-passwordr">
+        <label class="control-label" for="passwordr"><%= __('pwreset.passwordr') %></label>
+        <div class="controls">
+            <input type="password" id="passwordr" name="passwordr">
+            <span class="help-inline" id="help-passwordr" style="display:none">
+                <%= __('pwreset.error.passwordmatch') %>
+            </span>
+        </div>
+    </div>
+    <div class="control-group" id="grp-submit">
+        <label class="control-label"></label>
+        <div class="controls">
+            <button class="btn primary" type="submit" id="pwreset-submit" disabled="disabled"><%= __('pwreset.submit') %></button>
+        </div>
+    </div>
+</form>
+
+<script>
+    var error = $.getQuery().error;
+
+    if(error)
+    {
+        switch(error)
+        {
+            case "pwinvalid":
+                $("#grp-password").addClass("error");
+                break;
+            case "pwmatch":
+                $("#grp-passwordr").addClass('error');
+                $("#help-passwordr").show();
+                break;
+            case "other":
+                $("#pwreset-error").text("<%= __('pwreset.error.other') %>");
+                $("#pwreset-error").show();
+                break;
+        }
+    }
+
+    repeatPassword($('#password'), $('#passwordr'), $("#grp-passwordr"), $("#help-passwordr"), $('#pwreset-submit'));
+</script>

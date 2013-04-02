@@ -12,6 +12,7 @@
     "login.password": "Password",
     "login.login": "Login",
     "login.logout": "Logout",
+    "login.forgotpw": "Forgot your password?",
     
     "login.error.status.deactivated": "Your account is not yet activated.",
     "login.error.status.banned": "You have been banned.",
@@ -39,6 +40,19 @@
     
     "register.email.subject": "Activate your Shownotes account!",
     "register.email.invalidlink": "Invalid link.",
+
+    "pwreset": "Password reset",
+    "pwreset.password": "Password:",
+    "pwreset.passwordr": "Repeat Password:",
+    "pwreset.submit": "Change password",
+    "pwreset.error.passwordmatch": "The passwords don't match.",
+    "pwreset.error.other": "That did not work. Please contact an administrator.",
+
+    "pwreset.request": "Passwort reset",
+    "pwreset.request.username": "Username",
+    "pwreset.request.submit": "Request change",
+    "pwreset.request.error.done": "Please follow the instructions given in your mailbox.",
+    "pwreset.request.subject": "Password-Reset on ShowPad",
 
     "showdoc.error": "Error",
     "showdoc.error.nodoc": "This document does not exist.",

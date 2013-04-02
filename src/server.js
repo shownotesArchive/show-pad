@@ -192,6 +192,12 @@ function initServer(cb)
   app.get('/login', function(req, res) { res.render('login'); });
   app.post('/login', processLogin);
 
+  app.get('/pwreset', function (req, res) { res.render("pwreset-request"); });
+  app.post('/pwreset', processPasswordResetRequest);
+
+  app.get('/pwreset/:username([a-zA-Z0-9]+)/:token', function (req, res) { res.render("pwreset"); });
+  app.post('/pwreset/:username([a-zA-Z0-9]+)/:token', processPasswordReset);
+
   app.get('/register', function(req, res)
     {
       var locals = { captcha: "" };
@@ -410,6 +416,116 @@ function processLogin (req, res)
           }
         });
     });
+}
+
+function processPasswordResetRequest (req, res)
+{
+  req.assert('username', 'Empty username').notEmpty().isAlphanumeric();
+
+  var errors = req.validationErrors();
+  var username = req.param('username');
+
+  var values = { username: username };
+
+  if (errors)
+  {
+    res.redirect('/login?error=input');
+    return;
+  }
+
+  var user;
+  var emailToken;
+
+  async.waterfall(
+    [
+      // get user
+      function (cb)
+      {
+        db.user.getUser(username, cb);
+      },
+      // send mail
+      function (_user, cb)
+      {
+        user = _user;
+        emailToken = crypto.randomBytes(16).toString('hex');
+        var emailTemplate = "pwreset-" + req.locale;
+        var mailLocals =
+        {
+          username: username,
+          page: pageurl,
+          link: pageurl + "pwreset/" + username + "/" + emailToken
+        };
+
+        sendMail(emailTemplate, mailLocals, user.email, res.locals.__("pwreset.request.subject"), cb);
+      },
+      // save token in db
+      function (mailreport, cb)
+      {
+        var userChanges = { username: user.username, pwResetToken: emailToken };
+        db.user.updateUser(userChanges, cb);
+      }
+    ],
+    function (err)
+    {
+      if(err)
+        console.warn("[" + username + "] PW-Reset-Request failed: " + err);
+      else
+        console.warn("[" + username + "] PW-Reset-Request succeeded");
+
+      res.redirect('/pwreset?error=done');
+    }
+  )
+}
+
+function processPasswordReset (req, res)
+{
+  var username = req.params.username;
+  var token = req.params.token;
+  var password = req.body.password;
+
+  var user = null;
+
+  async.waterfall(
+    [
+      // get user
+      function (cb)
+      {
+        db.user.getUser(username, cb);
+      },
+      // check token
+      function (_user, cb)
+      {
+        user = _user;
+        var tokenValid = (user.pwResetToken && user.pwResetToken == token);
+        cb(tokenValid ? null : "invalidtoken");
+      },
+      // save new password to db
+      function (cb)
+      {
+        var userChanges = {};
+        userChanges.username = user.username;
+        userChanges.pwResetToken = null;
+        userChanges.password = password;
+
+        db.user.updateUser(userChanges, cb);
+      }
+    ],
+    function (err)
+    {
+      if(err)
+      {
+        console.info("[" + username + "] PW-Reset failed: " + err);
+
+        if(err != "invalidpw")
+          err = "other";
+        res.redirect(req.path + "?error=" + err);
+      }
+      else
+      {
+        res.redirect("/login?error=pwchanged");
+      }
+    }
+  )
 }
 
 function processLogout (req, res)

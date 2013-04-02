@@ -89,3 +89,10 @@ body
     margin-left: 15px;
     width: 180px;
 }
+
+#pwreset-form .control-label
+{
+    text-align: left;
+    margin-left: 15px;
+    width: 150px;
+}
