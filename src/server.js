@@ -613,7 +613,7 @@ function processGetProfile(req, res)
       return;
     }
 
-    var emailTemplate = "activation-" + req.locale;
+    var emailTemplate = "changeemail-" + req.locale;
     var mailLocals =
     {
       username: user.username,
@@ -797,7 +797,7 @@ function processProfile(req, res)
         function (cb)
         {
           emailToken = crypto.randomBytes(16).toString('hex');
-          var emailTemplate = "activation-" + req.locale;
+          var emailTemplate = "changeemail-" + req.locale;
           var mailLocals =
             {
               username: username,
