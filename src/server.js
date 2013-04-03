@@ -186,7 +186,8 @@ function initServer(cb)
   console.debug("Initiating server-routes..");
   // routes
   app.get('/', processIndex);
-  app.get('/doc/:docname', processDoc);
+  app.get('/doc/:docname', function (req, res) { processDoc(req, res, false); });
+  app.get('/doc/:docname/readonly', function (req, res) { processDoc(req, res, true); });
 
   // UI
   app.get('/login', function(req, res) { res.render('login'); });
@@ -288,12 +289,13 @@ function processIndex (req, res)
   )
 }
 
-function processDoc (req, res)
+function processDoc (req, res, isReadonly)
 {
   var docname = req.params.docname;
   var user = res.locals.user;
   var username = user ? user.username : "none";
   var doc, group, docname, locals = {};
+  var isPublic, isAuthed, logprefixstr;
 
   async.waterfall(
     [
@@ -324,16 +326,24 @@ function processDoc (req, res)
       {
         group = _group;
 
-        if(user && (group.type == "open" || user.inGroup(group.short)))
+        isPublic = (group.type == "open");
+        isAuthed = !! (user && (user.inGroup(group.short) || isPublic));
+
+        logprefixstr = getShowDocStr(username, docname, isPublic, isAuthed, isReadonly);
+
+        if(isAuthed && !isReadonly)
         {
+          // show the readwrite-view
           cb();
         }
-        else if(group.type == "open")
+        else if((isPublic && !isAuthed) || (isReadonly && isAuthed))
         {
+          // show the readonly-view
           cb("readonly");
         }
         else
         {
+          // fail
           cb("auth");
         }
       },
@@ -341,7 +351,7 @@ function processDoc (req, res)
       function (cb)
       {
         res.locals.err = null;
-        console.log("[" + username + "] " + docname + ", showing doc");
+        console.log(logprefixstr + "showing doc");
         documentTypes.onRequestDoc(req, res, res.locals.user, doc, cb);
       }
     ],
@@ -349,17 +359,16 @@ function processDoc (req, res)
     {
       if(err == "readonly")
       {
-
         documentTypes.getText(doc,
           function (err, text)
           {
             if(err)
             {
-              console.err("[" + username + "] " + docname + ", error while showing doc in readonly-view: " + err);
+              console.err(logprefixstr + "error while showing doc in readonly-view: " + err);
             }
             else
             {
-              console.log("[" + username + "] " + docname + ", showing doc in readonly-view");
+              console.log(logprefixstr + "showing doc in readonly-view");
               locals.err = "readonly";
               locals.readonlytext = text;
               res.render('doc', locals);
@@ -368,7 +377,7 @@ function processDoc (req, res)
       }
       else if(err)
       {
-        console.warn("[" + username + "] " + docname + ", error while showing doc: " + err);
+        console.warn(logprefixstr + "error while showing doc: " + err);
 
         if(err != "auth" && err != "nodoc")
           locals.err = "other";
@@ -378,6 +387,13 @@ function processDoc (req, res)
         res.render('doc', locals);
       }
     });
+}
+
+function getShowDocStr (username, docname, isPublic, isAuthed, isReadonly)
+{
+  return "[" + username + "] " + docname + ", isPublic=" + isPublic +
+                                           ", isAuthed=" + isAuthed +
+                                         ", isReadonly=" + isReadonly + ", ";
 }
 
 function processLogin (req, res)
