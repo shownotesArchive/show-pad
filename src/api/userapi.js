@@ -1,9 +1,12 @@
-var db;
+var async = require('async');
+
+var db, server;
 
 exports.name = "users";
 
 exports.init = function (_db, _server, cb)
 {
+  server = _server;
   db = _db;
   cb();
 }
@@ -93,14 +96,60 @@ exports.updateOne = function (res, req, answerRequest)
   var user = req.body;
   user.username = req.params.entity;
 
-  db.user.updateUser(user,
-    function (err)
-    {
-      if(err)
-        answerRequest(res, 500, err, null);
-      else
-        answerRequest(res, 200, "ok", null);
-    });
+  async.series(
+    [
+      function (cb)
+      {
+        if(user.status == "banned")
+        {
+          async.waterfall(
+            [
+              // get the sessions from db
+              function (cb)
+              {
+                db.user.getUser(user.username,
+                  function (err, user)
+                  {
+                    if(!user || err)
+                    {
+                      console.err("Could not kick user (db): ", user.username, err);
+                      cb(err);
+                    }
+                    else
+                    {
+                      cb(null, user);
+                    }
+                  })
+              },
+              // kill document sessions
+              function (user, cb)
+              {
+                server.documentTypes.onLogout(user, null,
+                  function (err)
+                  {
+                    if(err)
+                      console.warn("Could not kick user (doc): ", user.username, err);
+                    cb();
+                  });
+              }
+            ], function () { cb(); });
+        }
+        else
+          cb();
+      },
+      function (cb)
+      {
+        db.user.updateUser(user,
+          function (err)
+          {
+            if(err)
+              answerRequest(res, 500, err, null);
+            else
+              answerRequest(res, 200, "ok", null);
+          });
+      }
+    ]
+  );
 }
 
 exports.deleteOne = function (res, req, answerRequest)

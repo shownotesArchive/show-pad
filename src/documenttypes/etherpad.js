@@ -171,17 +171,18 @@ exports.onLogout = function (user, res, cb)
   var sessions = user.eplSessions;
   var username = user.username;
 
+  if(!sessions || sessions.length == 0)
+  {
+    // no need to stress the db and etherpad
+    console.warn("[epl] [" + username + "] has no sessions");
+    return cb();
+  }
+
   async.series(
     [
       // delete epl sessions
       function (cb)
       {
-        if(!sessions)
-        {
-          console.warn("[epl] [" + username + "] has no sessions");
-          return cb();
-        }
-
         async.each(sessions,
           function (sid, cb)
           {
