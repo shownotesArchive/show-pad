@@ -249,7 +249,13 @@ function processIndex (req, res)
       function (docs, cb)
       {
         async.map(docs, documentTypes.getLastModifed,
-          function (err, times) { cb(null, docs, times); });
+          function (err, times)
+          {
+            if(err)
+              cb("epl");
+            else
+              cb(err, docs, times);
+          });
       },
       // create a nice list for the client and render it
       function (docs, times, cb)
