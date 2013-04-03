@@ -137,7 +137,10 @@ exports.onLogin = function (user, res, cb)
         }
         cookieStr = cookieStr.substr(0, cookieStr.length - 1);
 
-        var userChanges = { username: user.username, eplAuthor: authorID };
+        if(!user.eplSessions)
+          user.eplSessions = [];
+
+        var userChanges = { username: user.username, eplSessions: sessionIDs.concat(user.eplSessions) };
         server.db.user.updateUser(userChanges,
           function (err)
           {
@@ -165,50 +168,50 @@ exports.onCreateUser = function (user, cb)
 
 exports.onLogout = function (user, res, cb)
 {
-  // delete epl session
-  var aid = user.eplAuthor;
+  var sessions = user.eplSessions;
   var username = user.username;
 
-  if(aid)
-  {
-    async.waterfall(
-      [
-        // get sessions of user
-        function (_cb)
-        {
-          etherpad.listSessionsOfAuthor({ authorID: aid }, _cb);
-        },
-        // delete sessions
-        function (sessions, _cb)
-        {
-          if(!sessions)
-            sessions = [];
-
-          async.each(sessions,
-            function (session, cb)
-            {
-              etherpad.deleteSession({sessionID: sid},
-                function (err, data)
-                {
-                  cb();
-                });
-            }, _cb);
-        }
-      ],
-      function (err)
+  async.series(
+    [
+      // delete epl sessions
+      function (cb)
       {
-        if(err)
-          console.error("[epl] [" + username + "] could not delete session: " + err);
-        else
-          console.debug("[epl] [" + username + "] session deleted");
-        cb();
+        if(!sessions)
+        {
+          console.warn("[epl] [" + username + "] has no sessions");
+          return cb();
+        }
+
+        async.each(sessions,
+          function (sid, cb)
+          {
+            etherpad.deleteSession({sessionID: sid},
+              function (err)
+              {
+                if(err)
+                  console.error("[epl] [" + username + "] could not delete session", sid, err);
+                else
+                  console.debug("[epl] [" + username + "] session deleted", sid);
+                cb();
+              });
+          }, cb);
+      },
+      // remove sessions from db
+      function (cb)
+      {
+        var userChanges = { username: user.username, eplSessions: [] };
+        server.db.user.updateUser(userChanges,
+          function (err)
+          {
+            if(err)
+              console.debug("[epl] [" + username + "] Could not remove sessions from db");
+            else
+              console.debug("[epl] [" + username + "] Sessions removed from db");
+            cb(err);
+          });
       }
-    );
-  }
-  else
-  {
-    cb();
-  }
+    ], cb
+  );
 }
 
 /* Groups */
