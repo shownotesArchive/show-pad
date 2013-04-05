@@ -84,4 +84,4 @@ Technologies used
   * [recaptcha](http://www.google.com/recaptcha)
   * [jquery-datatables-editable](https://code.google.com/p/jquery-datatables-editable/) + [jEditable](http://www.appelsiini.net/projects/jeditable)
 
-[![flattr](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1160045/)
+[![flattr](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1225851/ShowPad)
