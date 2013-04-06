@@ -13,6 +13,7 @@ exports.name = "etherpad";
 exports.init = function (_server, cb)
 {
   server = _server;
+  var usernames = null;
 
   async.waterfall(
     [
@@ -33,19 +34,53 @@ exports.init = function (_server, cb)
       // create the corresponding epl-groups
       function (groups, cb)
       {
-        async.each(groups,
-          function (group, _cb)
-          {
-            exports.onCreateGroup(group, _cb);
-          }, cb);
+        async.each(groups, exports.onCreateGroup, cb);
       },
-      // delete all existing sessions
+      // get all user-names
       function (cb)
       {
-        async.each(Object.keys(eplGroupIDs),
-          function (showGroup, cb)
+        server.db.getObjectsOfType("user", cb);
+      },
+      // get all session-ids
+      function (names, cb)
+      {
+        usernames = names;
+        async.map(names,
+          function (name, cb)
           {
-            deleteGroupSessions(showGroup, cb);
+            cb(null, "user:" + name + ":eplSessions");
+          },
+          function (err, keys)
+          {
+            server.db.getManyValues(keys, cb);
+          });
+      },
+      // delete all existing sessions
+      function (sessions, cb)
+      {
+        async.concat(Object.keys(sessions),
+          function (sessionKey, cb)
+          {
+            cb(null, sessions[sessionKey]);
+          },
+          function (er, sessions)
+          {
+            console.log("Removing " + sessions.length + " old sessions..");
+            async.each(sessions,
+              function (session, cb)
+              {
+                etherpad.deleteSession({sessionID: session}, function () { cb(); });
+              }, cb);
+          });
+      },
+      // remove sessions from db
+      function (cb)
+      {
+        async.each(usernames,
+          function (username, cb)
+          {
+            var changes = { username: username, eplSessions: null };
+            server.db.user.updateUser(changes, cb);
           }, cb);
       }
     ], cb);
@@ -233,37 +268,6 @@ exports.onCreateGroup = function (group, cb)
       cb(err);
     }
   );
-}
-
-function deleteGroupSessions(showGroup, cb)
-{
-  etherpad.listSessionsOfGroup(
-    {
-      groupID: eplGroupIDs[showGroup]
-    },
-    function (err, data)
-    {
-      if(err)
-      {
-        console.error("Error while deleting sessions of " +  + ": ");
-        console.error(err)
-        process.exit(1);
-      }
-      if(data == null)
-      {
-        cb();
-        return;
-      }
-
-      var sessionIds = Object.keys(data);
-      console.debug("[epl] deleting " + sessionIds.length + " old sessions of " + showGroup + "..");
-      async.forEach(
-        sessionIds,
-        function(item, done)
-        {
-          etherpad.deleteSession({sessionID:item}, done);
-        }, cb);
-    });
 }
 
 /* Docs */

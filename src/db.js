@@ -138,6 +138,8 @@ exports.getManyValues = function (keys, cb)
             multi.lrange(keys[i], 0, -2); // skip last member since it's just the placeholder
           else if(types[i] == "set")
             multi.smembers(keys[i]);
+          else if(types[i] == "none")
+            continue;
           else
             console.warn("Unknown db-type: " + types[i]);
         }
