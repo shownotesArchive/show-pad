@@ -103,25 +103,160 @@
 </div>
 
 <script>
-var groups = [];
-var response =
-    $.ajax("/api/1/groups/")
-        .success(function()
+var groups = []
+
+$(function ()
+{
+    refreshGroups();
+    $('#create-doc').click(createDoc);
+    $('#create-group').click(createGroup);
+
+    $.fn.dataTableExt.sErrMode = 'throw';
+
+    padtable = $('#padtable')
+            .dataTable(
             {
-                var resp = JSON.parse(response.responseText);
-                groups = resp.data;
-
-                $("#docgroup").empty();
-                for (var id in groups)
-                {
-                    var short = groups[id].short;
-                    var name = groups[id].name;
-
-                    $("#docgroup").append(new Option(name + " (" + short + ")", short));
-                }
+                bProcessing: true,
+                sAjaxSource: "/api/1/docs/?datatables=1",
+                sAjaxDataProp: "data",
+                oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
+                aoColumns: [
+                    {
+                        mData: [ "docname" ],
+                        fnRender: function (oObj)
+                        {
+                            var docname = oObj.aData.docname;
+                            return "<a href='<%= pageurl %>doc/" + docname + "'>" + docname + "</a>";
+                        }
+                    },
+                    { mData: [ "type" ] },
+                    { mData: [ "group" ] },
+                    {
+                        mData: null,
+                        bSortable: false,
+                        sDefaultContent: '',
+                        fnRender: function (oObj) { return addRowButtons(oObj, 'docs') }
+                    }
+                ]
             });
 
-$('#create-doc').click(function ()
+    grouptable = $('#grouptable')
+            .dataTable(
+            {
+                bProcessing: true,
+                sAjaxSource: "/api/1/groups/?datatables=1",
+                sAjaxDataProp: "data",
+                oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
+                aoColumns: [
+                    { mData: [ "short" ] },
+                    { mData: [ "name" ] },
+                    { mData: [ "type" ] },
+                    {
+                        mData: null,
+                        bSortable: false,
+                        sDefaultContent: '',
+                        fnRender: function (oObj) { return addRowButtons(oObj, 'groups') }
+                    }
+                ]
+            });
+
+    usertable = $('#usertable');
+    usertable = usertable.dataTable(
+            {
+                bProcessing: true,
+                sAjaxSource: "/api/1/users/?datatables=1",
+                sAjaxDataProp: "data",
+                oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
+                aoColumns: [
+                    { mData: [ "username" ] },
+                    { mData: [ "email" ] },
+                    {
+                        mData: [ "roles" ],
+                        fnRender: function (oObj)
+                        {
+                            var roles = oObj.aData.roles;
+                            if(roles.indexOf('admin') != -1 || roles == "Admin")
+                                return "Admin";
+                            if(roles.indexOf('user') != -1 || roles == "User")
+                                return "User";
+                        }
+                    },
+                    {
+                        mData: [ "status" ],
+                        fnRender: function (oObj)
+                        {
+                            var status = oObj.aData.status;
+                            status = status.charAt(0).toUpperCase() + status.slice(1);
+                            return status;
+                        }
+                    },
+                    {
+                        mData: null,
+                        bSortable: false,
+                        sDefaultContent: '',
+                        fnRender: function (oObj) { return addRowButtons(oObj, 'users') }
+                    }
+                ]
+            });
+
+    usertable.makeEditable(
+            {
+                sUpdateURL: updateUser,
+                aoColumns:
+                        [
+                            null,
+                            null,
+                            {
+                                event: 'click',
+                                indicator: '<%= __("dashboard.users.selectrole") %>',
+                                loadtext: 'loading...',
+                                id: "userRole",
+                                type: 'select',
+                                onblur: 'submit',
+                                data: "{'admin':'Admin','user':'User'}"
+                            },
+                            {
+                                event: 'click',
+                                indicator: '<%= __("dashboard.users.selectstatus") %>',
+                                loadtext: 'loading...',
+                                id: "userStatus",
+                                type: 'select',
+                                onblur: 'submit',
+                                data: "{'banned':'Banned','email':'Email','normal':'Normal'}"
+                            }
+                        ]
+            });
+});
+
+function refreshGroups()
+{
+    $.ajax("/api/1/groups/")
+        .success(function(response)
+        {
+            groups = response;
+
+            $("#docgroup").empty();
+            for (var id in groups)
+            {
+                var short = groups[id].short;
+                var name = groups[id].name;
+
+                $("#docgroup").append(new Option(name + " (" + short + ")", short));
+            }
+        });
+}
+
+function addRowButtons(oObj, type)
+{
+    var rowId = oObj.aData.DT_RowId;
+    var rowIndex = oObj.iDataRow;
+    return '<a href="#" data-type="'     + type     + '"' +
+           ' data-rowindex="' + rowIndex + '"' +
+           ' data-rowid="'    + rowId    + '"' +
+           ' onclick="deleteThing(this)" class="pull-right"><%= __("dashboard.delete") %> <i class="icon-trash"></i></a>';
+}
+
+function createDoc()
 {
     var thing =
     {
@@ -137,9 +272,9 @@ $('#create-doc').click(function ()
     };
 
     createThing('docs', thing, thing.docname, errors);
-})
+}
 
-$('#create-group').click(function ()
+function createGroup()
 {
     var thing =
     {
@@ -154,165 +289,7 @@ $('#create-group').click(function ()
         default: "<%= __('dashboard.groups.create.error.other') %>"
     };
 
-    createThing('groups', thing, thing.short, errors);
-})
-
-function createThing(type, thing, name, errors)
-{
-    var createSuccess = $('#' + type + '-create-success');
-    var createError = $('#' + type + '-create-error');
-
-    $.post('api/1/' + type, thing)
-            .done(function (res)
-            {
-                var rtnThing = JSON.parse(res).data;
-                var table = getTableForType(type);
-
-                rtnThing.DT_RowId = name;
-                table.fnAddData(rtnThing);
-
-                createSuccess.show();
-                createError.hide();
-            })
-            .fail(function (res)
-            {
-                var msg = JSON.parse(res.responseText).message;
-
-                if(errors[msg])
-                    msg = errors[msg];
-                else
-                    msg = errors["default"];
-                
-                createError.text(msg);
-                createSuccess.hide();
-                createError.show();
-            });
-}
-
-$.fn.dataTableExt.sErrMode = 'throw';
-
-padtable = $('#padtable')
-    .dataTable(
-    {
-        bProcessing: true,
-        sAjaxSource: "/api/1/docs/?datatables=1",
-        sAjaxDataProp: "data",
-        oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
-        aoColumns: [
-          {
-              mData: [ "docname" ],
-              fnRender: function (oObj)
-              {
-                  var docname = oObj.aData.docname;
-                  return "<a href='<%= pageurl %>doc/" + docname + "'>" + docname + "</a>";
-              }
-          },
-          { mData: [ "type" ] },
-          { mData: [ "group" ] },
-          {
-              mData: null,
-              bSortable: false,
-              sDefaultContent: '',
-              fnRender: function (oObj) { return addRowButtons(oObj, 'docs') }
-          }
-        ]
-    });
-
-grouptable = $('#grouptable')
-        .dataTable(
-        {
-            bProcessing: true,
-            sAjaxSource: "/api/1/groups/?datatables=1",
-            sAjaxDataProp: "data",
-            oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
-            aoColumns: [
-                { mData: [ "short" ] },
-                { mData: [ "name" ] },
-                { mData: [ "type" ] },
-                {
-                    mData: null,
-                    bSortable: false,
-                    sDefaultContent: '',
-                    fnRender: function (oObj) { return addRowButtons(oObj, 'groups') }
-                }
-            ]
-        });
-
-usertable = $('#usertable');
-usertable = usertable.dataTable(
-    {
-        bProcessing: true,
-        sAjaxSource: "/api/1/users/?datatables=1",
-        sAjaxDataProp: "data",
-        oLanguage: { sUrl: "/js/datatableslocales/<%=locale%>.json" },
-        aoColumns: [
-          { mData: [ "username" ] },
-          { mData: [ "email" ] },
-          {
-            mData: [ "roles" ],
-            fnRender: function (oObj)
-                {
-                    var roles = oObj.aData.roles;
-                    if(roles.indexOf('admin') != -1 || roles == "Admin")
-                        return "Admin";
-                    if(roles.indexOf('user') != -1 || roles == "User")
-                        return "User";
-                }
-          },
-          {
-            mData: [ "status" ],
-            fnRender: function (oObj)
-                {
-                    var status = oObj.aData.status;
-                    status = status.charAt(0).toUpperCase() + status.slice(1);
-                    return status;
-                }
-          },
-          {
-            mData: null,
-            bSortable: false,
-            sDefaultContent: '',
-            fnRender: function (oObj) { return addRowButtons(oObj, 'users') }
-          }
-        ]
-    });
-
-usertable.makeEditable(
-    {
-        sUpdateURL: updateUser,
-        aoColumns:
-        [
-            null,
-            null,
-            {
-                event: 'click',
-                indicator: '<%= __("dashboard.users.selectrole") %>',
-                loadtext: 'loading...',
-                id: "userRole",
-                type: 'select',
-                onblur: 'submit',
-                data: "{'admin':'Admin','user':'User'}"
-            },
-            {
-                event: 'click',
-                indicator: '<%= __("dashboard.users.selectstatus") %>',
-                loadtext: 'loading...',
-                id: "userStatus",
-                type: 'select',
-                onblur: 'submit',
-                data: "{'banned':'Banned','email':'Email','normal':'Normal'}"
-            }
-        ]
-    });
-
-function addRowButtons(oObj, type)
-{
-    var rowId = oObj.aData.DT_RowId;
-    var rowIndex = oObj.iDataRow;
-    return '<a href="#" data-type="'     + type     + '"' +
-                      ' data-rowindex="' + rowIndex + '"' +
-                      ' data-rowid="'    + rowId    + '"' +
-           ' onclick="deleteThing(this)" class="pull-right"><%= __("dashboard.delete") %> <i class="icon-trash"></i></a>';
+    createThing('groups', thing, thing.short, errors, refreshGroups);
 }
 
 function deleteThing(element)
@@ -328,8 +305,7 @@ function deleteThing(element)
 
     if(confirm(confirmMsg))
     {
-        var response =
-            $.ajax(
+        $.ajax(
             {
                 type: "DELETE",
                 url: "/api/1/" + type + "/" + id
@@ -366,22 +342,60 @@ function updateUser(value, settings)
     }
 
     var response = $.ajax(
-        {
-            type: "PUT",
-            url: "/api/1/users/" + username,
-            async: false,
-            data: data
-        }).success(function ()
-        {
-            // don't return an error
-            returnValue = value;
-        }).fail(function ()
-        {
-            // return an error later and reset the local value
-            settings.onreset();
-        });
+            {
+                type: "PUT",
+                url: "/api/1/users/" + username,
+                async: false,
+                data: data
+            }).success(function ()
+            {
+                // don't return an error
+                returnValue = value;
+            }).fail(function ()
+            {
+                // return an error later and reset the local value
+                settings.onreset();
+            });
 
     return returnValue;
+}
+
+function createThing(type, thing, name, errors, cb)
+{
+    var createSuccess = $('#' + type + '-create-success');
+    var createError = $('#' + type + '-create-error');
+
+    $.post('api/1/' + type, thing)
+            .done(function (res)
+            {
+                var rtnThing = JSON.parse(res).data;
+                var table = getTableForType(type);
+
+                rtnThing.DT_RowId = name;
+                table.fnAddData(rtnThing);
+
+                createSuccess.show();
+                createError.hide();
+
+                if(cb)
+                    cb();
+            })
+            .fail(function (res)
+            {
+                var msg = JSON.parse(res.responseText).message;
+
+                if(errors[msg])
+                    msg = errors[msg];
+                else
+                    msg = errors["default"];
+
+                createError.text(msg);
+                createSuccess.hide();
+                createError.show();
+
+                if(cb)
+                    cb();
+            });
 }
 
 function getTableForType(type)
