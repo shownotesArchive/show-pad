@@ -140,8 +140,8 @@ $(function ()
                 ]
             });
 
-    grouptable = $('#grouptable')
-            .dataTable(
+    grouptable = $('#grouptable');
+    grouptable = grouptable.dataTable(
             {
                 bProcessing: true,
                 sAjaxSource: "/api/1/groups/?datatables=1",
@@ -150,7 +150,15 @@ $(function ()
                 aoColumns: [
                     { mData: [ "short" ] },
                     { mData: [ "name" ] },
-                    { mData: [ "type" ] },
+                    {
+                        mData: [ "type" ],
+                        fnRender: function (oObj)
+                        {
+                            var type = oObj.aData.type;
+                            type = type.charAt(0).toUpperCase() + type.slice(1);
+                            return type;
+                        }
+                    },
                     {
                         mData: null,
                         bSortable: false,
@@ -223,6 +231,31 @@ $(function ()
                                 type: 'select',
                                 onblur: 'submit',
                                 data: "{'banned':'Banned','email':'Email','normal':'Normal'}"
+                            }
+                        ]
+            });
+
+    grouptable.makeEditable(
+            {
+                sUpdateURL: updateGroup,
+                aoColumns:
+                        [
+                            null,
+                            {
+                                event: 'click',
+                                indicator: '<%= __("dashboard.groups.selectrole") %>',
+                                loadtext: 'loading...',
+                                id: "groupName",
+                                onblur: 'submit'
+                            },
+                            {
+                                event: 'click',
+                                indicator: '<%= __("dashboard.groups.selecttype") %>',
+                                loadtext: 'loading...',
+                                id: "groupType",
+                                type: 'select',
+                                onblur: 'submit',
+                                data: "{'open':'Open','closed':'Closed'}"
                             }
                         ]
             });
@@ -320,44 +353,78 @@ function deleteThing(element)
     }
 }
 
-function updateUser(value, settings)
+function updateGroup(value, settings)
 {
-    // http://stackoverflow.com/questions/13316209/#13321785
-    var rowId = usertable.fnGetPosition(this)[0];
-    var rowName = settings.id;
-    var username = usertable.fnGetData(rowId, 0);
-    var returnValue = "<%= __('dashboard.users.error.update') %>";
-
+    var error = "<%= __('dashboard.groups.error.update') %>";
+    var rawData = getDataFromDTValue(this, grouptable, settings, 0);
+    var username = rawData.data;
     var data = {};
 
-    if(rowName == "userRole")
+    if(rawData.rowName == "groupType")
+    {
+        data.type = value;
+    }
+    else if(rawData.rowName == "groupName")
+    {
+        data.name = value;
+    }
+
+    return updateThing("groups", username, error, data, value, settings, refreshGroups);
+}
+
+function updateUser(value, settings)
+{
+    var error = "<%= __('dashboard.users.error.update') %>";
+    var rawData = getDataFromDTValue(this, usertable, settings, 0);
+    var username = rawData.data;
+    var data = {};
+
+    if(rawData.rowName == "userRole")
     {
         data.roles = [ "user" ];
         if(value == "admin")
             data.roles.push("admin");
     }
-    else if(rowName == "userStatus")
+    else if(rawData.rowName == "userStatus")
     {
         data.status = value;
     }
 
-    var response = $.ajax(
-            {
-                type: "PUT",
-                url: "/api/1/users/" + username,
-                async: false,
-                data: data
-            }).success(function ()
-            {
-                // don't return an error
-                returnValue = value;
-            }).fail(function ()
-            {
-                // return an error later and reset the local value
-                settings.onreset();
-            });
+    return updateThing("users", username, error, data, value, settings, refreshGroups);
+}
+
+function updateThing(type, name, error, data, value, settings, cb)
+{
+    var returnValue = error;
+    console.log(arguments)
+
+    $.ajax(
+        {
+            type: "PUT",
+            url: "/api/1/" + type + "/" + name,
+            async: false,
+            data: data
+        }).success(function ()
+        {
+            // don't return an error
+            returnValue = value;
+        }).fail(function ()
+        {
+            // return an error later and reset the local value
+            settings.onreset();
+        });
 
     return returnValue;
+}
+
+function getDataFromDTValue(that, table, settings, index)
+{
+    // http://stackoverflow.com/questions/13316209/#13321785
+    var rowId = table.fnGetPosition(that)[0];
+    var rowName = settings.id;
+    var data = table.fnGetData(rowId, index);
+
+    return { rowName: rowName, data: data }
 }
 
 function createThing(type, thing, name, errors, cb)

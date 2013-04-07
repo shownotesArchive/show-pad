@@ -98,6 +98,7 @@
     "dashboard.groups.create.error.exists": "Dieser Name ist bereits belegt.",
     "dashboard.groups.create.error.other": "Es ist ein Fehler aufgetreten.",
     "dashboard.groups.create.success": "Die Gruppe wurde erfolgreich erstellt!",
+    "dashboard.groups.error.update": "Die Änderungen konnten nicht gespeichert werden",
 
     "profile": "Profil",
     "profile.title": "Persönliche Daten bearbeiten",

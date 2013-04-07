@@ -98,6 +98,7 @@
     "dashboard.groups.create.error.exists": "This name is already taken.",
     "dashboard.groups.create.error.other": "That did not work.",
     "dashboard.groups.create.success": "The group has been successfully created!",
+    "dashboard.groups.error.update": "Could not update the group",
 
     "profile": "Profile",
     "profile.title": "Change your account information",
