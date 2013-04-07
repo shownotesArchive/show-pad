@@ -139,5 +139,6 @@ function answerRequest(res, statusCode, msg, data)
     };
 
   res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(response));
 }
