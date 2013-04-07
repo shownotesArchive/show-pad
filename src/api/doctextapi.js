@@ -43,7 +43,37 @@ exports.getOne = function (res, req, answerRequest)
 
 exports.getMany = function (res, req, answerRequest)
 {
-  answerRequest(res, 405, "Method Not Allowed", null);
+  async.waterfall(
+    [
+      // get all docs
+      server.db.doc.getDocs,
+      // get doc-texts
+      function (docs, cb)
+      {
+        async.map(docs,
+          function (doc, cb)
+          {
+            server.documentTypes.getText(doc,
+              function (err, text)
+              {
+                if(err)
+                  cb(null, { name: doc.docname, error: err, text: null });
+                else
+                  cb(null, { name: doc.docname, error: null, text: text });
+              });
+          }, cb
+        );
+      }
+    ],
+    // return doc-texts to client
+    function (err, docs)
+    {
+      if(err)
+        answerRequest(res, 500, err, null);
+      else
+        answerRequest(res, 200, "ok", docs);
+    }
+  );
 }
 
 exports.createOne = function (res, req, answerRequest)
