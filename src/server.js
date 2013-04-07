@@ -457,7 +457,10 @@ function processLogin (req, res)
               documentTypes.onLogin(user, res,
                 function (err, result)
                 {
-                  res.redirect('/');
+                  var oldUrl = req.get("Referer");
+                  if(!oldUrl)
+                    oldUrl = "/";
+                  res.redirect(oldUrl);
                 });
             }
           }
