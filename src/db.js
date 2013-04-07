@@ -1,8 +1,8 @@
 var redis  = require('redis')
   , async  = require('async')
-  , userdb = require('./userdb.js')
-  , docdb  = require('./docdb.js')
-  , groupdb = require('./groupdb.js')
+  , userdb = require('./db/userdb.js')
+  , docdb  = require('./db/docdb.js')
+  , groupdb = require('./db/groupdb.js')
   , options
   , client;
 
