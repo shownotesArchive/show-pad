@@ -58,14 +58,19 @@ exports.init = function (_server, cb)
       // delete all existing sessions
       function (sessions, cb)
       {
-        async.concat(Object.keys(sessions),
+        var sessionKeys = Object.keys(sessions);
+
+        if(sessionKeys.length == 0)
+          return cb("nosessions");
+
+        async.concat(sessionKeys,
           function (sessionKey, cb)
           {
             cb(null, sessions[sessionKey]);
           },
           function (er, sessions)
           {
-            console.log("Removing " + sessions.length + " old sessions..");
+            console.log("Removing %s old sessions..", sessions.length);
             async.each(sessions,
               function (session, cb)
               {
@@ -83,7 +88,14 @@ exports.init = function (_server, cb)
             server.db.user.updateUser(changes, cb);
           }, cb);
       }
-    ], cb);
+    ],
+    function (err)
+    {
+      if(err == "nosessions")
+        err = null;
+      cb(err);
+    }
+  );
 }
 
 exports.initExpress = function (app)
@@ -111,7 +123,7 @@ exports.onLogin = function (user, res, cb)
             if(!err)
             {
               authorID = data.authorID;
-              console.debug("[epl] [" + user.username + "] AuthorID: " + authorID);
+              console.debug("[epl] [%s] AuthorID: %s", user.username, authorID);
             }
             cb(err);
           });
@@ -157,7 +169,7 @@ exports.onLogin = function (user, res, cb)
                 if(!err)
                 {
                   sessionIDs.push(data.sessionID);
-                  console.debug("[epl] [" + user.username + "] " + showGroup + " (" + eplGroupIDs[showGroup] + ") SessionID: " + data.sessionID);
+                  console.debug("[epl] [%s] %s (%s) SessionID: %s", user.username, showGroup, eplGroupIDs[showGroup], data.sessionID);
                 }
                 cb(err);
               });
@@ -182,12 +194,12 @@ exports.onLogin = function (user, res, cb)
           {
             if(err)
             {
-              console.debug("[epl] [" + user.username + "] Login failed");
+              console.debug("[epl] [%s] Login failed", user.username);
             }
             else
             {
               res.cookie("sessionID", cookieStr, { maxAge: sessionMaxAge, httpOnly: false});
-              console.debug("[epl] [" + user.username + "] Logged in");
+              console.debug("[epl] [%s] Logged in", user.username);
             }
 
             cb(err);
@@ -210,7 +222,7 @@ exports.onLogout = function (user, res, cb)
   if(!sessions || sessions.length == 0)
   {
     // no need to stress the db and etherpad
-    console.warn("[epl] [" + username + "] has no sessions");
+    console.warn("[epl] [%s] has no sessions", username);
     return cb();
   }
 
@@ -226,9 +238,9 @@ exports.onLogout = function (user, res, cb)
               function (err)
               {
                 if(err)
-                  console.error("[epl] [" + username + "] could not delete session", sid, err);
+                  console.error("[epl] [%s] could not delete session", username, sid, err);
                 else
-                  console.debug("[epl] [" + username + "] session deleted", sid);
+                  console.debug("[epl] [%s] session deleted", username, sid);
                 cb();
               });
           }, cb);
@@ -241,9 +253,9 @@ exports.onLogout = function (user, res, cb)
           function (err)
           {
             if(err)
-              console.debug("[epl] [" + username + "] Could not remove sessions from db");
+              console.debug("[epl] [%s] Could not remove sessions from db", username);
             else
-              console.debug("[epl] [" + username + "] Sessions removed from db");
+              console.debug("[epl] [%s] Sessions removed from db", username);
             cb(err);
           });
       }
@@ -263,7 +275,7 @@ exports.onCreateGroup = function (group, cb)
       if(!err)
       {
         eplGroupIDs[group.short] = data.groupID;
-        console.debug("[epl] groupid for " + group.short + " is " + data.groupID);
+        console.debug("[epl] groupid for %s is %s", group.short, data.groupID);
       }
       cb(err);
     }
@@ -288,9 +300,9 @@ exports.onDeleteDoc = function (doc, cb)
     function (err)
     {
       if(err)
-        console.error("[epl] could not delete pad: " + docname + ", " + err);
+        console.error("[epl] could not delete pad: %s, %s", docname, err);
       else
-        console.debug("[epl] pad deleted: " + docname);
+        console.debug("[epl] pad deleted:", docname);
       cb(err);
     });
 }
@@ -319,9 +331,9 @@ exports.setText = function (doc, text, cb)
     function (err)
     {
       if(err)
-        console.error("[epl] could not set pad-text: " + docname + ", " + err);
+        console.error("[epl] could not set pad-text: %s, %s", docname, err);
       else
-        console.debug("[epl] pad-text set: " + docname);
+        console.debug("[epl] pad-text set:", docname);
       cb(err);
     });
 }
@@ -335,9 +347,9 @@ exports.getText = function (doc, cb)
     function (err, data)
     {
       if(err)
-        console.error("[epl] could not get pad-text: " + docname + ", " + err);
+        console.error("[epl] could not get pad-text: %s, %s", docname, err);
       else
-        console.debug("[epl] got pad-text: " + docname);
+        console.debug("[epl] got pad-text:", docname);
       cb(err, data);
     });
 }
@@ -352,9 +364,9 @@ exports.getLastModifed = function (doc, cb)
     function (err, data)
     {
       if(err)
-        console.error("[epl] could not get pad-lastEdited: " + docname + ", " + err);
+        console.error("[epl] could not get pad-lastEdited: %s, %s", docname, err);
       else
-        console.debug("[epl] got pad-lastEdited: " + docname);
+        console.debug("[epl] got pad-lastEdited:", docname);
       cb(err, data);
     });
 }

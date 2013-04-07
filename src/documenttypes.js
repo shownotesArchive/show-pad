@@ -20,14 +20,14 @@ exports.init = function (_server, cb)
       return;
     }
 
-    console.debug("Found " + files.length + " doctypes!");
+    console.debug("Found %s doctypes!", files.length);
 
     async.eachSeries(files,
       function (file, cb)
       {
         var t = require('./documenttypes/' + file);
         documentTypes[t.name] = t;
-        console.debug("Initiating " + t.name + "...");
+        console.debug("Initiating %s...", t.name);
         documentTypes[t.name].init(_server, cb);
       }, cb);
   });
@@ -37,7 +37,7 @@ exports.onExpressInit = function (app)
 {
   for(var t in documentTypes)
   {
-    console.debug("Initiating " + documentTypes[t].name + "...");
+    console.debug("Initiating %s...", documentTypes[t].name);
     documentTypes[t].initExpress(app);
   }
 }
@@ -49,7 +49,7 @@ exports.onLogin = function (user, res, cb)
     function (type, cb)
     {
       type = documentTypes[type];
-      console.debug("[" + user.username + "] starting " + type.name + "-login");
+      console.debug("[%s] starting %s-login", user.username, type.name);
       type.onLogin(user, res, cb);
     }, cb);
 }
@@ -60,7 +60,7 @@ exports.onLogout = function (user, res, cb)
     function (type, cb)
     {
       type = documentTypes[type];
-      console.debug("[" + user.username + "] starting " + type.name + "-logout");
+      console.debug("[%s] starting %s-logout", user.username, type.name);
       type.onLogout(user, res, cb);
     }, cb);
 }
@@ -71,7 +71,7 @@ exports.onCreateUser = function (user, cb)
     function (type, cb)
     {
       type = documentTypes[type];
-      console.debug("[" + user.username + "] starting " + type.name + "-register");
+      console.debug("[%s] starting %s-register", user.username, type.name);
       type.onCreateUser(user, cb);
     }, cb);
 }

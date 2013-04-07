@@ -90,7 +90,7 @@ function initConfig(cb)
 function initMail(cb)
 {
   var type = nconf.get('mail:type');
-  console.info("Initiating mail (" + type + ")..");
+  console.info("Initiating mail (%s)..", type);
   mailTransport = nodemailer.createTransport(type, nconf.get('mail:options'));
   cb();
 }
@@ -417,7 +417,7 @@ function processLogin (req, res)
     {
       if(err)
       {
-        console.info("[" + username + "] Login failed: " + err + ", user=" + user);
+        console.info("[%s] Login failed: %s, user=%s", username, err, user);
         res.redirect('/login?error=pw&values=' + JSON.stringify(values));
         return;
       }
@@ -431,7 +431,7 @@ function processLogin (req, res)
         else
           error = "unknown";
 
-        console.info("[" + username + "] Login failed: status=" + user.status);
+        console.info("[%s] Login failed: %s, status=%s", username, err, user.status);
         res.redirect('/login?error=' + error + '&values=' + JSON.stringify(values));
         return;
       }
@@ -440,19 +440,19 @@ function processLogin (req, res)
         {
           if(!isValid || err)
           {
-            console.info("[" + username + "] Login failed: " + err + " isValid=" + isValid);
+            console.info("[%s] Login failed: %s isValid=%s", username, err, isValid);
             res.redirect('/login?error=pw&values=' + JSON.stringify(values));
           }
           else
           {
             if(err)
             {
-              console.info("[" + username + "] Login failed (epl): " + error);
+              console.info("[%s] Login failed (epl):", username, error);
               res.redirect('/login?error=epl&values=' + JSON.stringify(values));
             }
             else
             {
-              console.info("[" + username + "] Logged in");
+              console.info("[%s] Logged in", username);
               req.session.user = username;
               documentTypes.onLogin(user, res,
                 function (err, result)
@@ -515,9 +515,9 @@ function processPasswordResetRequest (req, res)
     function (err)
     {
       if(err)
-        console.warn("[" + username + "] PW-Reset-Request failed: " + err);
+        console.warn("[%s] PW-Reset-Request failed:", username, err);
       else
-        console.warn("[" + username + "] PW-Reset-Request succeeded");
+        console.warn("[%s] PW-Reset-Request succeeded", username);
 
       res.redirect('/pwreset?error=done');
     }
@@ -561,7 +561,7 @@ function processPasswordReset (req, res)
     {
       if(err)
       {
-        console.info("[" + username + "] PW-Reset failed: " + err);
+        console.info("[%s] PW-Reset failed:", username, err);
 
         if(err != "invalidpw")
           err = "other";
@@ -589,7 +589,7 @@ function processLogout (req, res)
     {
       // delete our session
       req.session.user = null;
-      console.debug("[" + user.username + "] Logged out");
+      console.debug("[%s] Logged out", user.username);
       // redirect the user back to the index
       res.redirect('/');
     });
@@ -660,7 +660,6 @@ function processRegister (req, res)
           {
             if(err)
             {
-              console.log(err)
               res.statusCode = 429;
               res.redirect('/register?errors=["captcha"]&values=' + JSON.stringify(values));
             }
@@ -693,7 +692,7 @@ function processRegister (req, res)
           // creating the user didn't work
           if(err)
           {
-            console.info("[" + username + "] Register failed (db): " + err);
+            console.info("[%s] Register failed (db):", username, err);
             var usererror;
             if(err == "userexists" || err == "emailexists")
               usererror = [err];
@@ -714,7 +713,7 @@ function processRegister (req, res)
                   // delete the created user
                   db.user.deleteUser(username, function ()
                     {
-                      console.info("[" + username + "] Register failed (email): " + err);
+                      console.info("[%s] Register failed (email):", username, + err);
                       res.redirect('/register?errors=' + JSON.stringify(["email-error"]) + "&values=" + JSON.stringify(values));
                     });
                 }
@@ -723,7 +722,7 @@ function processRegister (req, res)
                   documentTypes.onCreateUser({ username: username, email: email },
                     function (err, result)
                     {
-                      console.info("[" + username + "] Registered");
+                      console.info("[%s] Registered", username);
                       res.redirect('/login?error=registered&values=[]');
                     });
                 }
@@ -771,7 +770,7 @@ function processGetProfile(req, res)
 
     if(!foundToken)
     {
-      console.log("Email " + email + " in " + user.username + " could not be found.");
+      console.log("Email %s in %s could not be found.", email, user.username);
       res.redirect('/profile');
       return;
     }
@@ -846,12 +845,12 @@ function processProfile(req, res)
       return;
     }
 
-    db.user.checkPassword(user.username, password,
+    db.user.checkPassword(username, password,
       function (err, isValid)
       {
         if(err || !isValid)
         {
-          console.info("[" + username + "] Change password failed (password): " + err);
+          console.info("[%s] Change password failed (password):", username, err);
           res.redirect('/profile?errors=["oldpassword-password"]&values=' + JSON.stringify(values));
         }
         else
@@ -862,12 +861,12 @@ function processProfile(req, res)
             {
               if(err)
               {
-                console.info("[" + username + "] Change password failed (db): " + err);
+                console.info("[%s] Change password failed (db):", username, err);
                 res.redirect('/profile?errors=["password-db"]&values=' + JSON.stringify(values));
               }
               else
               {
-                console.info("[" + username + "] Password changed");
+                console.info("[%s] Password changed", username);
                 res.redirect('/profile?status=password-ok');
               }
             });
@@ -911,7 +910,7 @@ function processProfile(req, res)
             {
               if(err || !isValid)
               {
-                console.info("[" + username + "] Change email failed (password): " + err);
+                console.info("[%s] Change email failed (password):", username, err);
                 res.redirect('/profile?errors=["oldpassword-email"]&values=' + JSON.stringify(values));
                 cb("oldpassword-email");
               }
@@ -930,7 +929,7 @@ function processProfile(req, res)
 
             if(email == newemail)
             {
-              console.info("[" + username + "] Change email failed (pending)");
+              console.info("[%s] Change email failed (pending)", username);
               res.redirect('/profile?errors=["emailchange-pending"]&values=' + JSON.stringify(values));
               cb("emailchange-pending");
               return;
@@ -946,7 +945,7 @@ function processProfile(req, res)
             {
               if(err || exists)
               {
-                console.info("[" + username + "] Change email failed (emailexists): " + err);
+                console.info("[%s] Change email failed (emailexists): ", username, err);
                 res.redirect('/profile?errors=["emailtaken"]&values=' + JSON.stringify(values));
                 cb("emailexists");
               }
@@ -981,12 +980,12 @@ function processProfile(req, res)
             {
               if(err)
               {
-                console.info("[" + username + "] Change email failed (db): " + err);
+                console.info("[%s] Change email failed (db):", username, err);
                 res.redirect('/profile?errors=["email-db"]&values=' + JSON.stringify(values));
               }
               else
               {
-                console.info("[" + username + "] Email changed to: " + newemail + ", was: " + user.email);
+                console.info("[%s] Email changed to: %s, was: %s", username, newemail, user.email);
                 res.redirect('/profile?status=email-ok');
               }
             });
@@ -1005,7 +1004,7 @@ function processEmailActivation(req, res)
     {
       if(err)
       {
-        console.info("[" + username + "] Email activation failed (db): " + err);
+        console.info("[%s] Email activation failed (db):", username, err);
         res.end('Invalid link.');
         return;
       }
@@ -1026,19 +1025,19 @@ function processEmailActivation(req, res)
           {
             if(err)
             {
-              console.info("[" + username + "] Email activation failed (db): " + err);
+              console.info("[%s] Email activation failed (db):", username, err);
               res.end('Error. Please contact an administrator.');
             }
             else
             {
               if(user.status == "email")
               {
-                console.info("[" + username + "] Account activated (" + user.email + ")");
+                console.info("[%s] Account activated (%s)", username, user.email);
                 res.redirect('/login?error=activated&values=["' + username + '"]');
               }
               else
               {
-                console.info("[" + username + "] Email " + user.email + " activated");
+                console.info("[%s] Email %s activated", username, user.email);
                 res.redirect('/login?error=changed&values=["' + username + '"]');
               }
             }
@@ -1046,7 +1045,7 @@ function processEmailActivation(req, res)
       }
       else
       {
-        console.info("[" + username + "] Account activation failed (token)");
+        console.info("[%s] Account activation failed (token)", username);
         res.end('Invalid link.');
         return;
       }
@@ -1078,7 +1077,7 @@ function sendMail(template, locals, to, subject, cb)
             text: content
           };
 
-        console.debug("Sending mail (" + template + ") to " + to);
+        console.debug("Sending mail (%s) to", template, to);
         mailTransport.sendMail(mailOptions, _cb);
       }
     ], cb);

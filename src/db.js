@@ -236,7 +236,7 @@ function flattenObject(obj, name)
   {
     if(Object.keys(obj).length == 0)
     {
-      console.warn("Empty object: " + name + " will be discarded.");
+      console.warn("Empty object %s will be discarded.", name);
     }
 
     for (var prop in obj)
@@ -324,16 +324,6 @@ function initRedis(cb)
 
   client.on("connect", function ()
     {
-      /*
-      var obj = {a: "b", "b": "a", "c": [0, 1, 2], "d": { "foo": "bar", "fuz": { "spengr": "co" } }, "e": {}};
-      exports.set("foo:zero", obj);
-      exports.get("foo:zero",
-        function (err, obj2)
-        {
-          console.log(obj);
-          console.log(obj2);
-        });
-        */
       cb(null);
     });
 
@@ -342,14 +332,6 @@ function initRedis(cb)
       console.error(err);
       process.exit(1);
     });
-}
-
-function stringifyIfNeeded(obj)
-{
-  if (typeof obj == "object")
-    return JSON.stringify(obj);
-  else
-    return obj;
 }
 
 // http://stackoverflow.com/a/1830844

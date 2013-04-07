@@ -20,7 +20,7 @@ exports.init = function (_server, _cb)
     }
     else
     {
-      console.log("API-Key is " + tmpapikeyey);
+      console.log("API-Key is '%s'", tmpapikeyey);
       apikey = tmpapikeyey;
     }
   }
@@ -38,13 +38,13 @@ exports.init = function (_server, _cb)
       return;
     }
 
-    console.debug("Found " + files.length + " apiendpoints!");
+    console.debug("Found %s apiendpoints!", files.length);
     async.eachSeries(files,
       function (file, cb)
       {
         var endpoint = require('./api/' + file);
 
-        console.debug("Initiating endpoint: " + endpoint.name + "...");
+        console.debug("Initiating endpoint: %s...", endpoint.name);
         endpoints[endpoint.name] = endpoint;
         endpoints[endpoint.name].init(db, server, cb);
       }, _cb);
@@ -59,7 +59,7 @@ exports.handleRequest = function (req, res)
 
   var user = res.locals.user;
 
-  console.info("[API] REQUEST " + method + " " + req.url);
+  console.info("[API] REQUEST %s %s", method, req.url);
 
   var apikeyValid = apikey != null && query["apikey"] == apikey;
   var adminValid = !!user && user.hasRole("admin");
@@ -70,7 +70,7 @@ exports.handleRequest = function (req, res)
     if(user)
       username = user.username;
 
-    console.warn("API-Auth failed, APIKey=" + apikeyValid + ", Admin=" + adminValid + " (" + username + ")");
+    console.warn("API-Auth failed, APIKey=%s, Admin=%s (%s)", apikeyValid, adminValid, username);
     answerRequest(res, 401, "Unauthorized", null);
     return;
   }
@@ -129,7 +129,7 @@ exports.handleRequest = function (req, res)
 
 function answerRequest(res, statusCode, msg, data)
 {
-  console.info("[API] RESPONSE " + statusCode + ": " + msg);
+  console.info("[API] RESPONSE %s: %s", statusCode, msg);
 
   var response =
     {
