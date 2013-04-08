@@ -27,6 +27,7 @@
                     <th><%= __('dashboard.users.email') %></th>
                     <th><%= __('dashboard.users.role') %></th>
                     <th><%= __('dashboard.users.status') %></th>
+                    <th><%= __('dashboard.users.groups') %></th>
                     <th></th>
                 </tr>
             </thead>
@@ -196,6 +197,14 @@ $(function ()
                             var status = oObj.aData.status;
                             status = status.charAt(0).toUpperCase() + status.slice(1);
                             return status;
+                        }
+                    },
+                    {
+                        mData: [ "groups" ],
+                        fnRender: function (oObj)
+                        {
+                            var groups = oObj.aData.groups;
+                            return groups.join(", ");
                         }
                     },
                     {

@@ -70,6 +70,7 @@
     "dashboard.users.role": "Role",
     "dashboard.users.selectrole": "Select role..",
     "dashboard.users.status": "Status",
+    "dashboard.users.groups": "Groups",
     "dashboard.users.selectstatus": "Select status..",
     "dashboard.users.error.update": "Could not update the user",
     "dashboard.docs": "Documents",
