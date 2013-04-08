@@ -271,7 +271,7 @@ function processIndex (req, res)
         }
 
         clientDocs.sort( function (a, b) { return b.modified - a.modified; });
-        clientDocs.splice(5);
+        clientDocs.splice(nconf.get("docsonindex"));
 
         cb(null, clientDocs);
       }
