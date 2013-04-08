@@ -337,6 +337,8 @@ function createGroup()
 function deleteThing(element)
 {
     element = $(element);
+    // disable link, http://stackoverflow.com/a/13977403
+    element.css('pointer-events', 'none');
 
     var id = element.data('rowid');
     var index = element.data('rowindex');
@@ -358,6 +360,7 @@ function deleteThing(element)
             }).fail(function ()
             {
                 alert(failMsg);
+                element.css('pointer-events', ""); // re-enable link
             });
     }
 }
