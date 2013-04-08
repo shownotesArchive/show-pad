@@ -59,8 +59,8 @@
                 </select>
                 
                 <label class="control-label" for="docgroup"><%= __('dashboard.docs.create.group') %></label>
-                <select id="docgroup" name="docgroup" >
-                    <option value="etherpad">Loading..</option>
+                <select id="docgroup" name="docgroup" class="groupSelect">
+                    <option value="">Loading..</option>
                 </select>
 
                 <button class="btn primary" type="submit" id="create-doc"><%= __('dashboard.docs.create.submit') %></button>
@@ -275,16 +275,21 @@ function refreshGroups()
     $.ajax("/api/1/groups/")
         .success(function(response)
         {
-            groups = response;
+            $(".groupSelect").each(function (i, select) { $(select).empty(); });
+            $.each(response.data,
+                function (i, group)
+                {
+                    var short = group.short;
+                    var name = group.name;
 
-            $("#docgroup").empty();
-            for (var id in groups)
-            {
-                var short = groups[id].short;
-                var name = groups[id].name;
-
-                $("#docgroup").append(new Option(name + " (" + short + ")", short));
-            }
+                    $(".groupSelect").each(
+                        function (i, select)
+                        {
+                            $(select).append(new Option(name + " (" + short + ")", short));
+                        }
+                    );
+                }
+            )
         });
 }
 
