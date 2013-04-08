@@ -102,7 +102,10 @@
     "dashboard.groups.error.update": "Could not update the group",
 
     "profile": "Profile",
-    "profile.title": "Change your account information",
+    "profile.view.email": "Email-Address:",
+    "profile.view.groups": "Groups:",
+    "profile.title.view": "View your account information",
+    "profile.title.change": "Change your account information",
 
     "profile.email.newemail": "New E-Mail:",
     "profile.email.oldpassword": "Password:",

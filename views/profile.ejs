@@ -1,8 +1,26 @@
 <% layout('layout.ejs') %>
-<% block('title', __('profile.title')) -%>
+<% block('title', '') -%>
 <% script('js/jquery-queryParser.min.js') %>
 <% script('js/formhelpers.js') %>
 
+<h2><%=__('profile.title.view')%></h2>
+<hr>
+<div class="form-horizontal profile-form">
+    <div class="control-group">
+        <span class="control-label"><%= __('profile.view.email') %></span>
+        <div class="controls">
+            <span class="control-label"><%= user.email %></span>
+        </div>
+    </div>
+    <div class="control-group">
+        <span class="control-label"><%= __('profile.view.groups') %></span>
+        <div class="controls">
+            <span class="control-label"><%= user.groups.join(', ') %></span>
+        </div>
+    </div>
+</div>
+<hr>
+<h2><%=__('profile.title.change')%></h2>
 <hr>
 <div class="alert" id="newemail-alert" style="display:none"></div>
 <form method="POST" class="form-horizontal profile-form">

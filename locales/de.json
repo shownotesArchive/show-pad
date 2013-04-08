@@ -102,7 +102,10 @@
     "dashboard.groups.error.update": "Die Änderungen konnten nicht gespeichert werden",
 
     "profile": "Profil",
-    "profile.title": "Persönliche Daten bearbeiten",
+    "profile.view.email": "Email-Adresse:",
+    "profile.view.groups": "Gruppen:",
+    "profile.title.view": "Persönliche Daten anzeigen",
+    "profile.title.change": "Persönliche Daten bearbeiten",
 
     "profile.email.newemail": "Neue E-Mail:",
     "profile.email.oldpassword": "Passwort:",
