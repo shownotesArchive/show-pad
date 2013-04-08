@@ -61,6 +61,10 @@ The mail-config inside `config.json` looks like this:
 }
 ```
 
+### Redis
+At least redis 2.4 is needed to run ShowPad because of a change in the [`sadd`](http://redis.io/commands/sadd)-command.
+Your redis-server has to be configuired to use unix-sockets for connections (`unixsocket redis.sock` in `redis.conf`).
+
 Technologies used
 -----------------
 
