@@ -249,7 +249,7 @@ function processIndex (req, res)
       function (cb)
       {
         var docs = cache.get(cacheName);
-        console.log(docs);
+        
         if(docs)
           cb("cache", docs);
         else
