@@ -452,7 +452,7 @@ function createThing(type, thing, name, errors, cb)
     $.post('api/1/' + type, thing)
             .done(function (res)
             {
-                var rtnThing = JSON.parse(res).data;
+                var rtnThing = res.data;
                 var table = getTableForType(type);
 
                 rtnThing.DT_RowId = name;
