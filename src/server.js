@@ -159,7 +159,7 @@ function initServer(cb)
 
   console.debug("Initiating server-sessions..");
   // sessions
-  sessionStore = new express.session.MemoryStore();
+  sessionStore = db.prepareSessionStore(express, {});
   app.use(express.session({ secret: sessionSecret, store: sessionStore }));
 
   app.use(function(req, res, next)

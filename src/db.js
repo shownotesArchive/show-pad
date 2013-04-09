@@ -317,6 +317,13 @@ exports.objExists = function (key, cb)
   client.exists(key, cb);
 }
 
+exports.prepareSessionStore = function (express, options)
+{
+  options.client = client;
+  var RedisStore = require('connect-redis')(express);
+  return new RedisStore(options);
+}
+
 function initRedis(cb)
 {
   console.debug("Initiating redis..");
