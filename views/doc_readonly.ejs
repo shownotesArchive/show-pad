@@ -9,7 +9,7 @@ getDocText();
 
 function getDocText()
 {
-    $.ajax(window.location.pathname.slice(0, -8) + 'text')
+    $.ajax('/doc/<%=docname%>/text')
         .success
         (
             function (res)
