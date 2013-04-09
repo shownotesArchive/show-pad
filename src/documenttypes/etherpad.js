@@ -24,7 +24,7 @@ exports.init = function (_server, cb)
         eplurl = "http://" + conf.host + ":" + conf.port;
         etherpad = eplapi.connect(conf);
         etherpad.checkToken({},
-          function (err) { cb(err ? "invalid-epl-apikey": null); });
+          function (err) { cb(err ? "Etherpad: " + err.message: null); });
       },
       // get all showpad-groups
       function (cb)
