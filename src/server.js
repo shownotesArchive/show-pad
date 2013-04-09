@@ -296,6 +296,7 @@ function processDoc (req, res, isReadonly)
   var username = user ? user.username : "none";
   var doc, group, docname, locals = {};
   var isPublic, isAuthed, logprefixstr;
+  var readonlyReason = null;
 
   async.waterfall(
     [
@@ -336,10 +337,17 @@ function processDoc (req, res, isReadonly)
           // show the readwrite-view
           cb();
         }
-        else if((isPublic && !isAuthed) || (isReadonly && isAuthed))
+        else if((isPublic && !isAuthed))
         {
           // show the readonly-view
           cb("readonly");
+          readonlyReason = "auth";
+        }
+        else if(isReadonly && isAuthed)
+        {
+          // show the readonly-view
+          cb("readonly");
+          readonlyReason = "choosen";
         }
         else
         {
@@ -370,7 +378,8 @@ function processDoc (req, res, isReadonly)
             {
               console.log(logprefixstr + "showing doc in readonly-view");
               locals.err = "readonly";
-              locals.readonlytext = text;
+              locals.readonlyReason = readonlyReason;
+              locals.readonlyText = text;
               res.render('doc', locals);
             }
           })

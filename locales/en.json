@@ -57,7 +57,8 @@
     "showdoc.error": "Error",
     "showdoc.error.nodoc": "This document does not exist.",
     "showdoc.error.auth": "You are not authorized to view this document.",
-    "showdoc.error.readonly": "You are not allowed to edit this document, but you can view its text here.<br>You might want to <a href='/login'>log into your account</a> or <a href='/register'>register a new one</a> to edit this document.",
+    "showdoc.error.readonly.auth": "You are not allowed to edit this document, but you can view its text here.<br>You might want to <a href='/login'>log into your account</a> or <a href='/register'>register a new one</a> to edit this document.",
+    "showdoc.error.readonly.choosen": "You are viewing this document in readonly-mode, but you can also <a href='%s'>edit</a> it, if you want to.",
     "showdoc.error.other": "The document could not be loaded.",
 
     "dashboard": "Dashboard",

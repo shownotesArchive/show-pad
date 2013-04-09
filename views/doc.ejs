@@ -3,8 +3,7 @@
 <% if ( err ) { %>
     <% block('title', docname) -%>
     <% if ( err == "readonly" ) { %>
-        <span><%- __('showdoc.error.readonly') %></span>
-        <pre style="word-break: normal; margin-top: 10px"><%=readonlytext%></pre>
+        <% include doc_readonly %>
     <% } else { %>
         <span style="color:darkred"><%= __('showdoc.error') %>: <%= __('showdoc.error.' + err) %></span>
     <% } %>

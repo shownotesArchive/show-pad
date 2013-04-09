@@ -57,7 +57,8 @@
     "showdoc.error": "Fehler",
     "showdoc.error.nodoc": "Das Dokument existiert nicht.",
     "showdoc.error.auth": "Du bist nicht berechtigt dieses Dokument zu öffnen.",
-    "showdoc.error.readonly": "Du darfst dieses Dokument nicht bearbeiten, aber mitlesen geht hier.<br>Willst Du dich <a href='/login'>einloggen</a> oder <a href='/register'>registrieren</a> um das Dokument zu bearbeiten?",
+    "showdoc.error.readonly.auth": "Du darfst dieses Dokument nicht bearbeiten, aber mitlesen geht hier.<br>Willst Du dich <a href='/login'>einloggen</a> oder <a href='/register'>registrieren</a> um das Dokument zu bearbeiten?",
+    "showdoc.error.readonly.choosen": "Du hast dieses Dokument im Lesemodus geöffnet, wenn Du willst kannst du es aber auch <a href='%s'>bearbeiten</a>.",
     "showdoc.error.other": "Das Dokument konnte nicht geladen werden.",
 
     "dashboard": "Dashboard",
