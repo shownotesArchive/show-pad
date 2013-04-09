@@ -241,8 +241,20 @@ function startServer(cb)
 
 function processIndex (req, res)
 {
+  var cacheName = "indexdocs";
+
   async.waterfall(
     [
+      // check the cache
+      function (cb)
+      {
+        var docs = cache.get(cacheName);
+        console.log(docs);
+        if(docs)
+          cb("cache", docs);
+        else
+          cb();
+      },
       // get all docs
       function (cb)
       {
@@ -274,13 +286,14 @@ function processIndex (req, res)
 
         clientDocs.sort( function (a, b) { return b.modified - a.modified; });
         clientDocs.splice(nconf.get("docsonindex"));
+        cache.put(cacheName, clientDocs, 30000);
 
         cb(null, clientDocs);
       }
     ],
     function (err, result)
     {
-      if(err)
+      if(err && err != "cache")
       {
         console.error("Error while rendering index: " + err);
         result = [];
