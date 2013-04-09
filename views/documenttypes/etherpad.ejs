@@ -2,6 +2,34 @@
 <% block('title', padId) -%>
 <% script('/js/etherpad.js') %>
 
+<p id="padhelpheader" class="question">
+    <i class="icon-circle-arrow-right padhelparrows"></i>
+    <i class="icon-circle-arrow-down padhelparrows" style="display:none"></i>
+    <a href="#">Quickguide: Wie schreibe ich hier Shownotes?</a>
+</p>
+<div style="display:none;" id="padhelp">
+    <div id="padhelptext">
+        <p>Durch die Eingabe von <kbd>#</kbd><kbd>#</kbd><kbd>#</kbd> + <kbd>Leer</kbd> im ShowPad wird automatisch die aktuelle Zeit als Unixzeit eingefügt.</p>
+        <p>Sendungsnotizen sollte wie folgt aufgebaut sein:</p>
+        <p><code>Zeit Information &lt;Link&gt; #Tag</code></p>
+        <p>Ein Beispiel dafür wäre:</p>
+        <p><code>3141592653 WOFF &lt;http://de.wikipedia.org/wiki/Web_Open_Font_Format&gt; #glossary</code></p>
+        <p>Notwendig für eine Zeile Sendungsnotizen sind nur <b>Zeitangabe</b> und <b>Information</b>, optional kann ein Link und beliebig viele Tags angehängt werden.</p>
+        <p>Weitere Informationen findest du im <a href="https://github.com/shownotes/OpenShownotesFormat#readme" target="_blank">Git-Repository</a> zum OpenShownotesFormat.</p>
+    </div>
+</div>
+
+<div id="pad"></div>
+
+<script>
+$("#padhelpheader").click(function () 
+    {
+        $("#padhelp").toggle(400);
+        $(".padhelparrows").toggle(0);
+    }
+);
+</script>
+
 <div id="pad"></div>
 
 <script>
