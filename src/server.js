@@ -9,6 +9,7 @@ var express   = require('express')
   , crypto    = require('crypto')
   , i18n      = require("i18n")
   , path      = require('path')
+  , cache     = require('memory-cache')
   , Recaptcha = require('recaptcha').Recaptcha
   , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
@@ -391,19 +392,32 @@ function processDoc (req, res, mode)
       }
       else if(err == "text")
       {
-        documentTypes.getText(doc,
-          function (err, text)
-          {
-            if(err)
+        var cacheName = "doctext_" + docname;
+        var text = cache.get(cacheName);
+
+        if(text)
+        {
+          res.write(text);
+          res.end();
+        }
+        else
+        {
+          documentTypes.getText(doc,
+            function (err, text)
             {
-              console.err(logprefixstr + "error while showing doc in text-view: " + err);
+              if(err)
+              {
+                console.err(logprefixstr + "error while showing doc in text-view: " + err);
+              }
+              else
+              {
+                cache.put(cacheName, text, 1000);
+                res.write(text);
+                res.end();
+              }
             }
-            else
-            {
-              res.write(text);
-              res.end();
-            }
-          });
+          );
+        }
       }
       else if(err)
       {
