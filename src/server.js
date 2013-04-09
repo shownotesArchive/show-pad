@@ -186,8 +186,9 @@ function initServer(cb)
   console.debug("Initiating server-routes..");
   // routes
   app.get('/', processIndex);
-  app.get('/doc/:docname', function (req, res) { processDoc(req, res, false); });
-  app.get('/doc/:docname/readonly', function (req, res) { processDoc(req, res, true); });
+  app.get('/doc/:docname', function (req, res) { processDoc(req, res, "normal"); });
+  app.get('/doc/:docname/readonly', function (req, res) { processDoc(req, res, "readonly"); });
+  app.get('/doc/:docname/text', function (req, res) { processDoc(req, res, "text"); });
 
   // UI
   app.get('/login', function(req, res) { res.render('login'); });
@@ -289,14 +290,26 @@ function processIndex (req, res)
   )
 }
 
-function processDoc (req, res, isReadonly)
+function processDoc (req, res, mode)
 {
-  var docname = req.params.docname;
-  var user = res.locals.user;
-  var username = user ? user.username : "none";
-  var doc, group, docname, locals = {};
-  var isPublic, isAuthed, logprefixstr;
-  var readonlyReason = null;
+  // db
+  var docname = req.params.docname
+    , user = res.locals.user
+    , username = user ? user.username : "none"
+    , doc
+    , group
+
+  // auth
+  var isPublic
+    , isAuthed
+    , isText     = (mode == "text")
+    , isReadonly = (mode == "readonly")
+    , readonlyReason = null
+
+  // ejs & util
+  var locals = {}
+    , logprefixstr = ""
+
 
   async.waterfall(
     [
@@ -330,9 +343,14 @@ function processDoc (req, res, isReadonly)
         isPublic = (group.type == "open");
         isAuthed = !! (user && (user.inGroup(group.short) || isPublic));
 
-        logprefixstr = getShowDocStr(username, docname, isPublic, isAuthed, isReadonly);
+        logprefixstr = getShowDocStr(username, docname, isPublic, isAuthed, isText, isReadonly);
 
-        if(isAuthed && !isReadonly)
+        if((isAuthed || isPublic) && isText)
+        {
+          // show the readwrite-view
+          cb("text");
+        }
+        else if(isAuthed && !isReadonly)
         {
           // show the readwrite-view
           cb();
@@ -340,14 +358,14 @@ function processDoc (req, res, isReadonly)
         else if((isPublic && !isAuthed))
         {
           // show the readonly-view
-          cb("readonly");
           readonlyReason = "auth";
+          cb("readonly");
         }
         else if(isReadonly && isAuthed)
         {
           // show the readonly-view
-          cb("readonly");
           readonlyReason = "choosen";
+          cb("readonly");
         }
         else
         {
@@ -367,22 +385,25 @@ function processDoc (req, res, isReadonly)
     {
       if(err == "readonly")
       {
+        locals.err = "readonly";
+        locals.readonlyReason = readonlyReason;
+        res.render('doc', locals);
+      }
+      else if(err == "text")
+      {
         documentTypes.getText(doc,
           function (err, text)
           {
             if(err)
             {
-              console.err(logprefixstr + "error while showing doc in readonly-view: " + err);
+              console.err(logprefixstr + "error while showing doc in text-view: " + err);
             }
             else
             {
-              console.log(logprefixstr + "showing doc in readonly-view");
-              locals.err = "readonly";
-              locals.readonlyReason = readonlyReason;
-              locals.readonlyText = text;
-              res.render('doc', locals);
+              res.write(text);
+              res.end();
             }
-          })
+          });
       }
       else if(err)
       {
@@ -398,10 +419,11 @@ function processDoc (req, res, isReadonly)
     });
 }
 
-function getShowDocStr (username, docname, isPublic, isAuthed, isReadonly)
+function getShowDocStr (username, docname, isPublic, isAuthed, isText, isReadonly)
 {
   return "[" + username + "] " + docname + ", isPublic=" + isPublic +
                                            ", isAuthed=" + isAuthed +
+                                           ", isText="   + isText +
                                          ", isReadonly=" + isReadonly + ", ";
 }
 

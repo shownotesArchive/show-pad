@@ -1,4 +1,28 @@
 <!-- included by doc.ejs -->
 
 <span><%- __('showdoc.error.readonly.' + readonlyReason, '/doc/' + docname) %></span>
-<pre style="word-break: normal; margin-top: 10px"><%=readonlyText%></pre>
+<pre id="doctext" style="word-break: normal; margin-top: 10px">Loading..</pre>
+
+<script>
+setInterval(getDocText, 1000);
+getDocText();
+
+function getDocText()
+{
+    $.ajax(window.location.pathname.slice(0, -8) + 'text')
+        .success
+        (
+            function (res)
+            {
+                $("#doctext").text(res);
+            }
+        )
+        .fail
+        (
+            function (res)
+            {
+
+            }
+        );
+}
+</script>
