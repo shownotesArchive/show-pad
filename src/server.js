@@ -9,6 +9,7 @@ var express   = require('express')
   , crypto    = require('crypto')
   , i18n      = require("i18n")
   , path      = require('path')
+  , url       = require('url')
   , cache     = require('memory-cache')
   , Recaptcha = require('recaptcha').Recaptcha
   , nodemailer       = require('nodemailer')
@@ -516,8 +517,18 @@ function processLogin (req, res)
                 function (err, result)
                 {
                   var oldUrl = req.get("Referer");
-                  if(!oldUrl)
+
+                  if(oldUrl)
+                  {
+                    var parsedUrl = url.parse(oldUrl);
+                    if(parsedUrl.pathname == "/login")
+                      oldUrl = "/";
+                  }
+                  else
+                  {
                     oldUrl = "/";
+                  }
+
                   res.redirect(oldUrl);
                 });
             }
