@@ -91,7 +91,6 @@ exports.createOne = function (res, req, answerRequest)
           else
             answerRequest(res, 200, "ok", group);
         });
-      answerRequest(res, 200, "ok", group);
     }
   });
 }
