@@ -1,37 +1,37 @@
 body
 {
-	/* http://noisetexturegenerator.com/ */
-	background-image:url('../img/noisy-texture-250x250-o20-d31-c-CCC-t0.gif');
-	background-color: #CCC;
+    /* http://noisetexturegenerator.com/ */
+    background-image:url('../img/noisy-texture-250x250-o20-d31-c-CCC-t0.gif');
+    background-color: #CCC;
 }
 
 .navbar
 {
-	margin-top: 5px;
+    margin-top: 5px;
 }
 
 .navbar .brand
 {
-	margin: 0px;
+    margin: 0px;
 }
 
 #content
 {
     position: relative;
-	background-color: #FFF;
-	border-radius: 4px;
-	box-shadow: 0 0 2px 2px #AAA;
+    background-color: #FFF;
+    border-radius: 4px;
+    box-shadow: 0 0 2px 2px #AAA;
 }
 
 #content .main
 {
-	padding: 20px;
-	padding-top: 0px;
+    padding: 20px;
+    padding-top: 0px;
 }
 
 #register-form
 {
-	width: 900px;
+    width: 900px;
 }
 
 #register-form .control-label
@@ -43,19 +43,19 @@ body
 
 .form-horizontal .controls
 {
-	margin-left: 0px;
+    margin-left: 0px;
 }
 
 #register-submit
 {
-	margin-right: 515px;
-	margin-top: -5;
-	margin-bottom: 15px;
+    margin-right: 515px;
+    margin-top: -5;
+    margin-bottom: 15px;
 }
 
 #login-form
 {
-	width: 900px;
+    width: 900px;
 }
 
 #login-form .control-label
@@ -67,21 +67,21 @@ body
 
 #login-submit
 {
-	margin-right: 565px;
-	margin-top: -5;
-	margin-bottom: 15px;
+    margin-right: 565px;
+    margin-top: -5;
+    margin-bottom: 15px;
 }
 
 .profile-form 
 {
-	width: 900px;
+    width: 900px;
 }
 
 .profile-form button
 {
-	margin-top: -5px;
-	margin-bottom: 15px;
-	margin-right: 485px;
+    margin-top: -5px;
+    margin-bottom: 15px;
+    margin-right: 485px;
 }
 
 .profile-form .control-label
@@ -105,13 +105,9 @@ body
     position: absolute;
     display:block;
 
-	border: 1px solid #EEEEEE;
+    border: 1px solid #EEEEEE;
     border-radius: 3px;
-	box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
-	-moz-border-radius: 3px;
-	-moz-box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
-	-webkit-border-radius: 3px;
-	-webkit-box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
 }
 
 #padhelpheader
@@ -122,31 +118,27 @@ body
 #padhelptext
 {
     margin: 10px;
-    margin-left: 10px;
 }
 
-kbd {
+kbd
+{
     /* http://meta.superuser.com/questions/4788/css-for-the-new-kbd-style */
-	background-color: #F7F7F7;
-	text-shadow: 0 1px 0 #FFFFFF;
-	display: inline-block;
-	margin: 0 0.1em;
-	padding: 0.1em 0.5em;
-	border: 1px solid #CCCCCC;
-	border-radius: 3px;
-	box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #FFFFFF inset;
-	-moz-border-radius: 3px;
-	-moz-box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #FFFFFF inset;
-	-webkit-border-radius: 3px;
-	-webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #FFFFFF inset;
-}
-
-code {
-	background-color: #EEEEEE;
-	color: #666666;
-	font-family: 'Anonymous Pro', monospace;
+    background-color: #F7F7F7;
+    text-shadow: 0 1px 0 #FFFFFF;
     display: inline-block;
-	margin: 0.25em 0;
-	padding: 0.25em 0.5em;
+    margin: 0 0.1em;
+    padding: 0.1em 0.5em;
+    border: 1px solid #CCCCCC;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #FFFFFF inset;
 }
 
+code
+{
+    background-color: #EEEEEE;
+    color: #666666;
+    font-family: 'Anonymous Pro', monospace;
+    display: inline-block;
+    margin: 0.25em 0;
+    padding: 0.25em 0.5em;
+}
