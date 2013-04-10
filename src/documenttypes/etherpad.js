@@ -35,58 +35,6 @@ exports.init = function (_server, cb)
       function (groups, cb)
       {
         async.each(groups, exports.onCreateGroup, cb);
-      },
-      // get all user-names
-      function (cb)
-      {
-        server.db.getObjectsOfType("user", cb);
-      },
-      // get all session-ids
-      function (names, cb)
-      {
-        usernames = names;
-        async.map(names,
-          function (name, cb)
-          {
-            cb(null, "user:" + name + ":eplSessions");
-          },
-          function (err, keys)
-          {
-            server.db.getManyValues(keys, cb);
-          });
-      },
-      // delete all existing sessions
-      function (sessions, cb)
-      {
-        var sessionKeys = Object.keys(sessions);
-
-        if(sessionKeys.length == 0)
-          return cb("nosessions");
-
-        async.concat(sessionKeys,
-          function (sessionKey, cb)
-          {
-            cb(null, sessions[sessionKey]);
-          },
-          function (er, sessions)
-          {
-            console.log("Removing %s old sessions..", sessions.length);
-            async.each(sessions,
-              function (session, cb)
-              {
-                etherpad.deleteSession({sessionID: session}, function () { cb(); });
-              }, cb);
-          });
-      },
-      // remove sessions from db
-      function (cb)
-      {
-        async.each(usernames,
-          function (username, cb)
-          {
-            var changes = { username: username, eplSessions: null };
-            server.db.user.updateUser(changes, cb);
-          }, cb);
       }
     ],
     function (err)
