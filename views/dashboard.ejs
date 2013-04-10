@@ -431,6 +431,9 @@ function updateThing(type, name, error, data, value, settings, cb)
             settings.onreset();
         });
 
+        if(cb)
+            cb();
+
     return returnValue;
 }
 
