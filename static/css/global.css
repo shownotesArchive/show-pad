@@ -17,6 +17,7 @@ body
 
 #content
 {
+    position: relative;
 	background-color: #FFF;
 	border-radius: 4px;
 	box-shadow: 0 0 2px 2px #AAA;
@@ -96,3 +97,56 @@ body
     margin-left: 15px;
     width: 150px;
 }
+
+#padhelp
+{
+    width: calc(100% - 41px);
+    background-color:white;
+    position: absolute;
+    display:block;
+
+	border: 1px solid #EEEEEE;
+    border-radius: 3px;
+	box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
+	-moz-border-radius: 3px;
+	-moz-box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
+	-webkit-border-radius: 3px;
+	-webkit-box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
+}
+
+#padhelpheader
+{
+    font-weight: bold;
+}
+
+#padhelptext
+{
+    margin: 10px;
+    margin-left: 10px;
+}
+
+kbd {
+    /* http://meta.superuser.com/questions/4788/css-for-the-new-kbd-style */
+	background-color: #F7F7F7;
+	text-shadow: 0 1px 0 #FFFFFF;
+	display: inline-block;
+	margin: 0 0.1em;
+	padding: 0.1em 0.5em;
+	border: 1px solid #CCCCCC;
+	border-radius: 3px;
+	box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #FFFFFF inset;
+	-moz-border-radius: 3px;
+	-moz-box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #FFFFFF inset;
+	-webkit-border-radius: 3px;
+	-webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #FFFFFF inset;
+}
+
+code {
+	background-color: #EEEEEE;
+	color: #666666;
+	font-family: 'Anonymous Pro', monospace;
+    display: inline-block;
+	margin: 0.25em 0;
+	padding: 0.25em 0.5em;
+}
+
