@@ -45,12 +45,7 @@ async.series([
   initApi,
   initi18n,
   initServer,
-  startServer,
-  function (cb)
-  {
-    console.info("All done!");
-    cb(null);
-  }
+  startServer
 ],
 function (err)
 {
@@ -58,6 +53,10 @@ function (err)
   {
     console.error(err);
     process.exit(1);
+  }
+  else
+  {
+    console.info("All done!");
   }
 });
 
