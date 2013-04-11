@@ -79,7 +79,7 @@ exports.createUser = function (username, password, email, emailToken, cb)
       // check if email exists
       function (_cb)
       {
-        exports.emailExists(user.email,
+        exports.emailExists(email,
           function (exists)
           {
             _cb(exists ? "emailexists" : null);
@@ -272,7 +272,17 @@ exports.getUsers = function (cb)
 
 exports.userExists = function (username, cb)
 {
-  db.objExists("user:" + username, cb);
+  username = username.toLowerCase();
+  db.getObjectsOfType("user",
+    function (err, users)
+    {
+      for (var id in users)
+      {
+        if(username == users[id].toLowerCase())
+          return cb(null, true);
+      }
+      cb(null, false);
+    });
 }
 
 exports.checkPassword = function (username, password, cb)
