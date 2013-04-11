@@ -147,3 +147,14 @@ code
     margin: 0.25em 0;
     padding: 0.25em 0.5em;
 }
+
+table#newpadlist td
+{
+    vertical-align: text-top !important;
+}
+
+table#newpadlist td.joinpad, table#newpadlist td.createdoc
+{
+    text-align: right;
+}
+

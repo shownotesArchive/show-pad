@@ -19,6 +19,7 @@ var express   = require('express')
 var db            = require('./db.js')
   , api           = require('./api.js')
   , documentTypes = require('./documenttypes.js')
+  , hoerapi       = require('./hoersuppe/hoerapi.js')
   , app           = null
   , mailTransport = null
   , pageurl       = null
@@ -241,7 +242,7 @@ function startServer(cb)
 
 function processIndex (req, res)
 {
-  var cacheName = "indexdocs";
+  var cacheName = "indexpods";
 
   async.waterfall(
     [
@@ -255,40 +256,43 @@ function processIndex (req, res)
         else
           cb();
       },
-      // get all docs
+      // get hoersuppe-live-podcasts
       function (cb)
       {
-        db.doc.getDocs(cb);
-      },
-      // get all last-modfieds for docs
-      function (docs, cb)
-      {
-        async.map(docs, documentTypes.getLastModifed,
-          function (err, times)
-          {
-            if(err)
-              cb("epl");
-            else
-              cb(err, docs, times);
-          });
+        var now = new Date();
+        now.setDate(now.getDate()+1);
+        hoerapi.getLive(null, null, now, cb);
       },
       // create a nice list for the client and render it
-      function (docs, times, cb)
+      function (podcasts, cb)
       {
-        var clientDocs = [];
+        var clientPods = [];
 
-        for (var i = 0; i < docs.length; i++)
+        for (var i = 0; i < podcasts.length; i++)
         {
-          var doc = docs[i];
-          var time = times[i];
-          clientDocs.push({ docname: doc.docname, modified: time.lastEdited });
+          var name = podcasts[i].title;
+          var slug = podcasts[i].podcast;
+          var id = podcasts[i].id;
+          var time = new Date(podcasts[i].livedate);
+
+          clientPods.push(
+            {
+              name: name,
+              slug: slug,
+              id: id,
+              time: time,
+              doc:
+              {
+                exists: false
+              }
+            }
+          );
         }
 
-        clientDocs.sort( function (a, b) { return b.modified - a.modified; });
-        clientDocs.splice(nconf.get("docsonindex"));
-        cache.put(cacheName, clientDocs, 30000);
+        clientPods.sort( function (a, b) { return a.time - b.time; });
+        cache.put(cacheName, clientPods, 60000);
 
-        cb(null, clientDocs);
+        cb(null, clientPods);
       }
     ],
     function (err, result)
@@ -299,7 +303,7 @@ function processIndex (req, res)
         result = [];
       }
 
-      res.render('index', { docs: result });
+      res.render('index', { podcasts: result });
     }
   )
 }
