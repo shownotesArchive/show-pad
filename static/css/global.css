@@ -29,6 +29,11 @@ body
     padding-top: 0px;
 }
 
+#footer
+{
+    padding: 8px;
+}
+
 #register-form
 {
     width: 900px;
