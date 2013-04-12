@@ -1,37 +1,81 @@
 body
 {
-    /* http://noisetexturegenerator.com/ */
-    background-image:url('../img/noisy-texture-250x250-o20-d31-c-CCC-t0.gif');
+    /* Subtle Patterns by Subtle Patterns (http://subtlepatterns.com/) are licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License (http://creativecommons.org/licenses/by-sa/3.0/deed.en_US). */
+    background-image:url('../img/grey_wash_wall.png');
     background-color: #CCC;
 }
 
 .navbar
 {
-    margin-top: 5px;
+    margin-top: 20px;
+    margin-bottom: 0px;
+    border-radius: 4px 4px 0px 0px;
+    width: 100%;
+    -webkit-box-shadow: 0 0 10px 0px #000;
+    -moz-box-shadow: 0 0 10px 0px #000;
+    -o-box-shodow: 0 0 10px 0px #000;
+    box-shadow: 0 0 10px 0px #000;
 }
 
 .navbar .brand
 {
     margin: 0px;
+    padding-left: 55px;
+    background-image: url('../img/sn.png');
+    background-size: 35px;
+    background-repeat: no-repeat;
+    background-position: 10px 5px;
+}
+
+.navbar-inverse .navbar-inner 
+{
+    margin-bottom: 0px;
+    border: 0px solid #252525;
+    border-radius: 4px 4px 0px 0px;
+    background: #45484d;
+    background: -moz-linear-gradient(top, #45484d 0%, #000000 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#45484d), color-stop(100%,#000000));
+    background: -webkit-linear-gradient(top, #45484d 0%,#000000 100%);
+    background: -o-linear-gradient(top, #45484d 0%,#000000 100%);
+    background: -ms-linear-gradient(top, #45484d 0%,#000000 100%);
+    background: linear-gradient(to bottom, #45484d 0%,#000000 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#45484d', endColorstr='#000000',GradientType=0 );
+}
+
+.navbar .btn {
+    margin-top: 6px;
+    margin-right: -12px;
+    padding: 2px 12px;
+    font-size: 13px;
+    color: #333333;
 }
 
 #content
 {
     position: relative;
     background-color: #FFF;
-    border-radius: 4px;
-    box-shadow: 0 0 2px 2px #AAA;
+    border-radius: 0px 0px 4px 4px;
+    box-shadow: 0 0 10px 0px #000;
+    margin-bottom: 10px;
 }
 
 #content .main
 {
-    padding: 20px;
-    padding-top: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+
+#content .main h2,
+#content .main p
+{
+    margin: 10px 10px;
 }
 
 #footer
 {
-    padding: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #111111;
 }
 
 #register-form
@@ -101,6 +145,11 @@ body
     text-align: left;
     margin-left: 15px;
     width: 150px;
+}
+
+#pad
+{
+    border-top: 1px #aaa dotted;
 }
 
 #padhelp
