@@ -1,8 +1,11 @@
 <!-- included by doc.ejs -->
+<% script('/js/tinyosf.js') %>
+<% stylesheet('http://cdn.shownot.es/include-shownotes/shownotes.css') %>
 
 <span><%- __('showdoc.error.readonly.' + readonlyReason, '/doc/' + docname) %></span>
 <div class="alert hidden" id="updateerror"></div>
-<pre id="doctext" style="word-break: normal; margin-top: 10px; display: none">Loading..</pre>
+<div id="docosftext">Loading...</div>
+
 
 <script>
 setInterval(getDocText, 1000);
@@ -15,13 +18,10 @@ function getDocText(first)
         (
             function (res)
             {
-                $("#doctext").text(res);
+                var parsed = osfParser(res);
+                var html = osfExport(parsed,'html');
+                $('#docosftext').html(html);
                 $('#updateerror').hide();
-
-                if(first)
-                {
-                    $('#doctext').animate({height: "toggle"}, 1000);
-                }
             }
         )
         .fail
