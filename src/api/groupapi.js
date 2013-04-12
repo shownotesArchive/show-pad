@@ -48,7 +48,7 @@ exports.getMany = function (res, req, answerRequest)
       {
         for(var id in groups)
         {
-          groups[id].DT_RowId = groups[id].groupname;
+          groups[id].DT_RowId = groups[id].short;
         }
       }
 
