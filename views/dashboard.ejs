@@ -502,4 +502,15 @@ function getTableForType(type)
 
     return table;
 }
+
+// by http://stackoverflow.com/a/10524697, modified
+$('a[data-toggle="tab"]').on('shown', function (e)
+{
+    window.location.hash = $(e.target).attr('href');
+});
+var lastTab = window.location.hash;
+if (lastTab)
+{
+    $('a[href=' + lastTab + ']').tab('show');
+}
 </script>
