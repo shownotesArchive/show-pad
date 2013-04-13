@@ -52,7 +52,7 @@
         <h3><%-__('index.podcasts.create.title')%></h3>
     </div>
     <div class="modal-body">
-        <div class="alert alert-error" style="display: none"><%-__('index.podcasts.create.fail')%></div>
+        <div class="alert alert-error"><%-__('index.podcasts.create.fail')%></div>
         <p><%-__('index.podcasts.create.docname')%></p>
         <input id="createpadname" type="text" value="">
     </div>
@@ -77,6 +77,7 @@ $('td.createdoc button').click(
             return;
         }
 
+        $('#createPadModal .alert-error').hide();
         $('#createpadname').val(short);
         $('#createPadModal').modal('show');
 
@@ -84,6 +85,7 @@ $('td.createdoc button').click(
         $('#createPad').click(
                 function ()
                 {
+                    $('#createPad').attr('disabled', 'disabled');
                     var docname = $('#createpadname').val();
                     $.post("/createDoc", { name: docname, id: id })
                         .done
@@ -97,6 +99,7 @@ $('td.createdoc button').click(
                         (
                             function(data)
                             {
+                                $('#createPad').removeAttr('disabled');
                                 $('#createPadModal .alert-error').show();
                             }
                         );
