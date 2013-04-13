@@ -61,14 +61,8 @@ body
 
 #content .main
 {
-    padding: 0px;
-    margin: 0px;
-}
-
-#content .main h2,
-#content .main p
-{
-    margin: 10px 10px;
+    padding: 20px;
+    padding-top: 0px;
 }
 
 #footer
@@ -150,6 +144,7 @@ body
 #pad
 {
     border-top: 1px #aaa dotted;
+    margin: 0 -20px -24px -20px;
 }
 
 #padhelp
