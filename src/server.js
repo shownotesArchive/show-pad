@@ -411,7 +411,7 @@ function processCreateDoc (req, res)
       {
         hoerPod = _hoerPod;
         var nameOkay = (docname.indexOf(hoerPod.slug) == 0);
-        cb(nameOkay ? null :  "name");
+        cb(nameOkay ? null :  "docname");
       },
       // find group
       function (cb)
@@ -419,7 +419,7 @@ function processCreateDoc (req, res)
         db.group.getGroups(
           function (err, groups)
           {
-            if(err) return cb(err);
+            if(err) return cb("group");
 
             async.detect(groups,
               function (group, cb)
@@ -445,7 +445,7 @@ function processCreateDoc (req, res)
         db.doc.createDoc(docname, "etherpad", groupshort,
           function (err)
           {
-            if(err) return cb("fail");
+            if(err) return cb("db");
 
             db.doc.getDoc(docname,
               function (err, doc)
@@ -481,6 +481,8 @@ function processCreateDoc (req, res)
       status = "fail";
     else
       status = "ok";
+
+    console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
 
     res.statusCode = status == "ok" ? 200 : 500;
     res.setHeader('Content-Type', 'application/json');
