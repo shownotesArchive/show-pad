@@ -415,6 +415,7 @@ function processCreateDoc (req, res)
       {
         hoerPod = _hoerPod;
         var nameOkay = (docname.indexOf(hoerPod.slug) == 0);
+        nameOkay = nameOkay && docname.length > hoerPod.slug.length;
         cb(nameOkay ? null :  "docname");
       },
       // find group
