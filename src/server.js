@@ -379,6 +379,10 @@ function processCreateDoc (req, res)
       // check rate limiting
       function (cb)
       {
+        if(user.hasRole("admin"))
+        {
+          return cb(null);
+        }
         if(!createDocLimiters[username])
         {
           createDocLimiters[username] = new RateLimiter(2, 'hour', true);
