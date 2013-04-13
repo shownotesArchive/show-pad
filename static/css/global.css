@@ -67,9 +67,20 @@ body
 
 #footer
 {
+    padding-left: 20px;
     margin-bottom: 20px;
     text-align: center;
     color: #111111;
+}
+
+#footer a, #footer a:visited
+{
+    color: #72abff;
+}
+
+#footer a:hover
+{
+    color: #59c3ff;
 }
 
 #register-form
