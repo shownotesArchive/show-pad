@@ -28,6 +28,7 @@ var db            = require('./db.js')
 
 // rate limiters
 var registerLimiters = {};
+var createDocLimiters = {};
 
 // exports
 exports.documentTypes = documentTypes;
@@ -188,6 +189,7 @@ function initServer(cb)
   console.debug("Initiating server-routes..");
   // routes
   app.get('/', processIndex);
+  app.post('/createDoc', processCreateDoc);
   app.get('/doc/:docname', function (req, res) { processDoc(req, res, "normal"); });
   app.get('/doc/:docname/readonly', function (req, res) { processDoc(req, res, "readonly"); });
   app.get('/doc/:docname/text', function (req, res) { processDoc(req, res, "text"); });
@@ -242,7 +244,23 @@ function startServer(cb)
 
 function processIndex (req, res)
 {
-  var cacheName = "indexpods";
+  getClientPods(
+    function (err, clientPods)
+    {
+      if(err)
+      {
+        console.error("Error while rendering index: " + err);
+        clientPods = [];
+      }
+
+      res.render('index', { podcasts: clientPods });
+    }
+  );
+}
+
+function getClientPods (cb)
+{
+  var cacheName = "clientpods";
 
   async.waterfall(
     [
@@ -250,7 +268,7 @@ function processIndex (req, res)
       function (cb)
       {
         var docs = cache.get(cacheName);
-        
+
         if(docs)
           cb("cache", docs);
         else
@@ -259,12 +277,27 @@ function processIndex (req, res)
       // get hoersuppe-live-podcasts
       function (cb)
       {
-        var now = new Date();
-        now.setDate(now.getDate()+1);
-        hoerapi.getLive(null, null, now, cb);
+        hoerapi.getLive(nconf.get("docsonindex"), null, null, cb);
+      },
+      // get podcast<->pad mapping
+      function (podcasts, cb)
+      {
+        db.getHash("live2pad",
+          function (err, liveToPad)
+          {
+            if(err)
+            {
+              cb(err);
+            }
+            else
+            {
+              cb(null, podcasts, liveToPad);
+            }
+          }
+        );
       },
       // create a nice list for the client and render it
-      function (podcasts, cb)
+      function (podcasts, liveToPad, cb)
       {
         var clientPods = [];
 
@@ -274,6 +307,18 @@ function processIndex (req, res)
           var slug = podcasts[i].podcast;
           var id = podcasts[i].id;
           var time = new Date(podcasts[i].livedate);
+          var doc = {};
+          var docName = liveToPad[id];
+
+          if(docName)
+          {
+            doc.exists = true;
+            doc.name = docName;
+          }
+          else
+          {
+            doc.exists = false;
+          }
 
           clientPods.push(
             {
@@ -281,10 +326,7 @@ function processIndex (req, res)
               slug: slug,
               id: id,
               time: time,
-              doc:
-              {
-                exists: false
-              }
+              doc: doc
             }
           );
         }
@@ -297,15 +339,153 @@ function processIndex (req, res)
     ],
     function (err, result)
     {
-      if(err && err != "cache")
+      if(err == "cache")
+      {
+        err = null;
+      }
+      if(err)
       {
         console.error("Error while rendering index: " + err);
         result = [];
       }
 
-      res.render('index', { podcasts: result });
+      cb(err, result);
     }
-  )
+  );
+}
+
+function processCreateDoc (req, res)
+{
+  var user = res.locals.user
+    , body = req.body
+
+  if(!user || !body.name || !body.id)
+  {
+    return reply("fail");
+  }
+
+  var username = user.username
+    , docname  = body.name.trim()
+    , hoerid   = body.id
+    , hoerPod  = null
+
+  if(docname.length == 0 || docname.length > 23)
+  {
+    return reply("docname");
+  }
+
+  async.waterfall(
+    [
+      // check rate limiting
+      function (cb)
+      {
+        if(!createDocLimiters[username])
+        {
+          createDocLimiters[username] = new RateLimiter(2, 'hour', true);
+        }
+
+        createDocLimiters[username].removeTokens(1,
+          function(err, remainingRequests)
+          {
+            cb(remainingRequests < 0 ? "fail-rate" : null);
+          }
+        );
+      },
+      getClientPods,
+      // find live-podcast
+      function (clientPods, cb)
+      {
+        async.detect(clientPods,
+          function (pod, cb)
+          {
+            cb(pod.id == hoerid);
+          },
+          function (hoerPod)
+          {
+            cb(hoerPod ? null : "fail-hoerpod", hoerPod);
+          }
+        );
+      },
+      // check if docname is compatible with slug
+      function (_hoerPod, cb)
+      {
+        hoerPod = _hoerPod;
+        var nameOkay = (docname.indexOf(hoerPod.slug) == 0);
+        cb(nameOkay ? null :  "name");
+      },
+      // find group
+      function (cb)
+      {
+        db.group.getGroups(
+          function (err, groups)
+          {
+            if(err) return cb(err);
+
+            async.detect(groups,
+              function (group, cb)
+              {
+                cb(group.short == hoerPod.slug);
+              },
+              function (group)
+              {
+                var groupshort = "other";
+                if(group)
+                {
+                  groupshort = group.short;
+                }
+                cb(null, groupshort);
+              }
+            )
+          }
+        );
+      },
+      // create doc
+      function (groupshort, cb)
+      {
+        db.doc.createDoc(docname, "etherpad", groupshort,
+          function (err)
+          {
+            if(err) return cb("fail");
+
+            db.doc.getDoc(docname,
+              function (err, doc)
+              {
+                documentTypes.onCreateDoc(doc,
+                  function (err)
+                  {
+                    cb(err ? "epl" : null);
+                  });
+              }
+            );
+          }
+        );
+      },
+      // create live2pad-entry & clear cache
+      function (cb)
+      {
+        db.setSingleHash("live2pad", hoerid, docname);
+        cache.del("clientpods");
+        cb();
+      }
+    ],
+    reply
+  );
+
+  function reply(err)
+  {
+    var status = null;
+
+    if(err == "fail-rate")
+      status = err;
+    else if(err)
+      status = "fail";
+    else
+      status = "ok";
+
+    res.statusCode = status == "ok" ? 200 : 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ status: status }));
+  }
 }
 
 function processDoc (req, res, mode)

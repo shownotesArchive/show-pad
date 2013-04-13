@@ -10,6 +10,7 @@
     "index.podcasts.create.docname": "Please enter a name for the new pad:",
     "index.podcasts.create.abort": "Abort",
     "index.podcasts.create.create": "Create pad",
+    "index.podcasts.create.fail": "That did not work.",
 
     "header.home": "Home",
     "header.profile": "Profile",

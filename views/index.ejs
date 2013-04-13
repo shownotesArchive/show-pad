@@ -30,6 +30,7 @@
                 </td>
                 <td class="<%= exists ? 'joindoc' : 'createdoc' %>">
                     <button class="btn btn-<%= exists ? 'info' : 'success' %>"
+                            data-docname="<%=podcasts[i].doc.name%>"
                             data-short="<%=podcasts[i].slug%>"
                             data-id="<%=podcasts[i].id%>">
                         <%= __('index.podcasts.button.' + (exists ? 'join' : 'create')) %>
@@ -51,30 +52,69 @@
         <h3><%-__('index.podcasts.create.title')%></h3>
     </div>
     <div class="modal-body">
+        <div class="alert alert-error" style="display: none"><%-__('index.podcasts.create.fail')%></div>
         <p><%-__('index.podcasts.create.docname')%></p>
         <input id="createpadname" type="text" value="">
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal"><%-__('index.podcasts.create.abort')%></button>
-        <button class="btn btn-primary"><%-__('index.podcasts.create.create')%></button>
+        <button class="btn btn-primary" id="createPad"><%-__('index.podcasts.create.create')%></button>
     </div>
 </div>
 
 <script>
-    $('td.createdoc button').click(function (evt)
+$('td.createdoc button').click(
+    function (evt)
     {
         var btn = $(evt.target);
         var short = btn.data("short");
         var id = btn.data("id");
 
+        var loggedIn = <%=!!user%>;
+        if(!loggedIn)
+        {
+            window.location = "/login";
+            return;
+        }
+
         $('#createpadname').val(short);
-        $('#createPadModal').modal('show').on('shown',
-            function ()
-            {
-                $('#createpadname').focus();
-            }
+        $('#createPadModal').modal('show');
+
+        $('#createPad').off('click');
+        $('#createPad').click(
+                function ()
+                {
+                    var docname = $('#createpadname').val();
+                    $.post("/createDoc", { name: docname, id: id })
+                        .done
+                        (
+                            function(data)
+                            {
+                                window.location = "/doc/" + docname;
+                            }
+                        )
+                        .fail
+                        (
+                            function(data)
+                            {
+                                $('#createPadModal .alert-error').show();
+                            }
+                        );
+                }
         );
-    });
+    }
+);
+
+$('td.joindoc button').click(
+    function (evt)
+    {
+        var btn = $(evt.target);
+        var docname = btn.data('docname');
+        window.location = "/doc/" + docname;
+    }
+);
+
+$('#createPadModal').on('shown', function () { $('#createpadname').focus(); });
 </script>
 
 <%
