@@ -436,6 +436,7 @@ function processDoc (req, res, mode)
       {
         console.warn(logprefixstr + "error while showing doc: " + err);
 
+        locals.docname = docname;
         if(err != "auth" && err != "nodoc")
           locals.err = "other";
         else
