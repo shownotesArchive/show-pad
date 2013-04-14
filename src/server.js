@@ -437,36 +437,10 @@ function processCreateDoc (req, res)
         nameOkay = nameOkay && docname.length > hoerPod.slug.length;
         cb(nameOkay ? null :  "docname");
       },
-      // find group
+      // create doc
       function (cb)
       {
-        db.group.getGroups(
-          function (err, groups)
-          {
-            if(err) return cb("group");
-
-            async.detect(groups,
-              function (group, cb)
-              {
-                cb(group.short == hoerPod.slug);
-              },
-              function (group)
-              {
-                var groupshort = "other";
-                if(group)
-                {
-                  groupshort = group.short;
-                }
-                cb(null, groupshort);
-              }
-            )
-          }
-        );
-      },
-      // create doc
-      function (groupshort, cb)
-      {
-        db.doc.createDoc(docname, "etherpad", groupshort,
+        db.doc.createDoc(docname, "etherpad", "pod",
           function (err)
           {
             if(err) return cb("db");
