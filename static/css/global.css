@@ -67,10 +67,10 @@ body
 
 #footer
 {
-    padding-left: 20px;
-    margin-bottom: 20px;
-    text-align: center;
-    color: #111111;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 50px;
+    color: #DDD;
 }
 
 #footer a, #footer a:visited

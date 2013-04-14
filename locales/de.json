@@ -110,12 +110,12 @@
     "dashboard.groups.error.update": "Die Änderungen konnten nicht gespeichert werden",
 
     "profile": "Profil",
-    "profile.view.email": "Email-Adresse:",
+    "profile.view.email": "E-Mail-Adresse:",
     "profile.view.groups": "Gruppen:",
-    "profile.title.view": "Persönliche Daten anzeigen",
+    "profile.title.view": "Persönliche Daten",
     "profile.title.change": "Persönliche Daten bearbeiten",
 
-    "profile.email.newemail": "Neue E-Mail:",
+    "profile.email.newemail": "Neue E-Mail-Adresse:",
     "profile.email.oldpassword": "Passwort:",
     "profile.email.submit": "E-Mail ändern",
     "profile.email.error.other": "Deine E-Mail-Adresse konnte nicht geändert werden. Bitte melde Dich bei einem Administrator.",
