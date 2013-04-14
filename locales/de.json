@@ -1,6 +1,16 @@
 {
-    "index.activedocs": "Zur Zeit aktive Pads:",
-    "index.docs.at": "am",
+    "index.podcasts.header": "Live-Podcasts",
+    "index.podcasts.podname": "Podcast",
+    "index.podcasts.starttime": "Startzeit",
+    "index.podcasts.docname": "Padname",
+    "index.podcasts.button.join": "Mitschreiben",
+    "index.podcasts.button.create": "Pad erstellen",
+    "index.podcasts.poweredby": "Powered by <a href='http://hoersuppe.de/'>hoersuppe.de</a>.",
+    "index.podcasts.create.title": "Padname",
+    "index.podcasts.create.docname": "Bitte gib einen Namen für das neue Pad ein:",
+    "index.podcasts.create.abort": "Abbrechen",
+    "index.podcasts.create.create": "Pad erstellen",
+    "index.podcasts.create.fail": "Es ist ein Fehler aufgetreten.",
 
     "header.home": "Hauptseite",
     "header.profile": "Profil",
