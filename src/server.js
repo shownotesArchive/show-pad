@@ -162,6 +162,12 @@ function initServer(cb)
   app.use(express.bodyParser());
   app.use(expressValidator);
 
+  if(nconf.get("trustproxy"))
+  {
+    app.enable('trust proxy');
+    app.get('trust proxy');
+  }
+
   console.debug("Initiating server-sessions..");
   // sessions
   sessionStore = db.prepareSessionStore(express, {});
@@ -421,7 +427,7 @@ function processDoc (req, res, mode)
         var cacheName = "doctext_" + docname;
         var text = cache.get(cacheName);
 
-        var ip = req.connection.remoteAddress;
+        var ip = req.ip;
 
         // create dummy objects
         readonlyUsers[docname] = readonlyUsers[docname] || {};
