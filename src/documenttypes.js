@@ -1,8 +1,9 @@
 var async     = require('async')
   , fs        = require('fs');
 
-var server,
-    documentTypes = {};
+var server
+  , logger
+  , documentTypes = {};
 
 exports.documentTypes = documentTypes;
 
@@ -10,24 +11,25 @@ exports.documentTypes = documentTypes;
 exports.init = function (_server, cb)
 {
   server = _server;
+  logger = server.getLogger("doctypes");
 
   fs.readdir('./src/documenttypes', function (err, files)
   {
     if(err)
     {
-      console.error("Could not load doctypes: " + err);
+      logger.error("Could not load doctypes: " + err);
       cb();
       return;
     }
 
-    console.debug("Found %s doctypes!", files.length);
+    logger.debug("Found %s doctypes!", files.length);
 
     async.eachSeries(files,
       function (file, cb)
       {
         var t = require('./documenttypes/' + file);
         documentTypes[t.name] = t;
-        console.debug("Initiating %s...", t.name);
+        logger.debug("Initiating %s...", t.name);
         documentTypes[t.name].init(_server, cb);
       }, cb);
   });
@@ -37,7 +39,7 @@ exports.onExpressInit = function (app)
 {
   for(var t in documentTypes)
   {
-    console.debug("Initiating %s...", documentTypes[t].name);
+    logger.debug("Initiating %s...", documentTypes[t].name);
     documentTypes[t].initExpress(app);
   }
 }
@@ -45,33 +47,33 @@ exports.onExpressInit = function (app)
 /* Users */
 exports.onLogin = function (user, res, cb)
 {
+  logger.debug("User login '%s'", user.username);
   async.eachSeries(Object.keys(documentTypes),
     function (type, cb)
     {
       type = documentTypes[type];
-      console.debug("[%s] starting %s-login", user.username, type.name);
       type.onLogin(user, res, cb);
     }, cb);
 }
 
 exports.onLogout = function (user, res, cb)
 {
+  logger.debug("User logout '%s'", user.username);
   async.eachSeries(Object.keys(documentTypes),
     function (type, cb)
     {
       type = documentTypes[type];
-      console.debug("[%s] starting %s-logout", user.username, type.name);
       type.onLogout(user, res, cb);
     }, cb);
 }
 
 exports.onCreateUser = function (user, cb)
 {
+  logger.debug("User register '%s'", user.username, type.name);
   async.eachSeries(Object.keys(documentTypes),
     function (type, cb)
     {
       type = documentTypes[type];
-      console.debug("[%s] starting %s-register", user.username, type.name);
       type.onCreateUser(user, cb);
     }, cb);
 }
@@ -79,6 +81,7 @@ exports.onCreateUser = function (user, cb)
 /* Groups */
 exports.onCreateGroup = function (group, cb)
 {
+  logger.debug("Create group '%s'", group.short);
   async.eachSeries(Object.keys(documentTypes),
     function (type, cb)
     {
@@ -91,7 +94,7 @@ exports.onCreateGroup = function (group, cb)
 exports.onCreateDoc = function (doc, cb)
 {
   var doctype = documentTypes[doc.type];
-
+  logger.debug("Create doc '%s', type=", doc.docname, doc.type);
   if(!doctype)
     cb("nodoctype");
   else
@@ -101,7 +104,7 @@ exports.onCreateDoc = function (doc, cb)
 exports.onDeleteDoc = function (doc, cb)
 {
   var doctype = documentTypes[doc.type];
-
+  logger.debug("Delete doc '%s', type=", doc.docname, doc.type);
   if(!doctype)
     cb("nodoctype");
   else
@@ -111,7 +114,7 @@ exports.onDeleteDoc = function (doc, cb)
 exports.onRequestDoc = function (req, res, user, doc, cb)
 {
   var doctype = documentTypes[doc.type];
-
+  logger.debug("Show doc '%s', type=", doc.docname, doc.type);
   if(!doctype)
     cb("nodoctype");
   else
@@ -122,7 +125,7 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
 exports.getText = function (doc, cb)
 {
   var doctype = documentTypes[doc.type];
-
+  logger.debug("Get doctext '%s', type=", doc.docname, doc.type);
   if(!doctype)
     cb("nodoctype");
   else
@@ -138,7 +141,7 @@ exports.getText = function (doc, cb)
 exports.setText = function (doc, text, cb)
 {
   var doctype = documentTypes[doc.type];
-
+  logger.debug("Set doctext '%s', type=", doc.docname, doc.type);
   if(!doctype)
     cb("nodoctype");
   else
@@ -149,7 +152,7 @@ exports.setText = function (doc, text, cb)
 exports.getLastModifed = function (doc, cb)
 {
   var doctype = documentTypes[doc.type];
-
+  logger.debug("Get doc last modified '%s', type=", doc.docname, doc.type);
   if(!doctype)
     cb("nodoctype");
   else

@@ -34,6 +34,7 @@ var registerLimiters = {};
 exports.documentTypes = documentTypes;
 exports.nconf = nconf;
 exports.db = db;
+exports.log4js = log4js;
 
 // startup
 log4js.replaceConsole();
@@ -239,6 +240,14 @@ function startServer(cb)
 {
   console.info("Starting http..");
   app.listen(nconf.get("http:port"), nconf.get("http:ip"), cb);
+}
+
+exports.getLogger = function (category)
+{
+  var logger = log4js.getLogger(category);
+  var level = nconf.get("loglevel:" + category) || "DEBUG";
+  logger.setLevel(level);
+  return logger;
 }
 
 function processIndex (req, res)
