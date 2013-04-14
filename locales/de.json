@@ -62,6 +62,7 @@
     "showdoc.error.other": "Das Dokument konnte nicht geladen werden.",
     "showdoc.readonly.updateerror": "Der Text konnte nicht aktualisiert werden.",
     "showdoc.readonly.users": "Benutzer auf diesem Dokument:",
+    "showdoc.readonly.format": "Format",
     "showdoc.readonly.format.html": "Geparst",
     "showdoc.readonly.format.raw": "Text",
     "showdoc.readonly.format.chapters": "Kapitel",

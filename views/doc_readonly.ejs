@@ -2,13 +2,11 @@
 <% script('/js/tinyosf.js') %>
 <% stylesheet('http://cdn.shownot.es/include-shownotes/shownotes.css') %>
 
-<span><%- __('showdoc.error.readonly.' + readonlyReason, '/doc/' + docname) %></span><br>
+<span><%- __('showdoc.error.readonly.' + readonlyReason, '/doc/' + docname) %></span>
+<br><br>
 <span><%= __('showdoc.readonly.users') %> <span id="users"></span></span>
-<br>
-<br>
-<div class="alert hidden" id="updateerror"></div>
 
-<div>Format:
+<h4><%= __('showdoc.readonly.format') %></h4>
 <ul id="format" class="nav nav-pills">
     <li class="active">
         <a href="#html" data-format="html"><%= __('showdoc.readonly.format.html') %></a>
@@ -22,8 +20,9 @@
     <li class="active">
         <a href="#md" data-format="md"><%= __('showdoc.readonly.format.markdown') %></a>
     </li>
-</ul></div>
-
+</ul>
+<hr>
+<div class="alert hidden" id="updateerror"></div>
 <div class="doctext">Loading...</div>
 <pre class="doctext">Loading...</pre>
 
