@@ -24,6 +24,8 @@ var db            = require('./db.js')
   , pageurl       = null
   , usernameChars = "[a-z0-9\._-]{1,30}"
   , usernameRegex = new RegExp("^" + usernameChars + "$", "i")
+  , readonlyUsers = {}
+  , readonlyUsersTimeouts = {}
   , sessionStore  = null
   , sessionSecret = null;
 
@@ -419,10 +421,28 @@ function processDoc (req, res, mode)
         var cacheName = "doctext_" + docname;
         var text = cache.get(cacheName);
 
+        var ip = req.connection.remoteAddress;
+
+        // create dummy objects
+        readonlyUsers[docname] = readonlyUsers[docname] || {};
+        readonlyUsersTimeouts[docname] = readonlyUsersTimeouts[docname] || {};
+
+        // remember this user and clear its timeout
+        readonlyUsers[docname][ip] = true;
+        if(readonlyUsersTimeouts[docname][ip])
+        {
+          clearTimeout(readonlyUsersTimeouts[docname][ip]);
+        }
+
+        // set a timeout of 2s to remove the user
+        readonlyUsersTimeouts[docname][ip] = setTimeout(function () { delete readonlyUsers[docname][ip]; }, 2000);
+
+        // get the number of users
+        var users = Object.keys(readonlyUsers[docname]).length;
+
         if(text)
         {
-          res.write(text);
-          res.end();
+          res.json(200, { text: text, users: users });
         }
         else
         {
@@ -432,12 +452,13 @@ function processDoc (req, res, mode)
               if(err)
               {
                 console.err(logprefixstr + "error while showing doc in text-view: " + err);
+                res.statusCode = 500;
+                res.end();
               }
               else
               {
                 cache.put(cacheName, text, 1000);
-                res.write(text);
-                res.end();
+                res.json(200, { text: text, users: users });
               }
             }
           );

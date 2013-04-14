@@ -60,6 +60,8 @@
     "showdoc.error.readonly.auth": "Du darfst dieses Dokument nicht bearbeiten, aber mitlesen geht hier.<br>Willst Du dich <a href='/login'>einloggen</a> oder <a href='/register'>registrieren</a> um das Dokument zu bearbeiten?",
     "showdoc.error.readonly.choosen": "Du hast dieses Dokument im Lesemodus geöffnet, wenn Du willst kannst du es aber auch <a href='%s'>bearbeiten</a>.",
     "showdoc.error.other": "Das Dokument konnte nicht geladen werden.",
+    "showdoc.readonly.updateerror": "Der Text konnte nicht aktualisiert werden.",
+    "showdoc.readonly.users": "Benutzer auf diesem Dokument:",
 
     "dashboard": "Dashboard",
     "dashboard.delete": "Löschen",

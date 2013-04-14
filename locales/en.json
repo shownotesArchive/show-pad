@@ -61,6 +61,7 @@
     "showdoc.error.readonly.choosen": "You are viewing this document in readonly-mode, but you can also <a href='%s'>edit</a> it, if you want to.",
     "showdoc.error.other": "The document could not be loaded.",
     "showdoc.readonly.updateerror": "Refresh failed.",
+    "showdoc.readonly.users": "Users watching this:",
 
     "dashboard": "Dashboard",
     "dashboard.delete": "Delete",

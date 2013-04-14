@@ -2,7 +2,10 @@
 <% script('/js/tinyosf.js') %>
 <% stylesheet('http://cdn.shownot.es/include-shownotes/shownotes.css') %>
 
-<span><%- __('showdoc.error.readonly.' + readonlyReason, '/doc/' + docname) %></span>
+<span><%- __('showdoc.error.readonly.' + readonlyReason, '/doc/' + docname) %></span><br>
+<span><%= __('showdoc.readonly.users') %> <span id="users"></span></span>
+<br>
+<br>
 <div class="alert hidden" id="updateerror"></div>
 <div id="docosftext">Loading...</div>
 
@@ -18,9 +21,15 @@ function getDocText(first)
         (
             function (res)
             {
-                var parsed = osfParser(res);
+                var text = res.text;
+                var users = res.users;
+
+                var parsed = osfParser(text);
                 var html = osfExport(parsed,'html');
                 $('#docosftext').html(html);
+
+                $('#users').text(users);
+
                 $('#updateerror').hide();
             }
         )
