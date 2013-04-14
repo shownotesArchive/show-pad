@@ -1,7 +1,7 @@
 
 function repeatPassword(pwfield, pwrfield, pwrgrp, error, btn)
 {
-    pwrfield.keyup(function ()
+    var changeHandler = function ()
         {
             if(pwrfield.val() != pwfield.val() && pwrfield.val().length != 0)
             {
@@ -16,5 +16,7 @@ function repeatPassword(pwfield, pwrfield, pwrgrp, error, btn)
                 if(pwrfield.val().length != 0)
                     btn.removeAttr('disabled');
             }
-        });
+        };
+
+    pwrfield.change(changeHandler).keyup(changeHandler);
 }

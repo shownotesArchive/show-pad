@@ -19,19 +19,26 @@ var express   = require('express')
 var db            = require('./db.js')
   , api           = require('./api.js')
   , documentTypes = require('./documenttypes.js')
+  , hoerapi       = require('./hoersuppe/hoerapi.js')
   , app           = null
   , mailTransport = null
   , pageurl       = null
+  , usernameChars = "[a-z0-9\._-]{1,30}"
+  , usernameRegex = new RegExp("^" + usernameChars + "$", "i")
+  , readonlyUsers = {}
+  , readonlyUsersTimeouts = {}
   , sessionStore  = null
   , sessionSecret = null;
 
 // rate limiters
 var registerLimiters = {};
+var createDocLimiters = {};
 
 // exports
 exports.documentTypes = documentTypes;
 exports.nconf = nconf;
 exports.db = db;
+exports.log4js = log4js;
 
 // startup
 log4js.replaceConsole();
@@ -157,6 +164,12 @@ function initServer(cb)
   app.use(express.bodyParser());
   app.use(expressValidator);
 
+  if(nconf.get("trustproxy"))
+  {
+    app.enable('trust proxy');
+    app.get('trust proxy');
+  }
+
   console.debug("Initiating server-sessions..");
   // sessions
   sessionStore = db.prepareSessionStore(express, {});
@@ -187,6 +200,7 @@ function initServer(cb)
   console.debug("Initiating server-routes..");
   // routes
   app.get('/', processIndex);
+  app.post('/createDoc', processCreateDoc);
   app.get('/doc/:docname', function (req, res) { processDoc(req, res, "normal"); });
   app.get('/doc/:docname/readonly', function (req, res) { processDoc(req, res, "readonly"); });
   app.get('/doc/:docname/text', function (req, res) { processDoc(req, res, "text"); });
@@ -198,8 +212,8 @@ function initServer(cb)
   app.get('/pwreset', function (req, res) { res.render("pwreset-request"); });
   app.post('/pwreset', processPasswordResetRequest);
 
-  app.get('/pwreset/:username([a-zA-Z0-9]+)/:token', function (req, res) { res.render("pwreset"); });
-  app.post('/pwreset/:username([a-zA-Z0-9]+)/:token', processPasswordReset);
+  app.get('/pwreset/:username(' + usernameChars + ')/:token', function (req, res) { res.render("pwreset"); });
+  app.post('/pwreset/:username(' + usernameChars + ')/:token', processPasswordReset);
 
   app.get('/register', function(req, res)
     {
@@ -222,7 +236,7 @@ function initServer(cb)
   app.get('/logout', processLogout);
 
   // email activation
-  app.get('/activate/:username([a-zA-Z0-9]+)/:token', processEmailActivation);
+  app.get('/activate/:username(' + usernameChars + ')/:token', processEmailActivation);
 
   // API
   app.get('/api/:version/:endpoint/:entity?', api.handleRequest);
@@ -239,9 +253,33 @@ function startServer(cb)
   app.listen(nconf.get("http:port"), nconf.get("http:ip"), cb);
 }
 
+exports.getLogger = function (category)
+{
+  var logger = log4js.getLogger(category);
+  var level = nconf.get("loglevel:" + category) || "DEBUG";
+  logger.setLevel(level);
+  return logger;
+}
+
 function processIndex (req, res)
 {
-  var cacheName = "indexdocs";
+  getClientPods(
+    function (err, clientPods)
+    {
+      if(err)
+      {
+        console.error("Error while rendering index: " + err);
+        clientPods = [];
+      }
+
+      res.render('index', { podcasts: clientPods });
+    }
+  );
+}
+
+function getClientPods (cb)
+{
+  var cacheName = "clientpods";
 
   async.waterfall(
     [
@@ -249,59 +287,228 @@ function processIndex (req, res)
       function (cb)
       {
         var docs = cache.get(cacheName);
-        
+
         if(docs)
           cb("cache", docs);
         else
           cb();
       },
-      // get all docs
+      // get hoersuppe-live-podcasts
       function (cb)
       {
-        db.doc.getDocs(cb);
+        hoerapi.getLive(nconf.get("docsonindex"), null, null, cb);
       },
-      // get all last-modfieds for docs
-      function (docs, cb)
+      // get podcast<->pad mapping
+      function (podcasts, cb)
       {
-        async.map(docs, documentTypes.getLastModifed,
-          function (err, times)
+        db.getHash("live2pad",
+          function (err, liveToPad)
           {
             if(err)
-              cb("epl");
+            {
+              cb(err);
+            }
             else
-              cb(err, docs, times);
-          });
+            {
+              cb(null, podcasts, liveToPad);
+            }
+          }
+        );
       },
       // create a nice list for the client and render it
-      function (docs, times, cb)
+      function (podcasts, liveToPad, cb)
       {
-        var clientDocs = [];
+        var clientPods = [];
 
-        for (var i = 0; i < docs.length; i++)
+        for (var i = 0; i < podcasts.length; i++)
         {
-          var doc = docs[i];
-          var time = times[i];
-          clientDocs.push({ docname: doc.docname, modified: time.lastEdited });
+          var name = podcasts[i].title;
+          var slug = podcasts[i].podcast;
+          var id = podcasts[i].id;
+          var time = new Date(podcasts[i].livedate);
+          var doc = {};
+          var docName = liveToPad[id];
+
+          if(docName)
+          {
+            doc.exists = true;
+            doc.name = docName;
+          }
+          else
+          {
+            doc.exists = false;
+          }
+
+          clientPods.push(
+            {
+              name: name,
+              slug: slug,
+              id: id,
+              time: time,
+              doc: doc
+            }
+          );
         }
 
-        clientDocs.sort( function (a, b) { return b.modified - a.modified; });
-        clientDocs.splice(nconf.get("docsonindex"));
-        cache.put(cacheName, clientDocs, 30000);
+        clientPods.sort( function (a, b) { return a.time - b.time; });
+        cache.put(cacheName, clientPods, 60000);
 
-        cb(null, clientDocs);
+        cb(null, clientPods);
       }
     ],
     function (err, result)
     {
-      if(err && err != "cache")
+      if(err == "cache")
+      {
+        err = null;
+      }
+      if(err)
       {
         console.error("Error while rendering index: " + err);
         result = [];
       }
 
-      res.render('index', { docs: result });
+      cb(err, result);
     }
-  )
+  );
+}
+
+function processCreateDoc (req, res)
+{
+  var user = res.locals.user
+    , body = req.body
+
+  if(!user || !body.name || !body.id)
+  {
+    return reply("fail");
+  }
+
+  var username = user.username
+    , docname  = body.name.trim()
+    , hoerid   = body.id
+    , hoerPod  = null
+
+  if(!(docname.match(/^[a-z0-9-]+$/i)))
+  {
+    return reply("docname");
+  }
+
+  async.waterfall(
+    [
+      // check rate limiting
+      function (cb)
+      {
+        if(user.hasRole("admin"))
+        {
+          return cb(null);
+        }
+        if(!createDocLimiters[username])
+        {
+          createDocLimiters[username] = new RateLimiter(2, 'hour', true);
+        }
+
+        createDocLimiters[username].removeTokens(1,
+          function(err, remainingRequests)
+          {
+            cb(remainingRequests < 0 ? "rate" : null);
+          }
+        );
+      },
+      getClientPods,
+      // find live-podcast
+      function (clientPods, cb)
+      {
+        async.detect(clientPods,
+          function (pod, cb)
+          {
+            cb(pod.id == hoerid);
+          },
+          function (hoerPod)
+          {
+            cb(hoerPod ? null : "fail-hoerpod", hoerPod);
+          }
+        );
+      },
+      // check if docname is compatible with slug
+      function (_hoerPod, cb)
+      {
+        hoerPod = _hoerPod;
+        var nameOkay = (docname.indexOf(hoerPod.slug) == 0);
+        nameOkay = nameOkay && docname.length > hoerPod.slug.length;
+        cb(nameOkay ? null :  "docname");
+      },
+      // find group
+      function (cb)
+      {
+        db.group.getGroups(
+          function (err, groups)
+          {
+            if(err) return cb("group");
+
+            async.detect(groups,
+              function (group, cb)
+              {
+                cb(group.short == hoerPod.slug);
+              },
+              function (group)
+              {
+                var groupshort = "other";
+                if(group)
+                {
+                  groupshort = group.short;
+                }
+                cb(null, groupshort);
+              }
+            )
+          }
+        );
+      },
+      // create doc
+      function (groupshort, cb)
+      {
+        db.doc.createDoc(docname, "etherpad", groupshort,
+          function (err)
+          {
+            if(err) return cb("db");
+
+            db.doc.getDoc(docname,
+              function (err, doc)
+              {
+                documentTypes.onCreateDoc(doc,
+                  function (err)
+                  {
+                    cb(err ? "epl" : null);
+                  });
+              }
+            );
+          }
+        );
+      },
+      // create live2pad-entry & clear cache
+      function (cb)
+      {
+        db.setSingleHash("live2pad", hoerid, docname);
+        cache.del("clientpods");
+        cb();
+      }
+    ],
+    reply
+  );
+
+  function reply(err)
+  {
+    var status = null;
+
+    if(err == "rate" || err == "docname")
+      status = err;
+    else if(err)
+      status = "fail";
+    else
+      status = "ok";
+
+    console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
+    res.json(status == "ok" ? 200 : 500, { status: status });
+  }
 }
 
 function processDoc (req, res, mode)
@@ -408,10 +615,28 @@ function processDoc (req, res, mode)
         var cacheName = "doctext_" + docname;
         var text = cache.get(cacheName);
 
+        var ip = req.ip;
+
+        // create dummy objects
+        readonlyUsers[docname] = readonlyUsers[docname] || {};
+        readonlyUsersTimeouts[docname] = readonlyUsersTimeouts[docname] || {};
+
+        // remember this user and clear its timeout
+        readonlyUsers[docname][ip] = true;
+        if(readonlyUsersTimeouts[docname][ip])
+        {
+          clearTimeout(readonlyUsersTimeouts[docname][ip]);
+        }
+
+        // set a timeout of 2s to remove the user
+        readonlyUsersTimeouts[docname][ip] = setTimeout(function () { delete readonlyUsers[docname][ip]; }, 2000);
+
+        // get the number of users
+        var users = Object.keys(readonlyUsers[docname]).length;
+
         if(text)
         {
-          res.write(text);
-          res.end();
+          res.json(200, { text: text, users: users });
         }
         else
         {
@@ -421,12 +646,13 @@ function processDoc (req, res, mode)
               if(err)
               {
                 console.err(logprefixstr + "error while showing doc in text-view: " + err);
+                res.statusCode = 500;
+                res.end();
               }
               else
               {
                 cache.put(cacheName, text, 1000);
-                res.write(text);
-                res.end();
+                res.json(200, { text: text, users: users });
               }
             }
           );
@@ -436,6 +662,7 @@ function processDoc (req, res, mode)
       {
         console.warn(logprefixstr + "error while showing doc: " + err);
 
+        locals.docname = docname;
         if(err != "auth" && err != "nodoc")
           locals.err = "other";
         else
@@ -456,7 +683,7 @@ function getShowDocStr (username, docname, isPublic, isAuthed, isText, isReadonl
 
 function processLogin (req, res)
 {
-  req.assert('username', 'Empty username').notEmpty().isAlphanumeric();
+  req.assert('username', 'Empty username').regex(usernameRegex);
   req.assert('password', 'Empty password').notEmpty();
 
   var errors = req.validationErrors();
@@ -538,7 +765,7 @@ function processLogin (req, res)
 
 function processPasswordResetRequest (req, res)
 {
-  req.assert('username', 'Empty username').notEmpty().isAlphanumeric();
+  req.assert('username', 'Empty username').regex(usernameRegex);
 
   var errors = req.validationErrors();
   var username = req.param('username');
@@ -668,7 +895,7 @@ function processLogout (req, res)
 
 function processRegister (req, res)
 {
-  req.assert('username', 'username-invalid').notEmpty().isAlphanumeric();
+  req.assert('username', 'username-invalid').regex(usernameRegex);
   req.assert('email', 'email-invalid').isEmail();
   req.assert('password', 'pw-invalid').len(8, 255);
   req.assert('passwordr', 'pwr-invalid').len(8, 255);

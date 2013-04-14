@@ -2,7 +2,7 @@ body
 {
     /* Subtle Patterns by Subtle Patterns (http://subtlepatterns.com/) are licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License (http://creativecommons.org/licenses/by-sa/3.0/deed.en_US). */
     background-image:url('../img/grey_wash_wall.png');
-    background-color: #CCC;
+    background-color: #666;
 }
 
 .navbar
@@ -61,21 +61,26 @@ body
 
 #content .main
 {
-    padding: 0px;
-    margin: 0px;
-}
-
-#content .main h2,
-#content .main p
-{
-    margin: 10px 10px;
+    padding: 20px;
+    padding-top: 0px;
 }
 
 #footer
 {
-    margin-bottom: 20px;
-    text-align: center;
-    color: #111111;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 50px;
+    color: #DDD;
+}
+
+#footer a, #footer a:visited
+{
+    color: #72abff;
+}
+
+#footer a:hover
+{
+    color: #59c3ff;
 }
 
 #register-form
@@ -150,6 +155,7 @@ body
 #pad
 {
     border-top: 1px #aaa dotted;
+    margin: 0 -20px -24px -20px;
 }
 
 #padhelp
@@ -196,3 +202,14 @@ code
     margin: 0.25em 0;
     padding: 0.25em 0.5em;
 }
+
+table#newpadlist td
+{
+    vertical-align: text-top !important;
+}
+
+table#newpadlist td.joinpad, table#newpadlist td.createdoc
+{
+    text-align: right;
+}
+

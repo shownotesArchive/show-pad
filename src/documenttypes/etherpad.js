@@ -5,6 +5,7 @@ var server     = null
   , etherpad   = null
   , eplurl     = ""
   , eplGroupIDs = {}
+  , logger
   , sessionMaxAge = 86400000;
 
 exports.name = "etherpad";
@@ -13,6 +14,7 @@ exports.name = "etherpad";
 exports.init = function (_server, cb)
 {
   server = _server;
+  logger = server.getLogger('epl');
   var usernames = null;
 
   async.waterfall(
@@ -71,7 +73,7 @@ exports.onLogin = function (user, res, cb)
             if(!err)
             {
               authorID = data.authorID;
-              console.debug("[epl] [%s] AuthorID: %s", user.username, authorID);
+              logger.debug("[%s] AuthorID: %s", user.username, authorID);
             }
             cb(err);
           });
@@ -117,7 +119,7 @@ exports.onLogin = function (user, res, cb)
                 if(!err)
                 {
                   sessionIDs.push(data.sessionID);
-                  console.debug("[epl] [%s] %s (%s) SessionID: %s", user.username, showGroup, eplGroupIDs[showGroup], data.sessionID);
+                  logger.debug("[%s] %s (%s) SessionID: %s", user.username, showGroup, eplGroupIDs[showGroup], data.sessionID);
                 }
                 cb(err);
               });
@@ -142,12 +144,12 @@ exports.onLogin = function (user, res, cb)
           {
             if(err)
             {
-              console.debug("[epl] [%s] Login failed", user.username);
+              logger.debug("[%s] Login failed", user.username);
             }
             else
             {
               res.cookie("sessionID", cookieStr, { maxAge: sessionMaxAge, httpOnly: false});
-              console.debug("[epl] [%s] Logged in", user.username);
+              logger.debug("[%s] Logged in", user.username);
             }
 
             cb(err);
@@ -170,7 +172,7 @@ exports.onLogout = function (user, res, cb)
   if(!sessions || sessions.length == 0)
   {
     // no need to stress the db and etherpad
-    console.warn("[epl] [%s] has no sessions", username);
+    logger.warn("[%s] has no sessions", username);
     return cb();
   }
 
@@ -186,9 +188,9 @@ exports.onLogout = function (user, res, cb)
               function (err)
               {
                 if(err)
-                  console.error("[epl] [%s] could not delete session", username, sid, err);
+                  logger.error("[%s] could not delete session", username, sid, err);
                 else
-                  console.debug("[epl] [%s] session deleted", username, sid);
+                  logger.debug("[%s] session deleted", username, sid);
                 cb();
               });
           }, cb);
@@ -201,9 +203,9 @@ exports.onLogout = function (user, res, cb)
           function (err)
           {
             if(err)
-              console.debug("[epl] [%s] Could not remove sessions from db", username);
+              logger.debug("[%s] Could not remove sessions from db", username);
             else
-              console.debug("[epl] [%s] Sessions removed from db", username);
+              logger.debug("[%s] Sessions removed from db", username);
             cb(err);
           });
       }
@@ -223,7 +225,7 @@ exports.onCreateGroup = function (group, cb)
       if(!err)
       {
         eplGroupIDs[group.short] = data.groupID;
-        console.debug("[epl] groupid for %s is %s", group.short, data.groupID);
+        logger.debug("Groupid for %s is %s", group.short, data.groupID);
       }
       cb(err);
     }
@@ -248,9 +250,9 @@ exports.onDeleteDoc = function (doc, cb)
     function (err)
     {
       if(err)
-        console.error("[epl] could not delete pad: %s, %s", docname, err);
+        logger.error("Could not delete pad: %s, %s", docname, err);
       else
-        console.debug("[epl] pad deleted:", docname);
+        logger.debug("Pad deleted:", docname);
       cb(err);
     });
 }
@@ -279,9 +281,9 @@ exports.setText = function (doc, text, cb)
     function (err)
     {
       if(err)
-        console.error("[epl] could not set pad-text: %s, %s", docname, err);
+        logger.error("Could not set padtext: %s, %s", docname, err);
       else
-        console.debug("[epl] pad-text set:", docname);
+        logger.debug("Padtext set:", docname);
       cb(err);
     });
 }
@@ -295,9 +297,9 @@ exports.getText = function (doc, cb)
     function (err, data)
     {
       if(err)
-        console.error("[epl] could not get pad-text: %s, %s", docname, err);
+        logger.error("Could not get padtext: %s, %s", docname, err);
       else
-        console.debug("[epl] got pad-text:", docname);
+        logger.debug("Got padtext:", docname);
       cb(err, data);
     });
 }
@@ -312,9 +314,9 @@ exports.getLastModifed = function (doc, cb)
     function (err, data)
     {
       if(err)
-        console.error("[epl] could not get pad-lastEdited: %s, %s", docname, err);
+        logger.error("Could not get pad-lastEdited: %s, %s", docname, err);
       else
-        console.debug("[epl] got pad-lastEdited:", docname);
+        logger.debug("Got pad-lastEdited:", docname);
       cb(err, data);
     });
 }
