@@ -52,7 +52,7 @@
         <h3><%-__('index.podcasts.create.title')%></h3>
     </div>
     <div class="modal-body">
-        <div class="alert alert-error"><%-__('index.podcasts.create.fail')%></div>
+        <div class="alert alert-error"></div>
         <p><%-__('index.podcasts.create.docname')%></p>
         <input id="createpadname" type="text" value="">
     </div>
@@ -97,10 +97,27 @@ $('td.createdoc button').click(
                         )
                         .fail
                         (
-                            function(data)
+                            function(resp)
                             {
+                                // jQuery Y U NO parse json-repsonses with status-code != 200?
+                                var data = JSON.parse(resp.responseText);
+                                var $alert = $('#createPadModal .alert-error');
+
+                                switch(data.status)
+                                {
+                                    case "rate":
+                                        $alert.text("<%-__('index.podcasts.create.fail.rate')%>");
+                                        break;
+                                    case "docname":
+                                        $alert.text("<%-__('index.podcasts.create.fail.name')%>");
+                                        break;
+                                    default:
+                                        $alert.text("<%-__('index.podcasts.create.fail.other')%>");
+                                        break;
+                                }
+
                                 $('#createPad').removeAttr('disabled');
-                                $('#createPadModal .alert-error').show();
+                                $alert.show();
                             }
                         );
                 }

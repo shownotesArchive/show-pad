@@ -10,7 +10,9 @@
     "index.podcasts.create.docname": "Bitte gib einen Namen für das neue Pad ein:",
     "index.podcasts.create.abort": "Abbrechen",
     "index.podcasts.create.create": "Pad erstellen",
-    "index.podcasts.create.fail": "Es ist ein Fehler aufgetreten.",
+    "index.podcasts.create.fail.name": "Dieser Name ist ungültig.",
+    "index.podcasts.create.fail.rate": "Du darfst nur 2 Pads pro Stunde erstellen.",
+    "index.podcasts.create.fail.other": "Es ist ein Fehler aufgetreten.",
 
     "header.home": "Hauptseite",
     "header.profile": "Profil",

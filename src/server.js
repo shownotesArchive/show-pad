@@ -391,7 +391,7 @@ function processCreateDoc (req, res)
         createDocLimiters[username].removeTokens(1,
           function(err, remainingRequests)
           {
-            cb(remainingRequests < 0 ? "fail-rate" : null);
+            cb(remainingRequests < 0 ? "rate" : null);
           }
         );
       },
@@ -480,7 +480,7 @@ function processCreateDoc (req, res)
   {
     var status = null;
 
-    if(err == "fail-rate")
+    if(err == "rate" || err == "docname")
       status = err;
     else if(err)
       status = "fail";
@@ -488,10 +488,7 @@ function processCreateDoc (req, res)
       status = "ok";
 
     console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
-
-    res.statusCode = status == "ok" ? 200 : 500;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ status: status }));
+    res.json(status == "ok" ? 200 : 500, { status: status });
   }
 }
 
