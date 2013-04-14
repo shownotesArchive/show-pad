@@ -138,7 +138,5 @@ function answerRequest(res, statusCode, msg, data)
       data: data
     };
 
-  res.statusCode = statusCode;
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify(response));
+  res.json(statusCode, response);
 }
