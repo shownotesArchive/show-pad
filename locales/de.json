@@ -20,8 +20,8 @@
     "header.register": "Registrieren",
 
     "login": "Login",
-    "login.username": "Benutzername:",
-    "login.password": "Passwort:",
+    "login.username": "Benutzername",
+    "login.password": "Passwort",
     "login.login": "Einloggen",
     "login.logout": "Ausloggen",
     "login.forgotpw": "Passwort vergessen?",
