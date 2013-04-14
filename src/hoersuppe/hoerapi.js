@@ -29,10 +29,12 @@ exports.getPodcastEpisodes = function (podcast, count, cb)
   callAction("getPodcastEpisodes", params, cb);
 }
 
-exports.getLive = function (podcast, dateStart, dateEnd, cb)
+exports.getLive = function (count, dateStart, dateEnd, cb)
 {
   cb = arguments[arguments.length - 1];
-  var params = { podcast: podcast};
+  var params = { };
+  if(count)
+    params.count = count;
   if(dateStart)
     params.dateStart = formatDate(dateStart);
   if(dateEnd)
@@ -45,7 +47,7 @@ function formatDate(date)
   if(date instanceof Date)
   {
     var year = date.getFullYear().toString().substr(2,2);
-    var month = padStr(date.getDate());
+    var month = padStr(date.getMonth() + 1);
     var day = padStr(date.getDate());
 
     return year + "-" + month + "-" + day;
@@ -58,8 +60,14 @@ function formatDate(date)
 
 function padStr(str)
 {
+  if(!(str instanceof String))
+  {
+    str = str+'';
+  }
   if(str.length == 1)
+  {
     str = "0" + str;
+  }
   return str;
 }
 

@@ -317,6 +317,39 @@ exports.objExists = function (key, cb)
   client.exists(key, cb);
 }
 
+exports.setHash = function (name, obj)
+{
+  var key = "hash:" + name;
+  var multi = client.multi();
+  multi.del(key);
+  multi.hset(key, obj);
+  multi.exec();
+}
+
+exports.setSingleHash = function (name, hashKey, hashValue)
+{
+  var key = "hash:" + name;
+  client.hset(key, hashKey, hashValue);
+}
+
+exports.getHash = function (name, cb)
+{
+  var key = "hash:" + name;
+  client.hgetall(key,
+    function (err, val)
+    {
+      if(val == null && err == null)
+        val = {};
+      cb(err, val);
+    });
+}
+
+exports.getSingleHash = function (name, hashKey, cb)
+{
+  var key = "hash:" + name;
+  client.hget(key, hashKey, cb);
+}
+
 exports.prepareSessionStore = function (express, options)
 {
   options.client = client;

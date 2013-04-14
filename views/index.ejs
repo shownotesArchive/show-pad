@@ -2,17 +2,140 @@
 <% block('title', "Home") -%>
 <% script('js/etherpad.js') %>
 
-<h3><%= __('index.activedocs') %></h3>
-<ul>
-    <% for (var i = 0; i < docs.length; i++) {
-       var date = new Date(docs[i].modified);
-    %>
-        <li>
-            <a href="/doc/<%=docs[i].docname%>"><%=docs[i].docname%></a>
-            (<%=__('index.docs.at')%> <%=pad(date.getDate())%>.<%=pad(date.getMonth())%>.<%=date.getFullYear()%>)
-        </li>
-    <% } %>
-</ul>
+<h3><%= __('index.podcasts.header') %></h3>
+<table class="table" id="newdoclist">
+    <thead>
+    <tr>
+        <td><%= __('index.podcasts.podname') %></td>
+        <td style="width:150px"><%= __('index.podcasts.starttime') %></td>
+        <td style="width:100px"><%= __('index.podcasts.docname') %></td>
+        <td style="width:150px"></td>
+    </tr>
+    </thead>
+    <tbody>
+        <% for (var i = 0; i < podcasts.length; i++) {
+           var exists = podcasts[i].doc.exists;
+        %>
+            <tr>
+                <td><%=podcasts[i].name%></td>
+                <td>
+                    <%= pad(podcasts[i].time.getHours())     + ":"  +
+                        pad(podcasts[i].time.getMinutes())   + ", " +
+                        pad(podcasts[i].time.getDate())      + "."  +
+                        pad(podcasts[i].time.getMonth() + 1) + "."  +
+                        (podcasts[i].time.getYear() + 1900) %>
+                </td>
+                <td>
+                    <%= exists ? podcasts[i].doc.name : '' %>
+                </td>
+                <td class="<%= exists ? 'joindoc' : 'createdoc' %>">
+                    <button class="btn btn-<%= exists ? 'info' : 'success' %>"
+                            data-docname="<%=podcasts[i].doc.name%>"
+                            data-short="<%=podcasts[i].slug%>"
+                            data-id="<%=podcasts[i].id%>">
+                        <%= __('index.podcasts.button.' + (exists ? 'join' : 'create')) %>
+                    </button>
+                </td>
+            </tr>
+        <% } %>
+        <tr>
+            <td></td>
+            <td></td>
+            <td colspan="2"><span class="pull-right"><%-__('index.podcasts.poweredby')%></span>            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div id="createPadModal" class="modal hide fade" tabindex="-1" role="dialog">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3><%-__('index.podcasts.create.title')%></h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-error"></div>
+        <p><%-__('index.podcasts.create.docname')%></p>
+        <input id="createpadname" type="text" value="">
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal"><%-__('index.podcasts.create.abort')%></button>
+        <button class="btn btn-primary" id="createPad"><%-__('index.podcasts.create.create')%></button>
+    </div>
+</div>
+
+<script>
+$('td.createdoc button').click(
+    function (evt)
+    {
+        var btn = $(evt.target);
+        var short = btn.data("short");
+        var id = btn.data("id");
+
+        var loggedIn = <%=!!user%>;
+        if(!loggedIn)
+        {
+            window.location = "/login";
+            return;
+        }
+
+        $('#createPadModal .alert-error').hide();
+        $('#createpadname').val(short);
+        $('#createPadModal').modal('show');
+
+        $('#createPad').off('click');
+        $('#createPad').click(
+                function ()
+                {
+                    $('#createPad').attr('disabled', 'disabled');
+                    var docname = $('#createpadname').val();
+                    $.post("/createDoc", { name: docname, id: id })
+                        .done
+                        (
+                            function(data)
+                            {
+                                window.location = "/doc/" + docname;
+                            }
+                        )
+                        .fail
+                        (
+                            function(resp)
+                            {
+                                // jQuery Y U NO parse json-repsonses with status-code != 200?
+                                var data = JSON.parse(resp.responseText);
+                                var $alert = $('#createPadModal .alert-error');
+
+                                switch(data.status)
+                                {
+                                    case "rate":
+                                        $alert.text("<%-__('index.podcasts.create.fail.rate')%>");
+                                        break;
+                                    case "docname":
+                                        $alert.text("<%-__('index.podcasts.create.fail.name')%>");
+                                        break;
+                                    default:
+                                        $alert.text("<%-__('index.podcasts.create.fail.other')%>");
+                                        break;
+                                }
+
+                                $('#createPad').removeAttr('disabled');
+                                $alert.show();
+                            }
+                        );
+                }
+        );
+    }
+);
+
+$('td.joindoc button').click(
+    function (evt)
+    {
+        var btn = $(evt.target);
+        var docname = btn.data('docname');
+        window.location = "/doc/" + docname;
+    }
+);
+
+$('#createPadModal').on('shown', function () { $('#createpadname').focus(); });
+</script>
 
 <%
 function pad(n) {

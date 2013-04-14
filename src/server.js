@@ -19,6 +19,7 @@ var express   = require('express')
 var db            = require('./db.js')
   , api           = require('./api.js')
   , documentTypes = require('./documenttypes.js')
+  , hoerapi       = require('./hoersuppe/hoerapi.js')
   , app           = null
   , mailTransport = null
   , pageurl       = null
@@ -31,6 +32,7 @@ var db            = require('./db.js')
 
 // rate limiters
 var registerLimiters = {};
+var createDocLimiters = {};
 
 // exports
 exports.documentTypes = documentTypes;
@@ -198,6 +200,7 @@ function initServer(cb)
   console.debug("Initiating server-routes..");
   // routes
   app.get('/', processIndex);
+  app.post('/createDoc', processCreateDoc);
   app.get('/doc/:docname', function (req, res) { processDoc(req, res, "normal"); });
   app.get('/doc/:docname/readonly', function (req, res) { processDoc(req, res, "readonly"); });
   app.get('/doc/:docname/text', function (req, res) { processDoc(req, res, "text"); });
@@ -260,7 +263,23 @@ exports.getLogger = function (category)
 
 function processIndex (req, res)
 {
-  var cacheName = "indexdocs";
+  getClientPods(
+    function (err, clientPods)
+    {
+      if(err)
+      {
+        console.error("Error while rendering index: " + err);
+        clientPods = [];
+      }
+
+      res.render('index', { podcasts: clientPods });
+    }
+  );
+}
+
+function getClientPods (cb)
+{
+  var cacheName = "clientpods";
 
   async.waterfall(
     [
@@ -268,59 +287,228 @@ function processIndex (req, res)
       function (cb)
       {
         var docs = cache.get(cacheName);
-        
+
         if(docs)
           cb("cache", docs);
         else
           cb();
       },
-      // get all docs
+      // get hoersuppe-live-podcasts
       function (cb)
       {
-        db.doc.getDocs(cb);
+        hoerapi.getLive(nconf.get("docsonindex"), null, null, cb);
       },
-      // get all last-modfieds for docs
-      function (docs, cb)
+      // get podcast<->pad mapping
+      function (podcasts, cb)
       {
-        async.map(docs, documentTypes.getLastModifed,
-          function (err, times)
+        db.getHash("live2pad",
+          function (err, liveToPad)
           {
             if(err)
-              cb("epl");
+            {
+              cb(err);
+            }
             else
-              cb(err, docs, times);
-          });
+            {
+              cb(null, podcasts, liveToPad);
+            }
+          }
+        );
       },
       // create a nice list for the client and render it
-      function (docs, times, cb)
+      function (podcasts, liveToPad, cb)
       {
-        var clientDocs = [];
+        var clientPods = [];
 
-        for (var i = 0; i < docs.length; i++)
+        for (var i = 0; i < podcasts.length; i++)
         {
-          var doc = docs[i];
-          var time = times[i];
-          clientDocs.push({ docname: doc.docname, modified: time.lastEdited });
+          var name = podcasts[i].title;
+          var slug = podcasts[i].podcast;
+          var id = podcasts[i].id;
+          var time = new Date(podcasts[i].livedate);
+          var doc = {};
+          var docName = liveToPad[id];
+
+          if(docName)
+          {
+            doc.exists = true;
+            doc.name = docName;
+          }
+          else
+          {
+            doc.exists = false;
+          }
+
+          clientPods.push(
+            {
+              name: name,
+              slug: slug,
+              id: id,
+              time: time,
+              doc: doc
+            }
+          );
         }
 
-        clientDocs.sort( function (a, b) { return b.modified - a.modified; });
-        clientDocs.splice(nconf.get("docsonindex"));
-        cache.put(cacheName, clientDocs, 30000);
+        clientPods.sort( function (a, b) { return a.time - b.time; });
+        cache.put(cacheName, clientPods, 60000);
 
-        cb(null, clientDocs);
+        cb(null, clientPods);
       }
     ],
     function (err, result)
     {
-      if(err && err != "cache")
+      if(err == "cache")
+      {
+        err = null;
+      }
+      if(err)
       {
         console.error("Error while rendering index: " + err);
         result = [];
       }
 
-      res.render('index', { docs: result });
+      cb(err, result);
     }
-  )
+  );
+}
+
+function processCreateDoc (req, res)
+{
+  var user = res.locals.user
+    , body = req.body
+
+  if(!user || !body.name || !body.id)
+  {
+    return reply("fail");
+  }
+
+  var username = user.username
+    , docname  = body.name.trim()
+    , hoerid   = body.id
+    , hoerPod  = null
+
+  if(docname.length == 0 || docname.length > 23)
+  {
+    return reply("docname");
+  }
+
+  async.waterfall(
+    [
+      // check rate limiting
+      function (cb)
+      {
+        if(user.hasRole("admin"))
+        {
+          return cb(null);
+        }
+        if(!createDocLimiters[username])
+        {
+          createDocLimiters[username] = new RateLimiter(2, 'hour', true);
+        }
+
+        createDocLimiters[username].removeTokens(1,
+          function(err, remainingRequests)
+          {
+            cb(remainingRequests < 0 ? "rate" : null);
+          }
+        );
+      },
+      getClientPods,
+      // find live-podcast
+      function (clientPods, cb)
+      {
+        async.detect(clientPods,
+          function (pod, cb)
+          {
+            cb(pod.id == hoerid);
+          },
+          function (hoerPod)
+          {
+            cb(hoerPod ? null : "fail-hoerpod", hoerPod);
+          }
+        );
+      },
+      // check if docname is compatible with slug
+      function (_hoerPod, cb)
+      {
+        hoerPod = _hoerPod;
+        var nameOkay = (docname.indexOf(hoerPod.slug) == 0);
+        nameOkay = nameOkay && docname.length > hoerPod.slug.length;
+        cb(nameOkay ? null :  "docname");
+      },
+      // find group
+      function (cb)
+      {
+        db.group.getGroups(
+          function (err, groups)
+          {
+            if(err) return cb("group");
+
+            async.detect(groups,
+              function (group, cb)
+              {
+                cb(group.short == hoerPod.slug);
+              },
+              function (group)
+              {
+                var groupshort = "other";
+                if(group)
+                {
+                  groupshort = group.short;
+                }
+                cb(null, groupshort);
+              }
+            )
+          }
+        );
+      },
+      // create doc
+      function (groupshort, cb)
+      {
+        db.doc.createDoc(docname, "etherpad", groupshort,
+          function (err)
+          {
+            if(err) return cb("db");
+
+            db.doc.getDoc(docname,
+              function (err, doc)
+              {
+                documentTypes.onCreateDoc(doc,
+                  function (err)
+                  {
+                    cb(err ? "epl" : null);
+                  });
+              }
+            );
+          }
+        );
+      },
+      // create live2pad-entry & clear cache
+      function (cb)
+      {
+        db.setSingleHash("live2pad", hoerid, docname);
+        cache.del("clientpods");
+        cb();
+      }
+    ],
+    reply
+  );
+
+  function reply(err)
+  {
+    var status = null;
+
+    if(err == "rate" || err == "docname")
+      status = err;
+    else if(err)
+      status = "fail";
+    else
+      status = "ok";
+
+    console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
+    res.json(status == "ok" ? 200 : 500, { status: status });
+  }
 }
 
 function processDoc (req, res, mode)
