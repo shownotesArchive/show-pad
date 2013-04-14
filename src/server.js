@@ -388,7 +388,7 @@ function processCreateDoc (req, res)
     , hoerid   = body.id
     , hoerPod  = null
 
-  if(docname.length == 0 || docname.length > 23)
+  if(!(docname.match(/^[a-z0-9-]+$/i)))
   {
     return reply("docname");
   }
