@@ -22,6 +22,8 @@ var db            = require('./db.js')
   , app           = null
   , mailTransport = null
   , pageurl       = null
+  , usernameChars = "[a-z0-9\._-]{1,30}"
+  , usernameRegex = new RegExp("^" + usernameChars + "$", "i")
   , sessionStore  = null
   , sessionSecret = null;
 
@@ -198,8 +200,8 @@ function initServer(cb)
   app.get('/pwreset', function (req, res) { res.render("pwreset-request"); });
   app.post('/pwreset', processPasswordResetRequest);
 
-  app.get('/pwreset/:username([a-zA-Z0-9]+)/:token', function (req, res) { res.render("pwreset"); });
-  app.post('/pwreset/:username([a-zA-Z0-9]+)/:token', processPasswordReset);
+  app.get('/pwreset/:username(' + usernameChars + ')/:token', function (req, res) { res.render("pwreset"); });
+  app.post('/pwreset/:username(' + usernameChars + ')/:token', processPasswordReset);
 
   app.get('/register', function(req, res)
     {
@@ -222,7 +224,7 @@ function initServer(cb)
   app.get('/logout', processLogout);
 
   // email activation
-  app.get('/activate/:username([a-zA-Z0-9]+)/:token', processEmailActivation);
+  app.get('/activate/:username(' + usernameChars + ')/:token', processEmailActivation);
 
   // API
   app.get('/api/:version/:endpoint/:entity?', api.handleRequest);
@@ -457,7 +459,7 @@ function getShowDocStr (username, docname, isPublic, isAuthed, isText, isReadonl
 
 function processLogin (req, res)
 {
-  req.assert('username', 'Empty username').notEmpty().isAlphanumeric();
+  req.assert('username', 'Empty username').regex(usernameRegex);
   req.assert('password', 'Empty password').notEmpty();
 
   var errors = req.validationErrors();
@@ -539,7 +541,7 @@ function processLogin (req, res)
 
 function processPasswordResetRequest (req, res)
 {
-  req.assert('username', 'Empty username').notEmpty().isAlphanumeric();
+  req.assert('username', 'Empty username').regex(usernameRegex);
 
   var errors = req.validationErrors();
   var username = req.param('username');
@@ -669,7 +671,7 @@ function processLogout (req, res)
 
 function processRegister (req, res)
 {
-  req.assert('username', 'username-invalid').notEmpty().isAlphanumeric();
+  req.assert('username', 'username-invalid').regex(usernameRegex);
   req.assert('email', 'email-invalid').isEmail();
   req.assert('password', 'pw-invalid').len(8, 255);
   req.assert('passwordr', 'pwr-invalid').len(8, 255);
