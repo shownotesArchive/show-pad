@@ -62,6 +62,10 @@
     "showdoc.error.other": "The document could not be loaded.",
     "showdoc.readonly.updateerror": "Refresh failed.",
     "showdoc.readonly.users": "Users watching this:",
+    "showdoc.readonly.format.html": "Parsed",
+    "showdoc.readonly.format.raw": "Raw",
+    "showdoc.readonly.format.chapters": "Chapters",
+    "showdoc.readonly.format.markdown": "Markdown",
 
     "dashboard": "Dashboard",
     "dashboard.delete": "Delete",

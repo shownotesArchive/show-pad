@@ -7,14 +7,35 @@
 <br>
 <br>
 <div class="alert hidden" id="updateerror"></div>
-<div id="docosftext">Loading...</div>
 
+<div>Format:
+<ul id="format" class="nav nav-pills">
+    <li class="active">
+        <a href="#html" data-format="html"><%= __('showdoc.readonly.format.html') %></a>
+    </li>
+    <li class="active">
+        <a href="#raw" data-format="raw"><%= __('showdoc.readonly.format.raw') %></a>
+    </li>
+    <li class="active">
+        <a href="#chapter" data-format="chapter"><%= __('showdoc.readonly.format.chapters') %></a>
+    </li>
+    <li class="active">
+        <a href="#md" data-format="md"><%= __('showdoc.readonly.format.markdown') %></a>
+    </li>
+</ul></div>
+
+<div class="doctext">Loading...</div>
+<pre class="doctext">Loading...</pre>
 
 <script>
-setInterval(getDocText, 1000);
-getDocText(true);
+var hash = window.location.hash;
+if(hash && hash.length > 1) hash = hash.substr(1);
+var activeFormat = hash || "html";
 
-function getDocText(first)
+setInterval(getDocText, 1000);
+getDocText();
+
+function getDocText()
 {
     $.ajax('/doc/<%=docname%>/text')
         .success
@@ -23,13 +44,32 @@ function getDocText(first)
             {
                 var text = res.text;
                 var users = res.users;
+                var exported;
 
-                var parsed = osfParser(text);
-                var html = osfExport(parsed,'html');
-                $('#docosftext').html(html);
+                if(activeFormat == "raw")
+                {
+                    exported = text;
+                }
+                else
+                {
+                    var parsed = osfParser(text);
+                    exported = osfExport(parsed, activeFormat);
+                }
+
+                $('.doctext').hide();
+                switch(activeFormat)
+                {
+                    case "raw":
+                    case "chapter":
+                    case "md":
+                        $('pre.doctext').show().text(exported);
+                        break;
+                    case "html":
+                        $('div.doctext').show().html(exported);
+                        break;
+                }
 
                 $('#users').text(users);
-
                 $('#updateerror').addClass('hidden');
             }
         )
@@ -40,5 +80,28 @@ function getDocText(first)
                 $('#updateerror').removeClass('hidden').text("<%=__('showdoc.readonly.updateerror')%>")
             }
         );
+}
+
+selectFormat(activeFormat);
+
+$('#format.nav').click(
+    function (evt)
+    {
+        var elem = $(evt.target);
+        var format = elem.data("format");
+
+        $('#format.nav li').removeClass('disabled').addClass('active');
+        activeFormat = format;
+        selectFormat(activeFormat);
+    }
+)
+
+function selectFormat(format)
+{
+    $('li a[data-format=' + activeFormat + ']')
+        .parent('li')
+        .addClass('disabled')
+        .removeClass('active');
+    getDocText();
 }
 </script>
