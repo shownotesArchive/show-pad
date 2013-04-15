@@ -54,7 +54,9 @@
     <div class="modal-body">
         <div class="alert alert-error"></div>
         <p><%-__('index.podcasts.create.docname')%></p>
-        <input id="createpadname" type="text" value="">
+        <input id="createepisode" type="text" value="">
+        <span style="font-size: 33px; margin: 0px 5px 0px 5px">&rarr;</span>
+        <input id="createpadname" type="text" value="" disabled="disabled">
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal"><%-__('index.podcasts.create.abort')%></button>
@@ -63,11 +65,18 @@
 </div>
 
 <script>
+var short = "";
+$('#createepisode').on('input', updateName);
+function updateName()
+{
+    $('#createpadname').val(short + "-" + $('#createepisode').val());
+}
+
 $('td.createdoc button').click(
     function (evt)
     {
         var btn = $(evt.target);
-        var short = btn.data("short");
+        short = btn.data("short");
         var id = btn.data("id");
 
         var loggedIn = <%=!!user%>;
@@ -78,7 +87,8 @@ $('td.createdoc button').click(
         }
 
         $('#createPadModal .alert-error').hide();
-        $('#createpadname').val("");
+        $('#createepisode').val("");
+        $('#createpadname').val(short + "-")
         $('#createPadModal').modal('show');
 
         $('#createPad').off('click');
@@ -86,7 +96,7 @@ $('td.createdoc button').click(
                 function ()
                 {
                     $('#createPad').attr('disabled', 'disabled');
-                    var docname = $('#createpadname').val();
+                    var docname = $('#createepisode').val();
                     $.post("/createDoc", { name: docname, id: id })
                         .done
                         (
