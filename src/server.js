@@ -515,7 +515,7 @@ function processDoc (req, res, mode)
 
   // ejs & util
   var locals = {}
-    , logprefixstr = ""
+    , logprefixstr = getShowDocStr(username, docname, "???", "???", "???", "???")
 
 
   async.waterfall(
