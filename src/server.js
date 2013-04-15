@@ -396,11 +396,12 @@ function processCreateDoc (req, res)
   }
 
   var username = user.username
-    , docname  = body.name.trim()
+    , episodeName = body.name.trim()
+    , docname  = null
     , hoerid   = body.id
     , hoerPod  = null
 
-  if(!(docname.match(/^[a-z0-9-]+$/i)))
+  if(!(episodeName.match(/^[a-z0-9]+$/i)))
   {
     return reply("docname");
   }
@@ -435,19 +436,16 @@ function processCreateDoc (req, res)
           {
             cb(pod.id == hoerid);
           },
-          function (hoerPod)
+          function (_hoerPod)
           {
-            cb(hoerPod ? null : "fail-hoerpod", hoerPod);
+            hoerPod = _hoerPod;
+            if(hoerPod)
+            {
+              docname = hoerPod.slug + "-" + episodeName;
+            }
+            cb(hoerPod ? null : "fail-hoerpod");
           }
         );
-      },
-      // check if docname is compatible with slug
-      function (_hoerPod, cb)
-      {
-        hoerPod = _hoerPod;
-        var nameOkay = (docname.indexOf(hoerPod.slug) == 0);
-        nameOkay = nameOkay && docname.length > hoerPod.slug.length;
-        cb(nameOkay ? null :  "docname");
       },
       // create doc
       function (cb)
@@ -493,7 +491,7 @@ function processCreateDoc (req, res)
       status = "ok";
 
     console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
-    res.json(status == "ok" ? 200 : 500, { status: status });
+    res.json(status == "ok" ? 200 : 500, { status: status, docname: docname });
   }
 }
 

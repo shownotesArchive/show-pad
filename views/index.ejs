@@ -78,7 +78,7 @@ $('td.createdoc button').click(
         }
 
         $('#createPadModal .alert-error').hide();
-        $('#createpadname').val(short);
+        $('#createpadname').val("");
         $('#createPadModal').modal('show');
 
         $('#createPad').off('click');
@@ -92,7 +92,7 @@ $('td.createdoc button').click(
                         (
                             function(data)
                             {
-                                window.location = "/doc/" + docname;
+                                window.location = "/doc/" + data.docname;
                             }
                         )
                         .fail
