@@ -180,6 +180,12 @@ body
     margin: 10px;
 }
 
+#switch_view
+{
+    font-weight: bold;
+    float: right;
+}
+
 kbd
 {
     /* http://meta.superuser.com/questions/4788/css-for-the-new-kbd-style */
