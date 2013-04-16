@@ -69,7 +69,7 @@ exports.onLogout = function (user, res, cb)
 
 exports.onCreateUser = function (user, cb)
 {
-  logger.debug("User register '%s'", user.username, type.name);
+  logger.debug("User register '%s'", user.username);
   async.eachSeries(Object.keys(documentTypes),
     function (type, cb)
     {

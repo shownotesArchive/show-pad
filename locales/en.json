@@ -7,7 +7,7 @@
     "index.podcasts.button.create": "Create pad",
     "index.podcasts.poweredby": "Powered by <a href='http://hoersuppe.de/'>hoersuppe.de</a>.",
     "index.podcasts.create.title": "Padname",
-    "index.podcasts.create.docname": "Please enter a name for the new pad:",
+    "index.podcasts.create.docname": "Please enter the <b>Number</b> of this broadcast:",
     "index.podcasts.create.abort": "Abort",
     "index.podcasts.create.create": "Create pad",
     "index.podcasts.create.fail.name": "That name is invalid.",

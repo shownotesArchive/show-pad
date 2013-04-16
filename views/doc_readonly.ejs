@@ -27,6 +27,7 @@
 <pre class="doctext">Loading...</pre>
 
 <script>
+var oldexported = null;
 var hash = window.location.hash;
 if(hash && hash.length > 1) hash = hash.substr(1);
 var activeFormat = hash || "html";
@@ -45,6 +46,9 @@ function getDocText()
                 var users = res.users;
                 var exported;
 
+                $('#users').text(users);
+                $('#updateerror').addClass('hidden');
+
                 if(activeFormat == "raw")
                 {
                     exported = text;
@@ -54,6 +58,11 @@ function getDocText()
                     var parsed = osfParser(text);
                     exported = osfExport(parsed, activeFormat);
                 }
+
+                if(oldexported == exported)
+                    return;
+
+                oldexported = exported;
 
                 $('.doctext').hide();
                 switch(activeFormat)
@@ -68,8 +77,6 @@ function getDocText()
                         break;
                 }
 
-                $('#users').text(users);
-                $('#updateerror').addClass('hidden');
             }
         )
         .fail

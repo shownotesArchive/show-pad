@@ -194,6 +194,18 @@ function initServer(cb)
       }
     });
 
+  // http://stackoverflow.com/a/12497793
+  app.use(function(req, res, next){
+    if (req.is('text/*')) {
+      req.text = '';
+      req.setEncoding('utf8');
+      req.on('data', function(chunk){ req.text += chunk });
+      req.on('end', next);
+    } else {
+      next();
+    }
+  });
+
   console.debug("Initiating doctypes (express)..");
   documentTypes.onExpressInit(app);
 
@@ -384,11 +396,12 @@ function processCreateDoc (req, res)
   }
 
   var username = user.username
-    , docname  = body.name.trim()
+    , episodeName = body.name.trim()
+    , docname  = null
     , hoerid   = body.id
     , hoerPod  = null
 
-  if(!(docname.match(/^[a-z0-9-]+$/i)))
+  if(!(episodeName.match(/^[a-z0-9]+$/i)))
   {
     return reply("docname");
   }
@@ -423,50 +436,21 @@ function processCreateDoc (req, res)
           {
             cb(pod.id == hoerid);
           },
-          function (hoerPod)
+          function (_hoerPod)
           {
-            cb(hoerPod ? null : "fail-hoerpod", hoerPod);
-          }
-        );
-      },
-      // check if docname is compatible with slug
-      function (_hoerPod, cb)
-      {
-        hoerPod = _hoerPod;
-        var nameOkay = (docname.indexOf(hoerPod.slug) == 0);
-        nameOkay = nameOkay && docname.length > hoerPod.slug.length;
-        cb(nameOkay ? null :  "docname");
-      },
-      // find group
-      function (cb)
-      {
-        db.group.getGroups(
-          function (err, groups)
-          {
-            if(err) return cb("group");
-
-            async.detect(groups,
-              function (group, cb)
-              {
-                cb(group.short == hoerPod.slug);
-              },
-              function (group)
-              {
-                var groupshort = "other";
-                if(group)
-                {
-                  groupshort = group.short;
-                }
-                cb(null, groupshort);
-              }
-            )
+            hoerPod = _hoerPod;
+            if(hoerPod)
+            {
+              docname = hoerPod.slug + "-" + episodeName;
+            }
+            cb(hoerPod ? null : "fail-hoerpod");
           }
         );
       },
       // create doc
-      function (groupshort, cb)
+      function (cb)
       {
-        db.doc.createDoc(docname, "etherpad", groupshort,
+        db.doc.createDoc(docname, "etherpad", "pod",
           function (err)
           {
             if(err) return cb("db");
@@ -507,7 +491,7 @@ function processCreateDoc (req, res)
       status = "ok";
 
     console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
-    res.json(status == "ok" ? 200 : 500, { status: status });
+    res.json(status == "ok" ? 200 : 500, { status: status, docname: docname });
   }
 }
 
@@ -529,7 +513,7 @@ function processDoc (req, res, mode)
 
   // ejs & util
   var locals = {}
-    , logprefixstr = ""
+    , logprefixstr = getShowDocStr(username, docname, "???", "???", "???", "???")
 
 
   async.waterfall(
