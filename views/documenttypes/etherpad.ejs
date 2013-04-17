@@ -6,6 +6,7 @@
     <i class="icon-circle-arrow-right padhelparrows"></i>
     <i class="icon-circle-arrow-down padhelparrows" style="display:none"></i>
     <a href="#">Quickguide: Wie schreibe ich hier Shownotes?</a>
+    <a href="/doc/<%=padId%>/readonly" id="switch_view">Zum Lesemodus wechseln<a>
 </p>
 <div style="display:none;" id="padhelp">
     <div id="padhelptext">
@@ -22,7 +23,7 @@
 <script>
 $("#padhelpheader").click(function () 
     {
-        $("#padhelp").toggle(400);
+        $("#padhelp").toggle(200);
         $(".padhelparrows").toggle(0);
     }
 );
