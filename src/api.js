@@ -51,6 +51,7 @@ exports.init = function (_server, _cb)
   });
 }
 
+/* see /doc/api.md for details */
 exports.handleRequest = function (req, res)
 {
   var method = req.method
@@ -84,18 +85,6 @@ exports.handleRequest = function (req, res)
   }
 
   var entityGiven = params.entity;
-
-  /*
-      Special Functions:
-        init(_db, _server, cb)
-
-      API Functions: (res, req, answerRequest)
-        getMany
-        getOne
-        createOne
-        updateOne
-        deleteOne
-  */
 
   if(method == "GET") // read
   {

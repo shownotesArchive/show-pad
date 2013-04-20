@@ -5,7 +5,7 @@ General
 -------
 
 ### URL
-The endpoint for all calls looks like: `/api/$VERSION/$METHOD/$THING`, `$THING` is not required for some calls.
+The endpoint for all calls looks like: `/api/:version/:endpoint/:entity`, `:entity` is not required for some calls.
 
 ### Response format
 ```JSON
@@ -22,69 +22,48 @@ The endpoint for all calls looks like: `/api/$VERSION/$METHOD/$THING`, `$THING` 
 
 Endpoints
 ---------
-### USERS
-#### `GET` /api/1/users
-Returns all users in this form:
-```JSON
-"data":
-  [
-    {"username":"userA", "email":"admin@showpad.org"},
-    {"username":"userB", "email":"asd@google.com"},
-  ]
-```
-Possible status codes:
-* `200`, everything went fine, get your users from `data`
-* `500`, there was an error while getting the user, see `message`
+* `docs`
+* `doctexts`
+* `groups`
+* `users`
 
-#### `GET` /api/1/users/userA
-Returns a single user `userA` in this form:
-```JSON
-"data":
-  {"username":"userA", "email":"admin@showpad.org"}
-```
-Possible status codes:
-* `404`, user does not exist
-* `200`, everything went fine, get your user from `data`
-* `500`, there was an error getting the user, see `message`
 
-#### `DELETE` /api/1/users/userA    NOT YET IMPLEMTED
-Deletes `userA`.
+api.js
+------
+`api.js` contains all routing code for the api, it also handles the last mile of responding to the client.
+It supports the following HTTP-methods which are routed to the individual API-handlers:
 
-Possible status codes:
-* `404`, user does not exist
-* `200`, everything went fine, user has been deleted
-* `500`, there was an error while deleting the user, see `message`
+* `GET`
+  - with `:entity`: `getOne`
+  - without `:entity`: `getMany`
+* `POST`
+  - with `:entity`: `405`
+  - without `:entity`: `createOne`
+* `PUT`
+  - with `:entity`: `updateOne`
+  - without `:entity`: `405`
+* `DELTE`
+  - with `:entity`: `deleteOne`
+  - without `:entity`: `405`
 
-#### `POST` /api/1/users   NOT YET IMPLEMTED
-Creates a new user based on the JSON given as POST-Data:
-```
-{
-  "username": "userA",
-  "email": "admin@showpad.org"
-  "password": "pass"
-}
-```
-* `password` is given in cleartext, it will be salted and hashed on the server.
 
-Possible status codes:
-* `400`, malformed user-data, see `message`
-* `201`, everything went fine, the user was created
-* `500`, there was an while error getting the user, see `message`
+The `api`-directory
+-------------------
+The `api`-directory contains the individual API-handlers (or endpoints).
+The files in `/src/api/` are dynamically loaded, so you don't have to worry about anything when adding a new one.
 
-#### `PUT` /api/1/users/userA    NOT YET IMPLEMTED
-Updates `userA` baded on the JSON given as POST-Data:
-```
-{
-  "email": "admin@showpad.org"
-  "password": "pass"
-}
-```
-* The `username` cannot be changed
-* `password` is given in cleartext, it will be salted and hashed on the server
+Each endpoint **has** to implement a number of functions which all have this signature: `function (res, req, answerRequest)`.
+The entity given in the url is avialiable in `req.params.entity`, the body supplied by the client when POSTing is in `req.body`,
+which can be an object or just an string depending on the `Content-Type` given by the client.
+`answerRequest` is the callback which has to be called with the following parameters:
+* `res`, the response-object supplied as a parameter to the original function
+* `statusCode`, the status-code to use in HTTP and the json-response
+* `message`, the message to use in the json-response
+* `data`, the message to use in the json-response
 
-Possible status codes:
-* `400`, malformed user-data, see `message`
-* `200`, everything went fine, user has been created
-* `404`, user does not exist
-* `500`, there was an error while creating the user, see `message`
-
+Functions for each endpoint:
+* `getOne`
+* `getMany`
+* `createOne`
+* `updateOne`
+* `deleteOne`
