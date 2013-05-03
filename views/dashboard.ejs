@@ -15,6 +15,7 @@
     <li class="active"><a href="#users" data-toggle="tab"><%= __('dashboard.users') %></a></li>
     <li><a href="#docs" data-toggle="tab"><%= __('dashboard.docs') %></a></li>
     <li><a href="#groups" data-toggle="tab"><%= __('dashboard.groups') %></a></li>
+    <li><a href="#template" data-toggle="tab"><%= __('dashboard.template') %></a></li>
   </ul>
   <div id="my-tab-content" class="tab-content">
     <div class="tab-pane active" id="users">
@@ -98,6 +99,14 @@
             </div>
         </div>
     </div>
+    <div class="tab-pane" id="template">
+        <div><%= __('dashboard.template.info') %></div>
+        <textarea id="txt_template"></textarea>
+        <br>
+        <div class="alert alert-error" id="template-set-error" style="display:none"><%= __('dashboard.template.save.error') %></div>
+        <div class="alert alert-success" id="template-set-success" style="display:none"><%= __('dashboard.template.save.success') %></div>
+        <button class="btn primary" type="submit" id="save-template"><%= __('dashboard.template.save') %></button>
+    </div>
   </div>
 </div>
 
@@ -109,6 +118,7 @@ $(function ()
     refreshGroups();
     $('#create-doc').click(createDoc);
     $('#create-group').click(createGroup);
+    $('#save-template').click(saveTemplateText);
 
     $.fn.dataTableExt.sErrMode = 'throw';
 
@@ -265,6 +275,12 @@ $(function ()
                                 data: "{'open':'Open','closed':'Closed'}"
                             }
                         ]
+            });
+
+    $.ajax('/api/1/template')
+            .success(function (response)
+            {
+                $('#txt_template').text(response.data.text);
             });
 });
 
@@ -501,6 +517,23 @@ function getTableForType(type)
     }
 
     return table;
+}
+
+function saveTemplateText()
+{
+    var text = $('#txt_template').val();
+
+    $.post('api/1/template', { text: text })
+            .done(function (res)
+            {
+                $('#template-set-success').show();
+                $('#template-set-error').hide();
+            })
+            .fail(function (res)
+            {
+                $('#template-set-error').show();
+                $('#template-set-success').hide();
+            });
 }
 
 // by http://stackoverflow.com/a/10524697, modified

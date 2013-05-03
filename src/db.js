@@ -3,12 +3,14 @@ var redis  = require('redis')
   , userdb = require('./db/userdb.js')
   , docdb  = require('./db/docdb.js')
   , groupdb = require('./db/groupdb.js')
+  , templatedb = require('./db/templatedb.js')
   , options
   , client;
 
 exports.user = userdb;
 exports.doc = docdb;
 exports.group = groupdb;
+exports.templatedb = templatedb;
 
 exports.init = function (_options, cb)
 {
@@ -29,6 +31,11 @@ exports.init = function (_options, cb)
     {
       console.debug("Initiating groupdb..");
       groupdb.init(exports, cb);
+    },
+    function (cb)
+    {
+      console.debug("Initiating templatedb..");
+      templatedb.init(exports, cb);
     }
   ], cb);
 }
@@ -322,7 +329,7 @@ exports.setHash = function (name, obj)
   var key = "hash:" + name;
   var multi = client.multi();
   multi.del(key);
-  multi.hset(key, obj);
+  multi.hmset(key, obj);
   multi.exec();
 }
 

@@ -120,6 +120,11 @@
     "dashboard.groups.create.error.other": "Es ist ein Fehler aufgetreten.",
     "dashboard.groups.create.success": "Die Gruppe wurde erfolgreich erstellt!",
     "dashboard.groups.error.update": "Die Änderungen konnten nicht gespeichert werden",
+    "dashboard.template": "Template",
+    "dashboard.template.info": "Gespeichertes Templaet:",
+    "dashboard.template.save": "Speichern",
+    "dashboard.template.save.error": "Es ist ein Fehler aufgetreten.",
+    "dashboard.template.save.success": "Das neue Template wurde gespeichert.",
 
     "profile": "Profil",
     "profile.view.email": "E-Mail-Adresse:",

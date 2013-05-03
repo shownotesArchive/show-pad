@@ -120,6 +120,11 @@
     "dashboard.groups.create.error.other": "That did not work.",
     "dashboard.groups.create.success": "The group has been successfully created!",
     "dashboard.groups.error.update": "Could not update the group",
+    "dashboard.template": "Template",
+    "dashboard.template.info": "Currently saved template:",
+    "dashboard.template.save": "Save",
+    "dashboard.template.save.error": "Could not save new template!",
+    "dashboard.template.save.success": "New template saved.",
 
     "profile": "Profile",
     "profile.view.email": "Email-Address:",

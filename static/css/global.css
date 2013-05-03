@@ -219,3 +219,8 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     text-align: right;
 }
 
+#txt_preview, #txt_template
+{
+    width: 60%;
+    height: 200px;
+}
