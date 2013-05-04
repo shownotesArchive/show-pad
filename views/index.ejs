@@ -15,15 +15,16 @@
     <tbody>
         <% for (var i = 0; i < podcasts.length; i++) {
            var exists = podcasts[i].doc.exists;
+           var time = new Date(podcasts[i].pod.livedate);
         %>
             <tr>
-                <td><%=podcasts[i].name%></td>
+                <td><%=podcasts[i].pod.title%></td>
                 <td>
-                    <%= pad(podcasts[i].time.getHours())     + ":"  +
-                        pad(podcasts[i].time.getMinutes())   + ", " +
-                        pad(podcasts[i].time.getDate())      + "."  +
-                        pad(podcasts[i].time.getMonth() + 1) + "."  +
-                        (podcasts[i].time.getYear() + 1900) %>
+                    <%= pad(time.getHours())     + ":"  +
+                        pad(time.getMinutes())   + ", " +
+                        pad(time.getDate())      + "."  +
+                        pad(time.getMonth() + 1) + "."  +
+                        (time.getYear() + 1900) %>
                 </td>
                 <td>
                     <%= exists ? podcasts[i].doc.name : '' %>
@@ -31,8 +32,8 @@
                 <td class="<%= exists ? 'joindoc' : 'createdoc' %>">
                     <button class="btn btn-<%= exists ? 'info' : 'success' %>"
                             data-docname="<%=podcasts[i].doc.name%>"
-                            data-short="<%=podcasts[i].slug%>"
-                            data-id="<%=podcasts[i].id%>">
+                            data-short="<%=podcasts[i].pod.podcast%>"
+                            data-id="<%=podcasts[i].pod.id%>">
                         <%= __('index.podcasts.button.' + (exists ? 'join' : 'create')) %>
                     </button>
                 </td>

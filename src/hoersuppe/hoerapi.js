@@ -8,7 +8,7 @@ exports.getPodcasts = function (cb)
 exports.getPodcastData = function (podcast, cb)
 {
   cb = arguments[arguments.length - 1];
-  callAction("getPodcasts", { podcast: podcast}, cb);
+  callAction("getPodcastData", { podcast: podcast}, cb);
 }
 
 exports.getPodcastLive = function (podcast, count, cb)

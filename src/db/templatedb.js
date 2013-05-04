@@ -28,10 +28,10 @@ exports.getText = function (fields, cb)
 {
   async.waterfall(
     [
-      getRawTemplate,
+      exports.getRawTemplate,
       function (tpl, cb)
       {
-        applyFields(tpl.text, fields, cb);
+        exports.applyFields(tpl.text, fields, cb);
       }
     ],
     cb
@@ -40,6 +40,16 @@ exports.getText = function (fields, cb)
 
 exports.applyFields = function (tpl, fields, cb)
 {
-  var text = ejs.render(tpl, fields);
-  cb(text);
+  var text = tpl;
+
+  try
+  {
+    text = ejs.render(tpl, fields);
+  }
+  catch (ex)
+  {
+    console.log("Could not applyFields:", ex);
+  }
+
+  cb(null, text);
 }

@@ -334,10 +334,7 @@ function getClientPods (cb)
 
         for (var i = 0; i < podcasts.length; i++)
         {
-          var name = podcasts[i].title;
-          var slug = podcasts[i].podcast;
           var id = podcasts[i].id;
-          var time = new Date(podcasts[i].livedate);
           var doc = {};
           var docName = liveToPad[id];
 
@@ -353,10 +350,7 @@ function getClientPods (cb)
 
           clientPods.push(
             {
-              name: name,
-              slug: slug,
-              id: id,
-              time: time,
+              pod: podcasts[i],
               doc: doc
             }
           );
@@ -432,16 +426,16 @@ function processCreateDoc (req, res)
       function (clientPods, cb)
       {
         async.detect(clientPods,
-          function (pod, cb)
+          function (cpod, cb)
           {
-            cb(pod.id == hoerid);
+            cb(cpod.pod.id == hoerid);
           },
           function (_hoerPod)
           {
             hoerPod = _hoerPod;
             if(hoerPod)
             {
-              docname = hoerPod.slug + "-" + episodeName;
+              docname = hoerPod.pod.podcast + "-" + episodeName;
             }
             cb(hoerPod ? null : "fail-hoerpod");
           }
@@ -450,22 +444,54 @@ function processCreateDoc (req, res)
       // create doc
       function (cb)
       {
-        db.doc.createDoc(docname, "etherpad", "pod",
-          function (err)
+        // this function handels all errors in the parts (db, doctype, tpl) of the doc-creating
+        function onError(part, err, cb, args)
+        {
+          if(err)
           {
-            if(err) return cb("db");
-
-            db.doc.getDoc(docname,
-              function (err, doc)
-              {
-                documentTypes.onCreateDoc(doc,
-                  function (err)
-                  {
-                    cb(err ? "epl" : null);
-                  });
-              }
-            );
+            err = part + "-" + err;
           }
+          cb.apply(this, [err].concat(args));
+        }
+
+        var doc;
+
+        async.waterfall(
+          [
+            // create doc in db
+            function (cb)
+            {
+              db.doc.createDoc(docname, "etherpad", "pod", function (err) { onError("db", err, cb, []) });
+            },
+            // get the newly created doc from the db
+            function (cb)
+            {
+              db.doc.getDoc(docname, function (err, doc) { onError("db", err, cb, [doc]) });
+            },
+            // tell the documenttype that a new doc has been created
+            function (_doc, cb)
+            {
+              doc = _doc;
+              documentTypes.onCreateDoc(doc, function (err) { onError("doctype", err, cb, []) });
+            },
+            // GET getPodcastData from hoersuppe (preperation for template)
+            function (cb)
+            {
+              hoerapi.getPodcastData(hoerPod.pod.podcast, function (err, podcastdata) { onError("tpl-hoer", err, cb, [podcastdata]) });
+            },
+            // generate the doc-text (template)
+            function (podcastdata, cb)
+            {
+              var fields = { podcast: podcastdata, live: hoerPod.pod, doc: { name: docname } };
+              db.templatedb.getText(fields, function (err, text) { onError("tpl", err, cb, [text]) });
+            },
+            // set the doc-text
+            function (text, cb)
+            {
+              documentTypes.setText(doc, text, function (err) { onError("tpl-doctype", err, cb, []) })
+            }
+          ],
+          cb
         );
       },
       // create live2pad-entry & clear cache
