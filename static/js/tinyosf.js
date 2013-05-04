@@ -1,20 +1,22 @@
 /*
- * tinyOSF.js
+ * tinyosf.js
  *
  * Copyright 2013, Simon Waldherr - http://simon.waldherr.eu/
  * Released under the MIT Licence
  * http://opensource.org/licenses/MIT
  *
  * Github:  https://github.com/shownotes/tinyOSF.js/
- * Version: 0.0.7
+ * Version: 0.1.1
  */
 
-/*jslint browser: true*/
-/*exported osfParser, osfExport*/
+/*jslint browser: true, white: true, indent: 2 */
+/*exported osfParser, osfExport, osfBuildTags */
 
 function osfExtractTags(tagString, urlString) {
   "use strict";
-  var tagArray = [], tagTempArray = [], i, urlTemp, tagTemp;
+  var tagArray = [],
+    tagTempArray = [],
+    i, urlTemp, tagTemp;
   tagTempArray = tagString.split(' ');
   for (i = 0; i < tagTempArray.length; i += 1) {
     tagTemp = tagTempArray[i].replace('#', '').trim();
@@ -71,7 +73,8 @@ function osfBuildTags(tagArray, withClass) {
 
 function osfTimestampsToHMS(now, starttimestamp) {
   "use strict";
-  var time = parseInt(now, 10) - parseInt(starttimestamp, 10), hours, minutes, seconds, returntime = '';
+  var time = parseInt(now, 10) - parseInt(starttimestamp, 10),
+    hours, minutes, seconds, returntime = '';
   hours = Math.floor(time / 3600);
   minutes = Math.floor((time - (hours * 3600)) / 60);
   seconds = time - (hours * 3600) - (minutes * 60);
@@ -83,7 +86,8 @@ function osfTimestampsToHMS(now, starttimestamp) {
 
 function osfHMSToTimestamp(hms) {
   "use strict";
-  var time = 0, timeArray, regex = /((\d+\u003A)?(\d+\u003A)?(\d+)(\u002E\d+)?)/;
+  var time = 0,
+    timeArray, regex = /((\d+\u003A)?(\d+\u003A)?(\d+)(\u002E\d+)?)/;
   if (hms === undefined) {
     return;
   }
@@ -100,14 +104,28 @@ function osfHMSToTimestamp(hms) {
 
 function osfParser(string) {
   "use strict";
-  var osfArray, i = 0, output = [], 
-  osfRegex = /(^([(\d{9,})(\u002D+)(\d+\u003A\d+\u003A\d+(\u002E\d*)?) ]*)?([\u0020-\u0022\u0024-\u003B\u003D\u003F-\u007D\u00C0-\u00FF„“@€!"§$%&\(\)=\?`´\+]+) *(\u003C[\S]*\u003E)?((\s*\u0023[\S]* ?)*)\n*)/gmi;
+  var osfArray, i = 0,
+    splitAt = false,
+    output = [],
+    osfRegex = /(^([(\d{9,})(\u002D+)(\d+\u003A\d+\u003A\d+(\u002E\d*)?) ]*)?([\u0020-\u0022\u0024-\u003B\u003D\u003F-\u007D\u00C0-\u00FF„“@€!"§$%&\(\)=\?`´\+]+) *(\u003C[\S]*\u003E)?((\s*\u0023[\S]* ?)*)\n*)/gmi;
   //about this Regex:
   //^([(\d{9,})(\u002D+)(\d+\u003A\d+\u003A\d+(\u002E\d*)?) ]*)?                          => 1234567890 or - or 00:01:02[.000] or nothing at the beginning of the line
   //([\u0020-\u0022\u0024-\u003B\u003D\u003F-\u007D\u00C0-\u00FF„“@€!"§$%&\(\)=\?`´\+]+)  => a wide range of chars (excluding #,<,> and a few more) maybe this will change to ([^#<>]+) anytime
   //(\u003C[\S]*\u003E)?                                                                  => a string beginning with < and ending with > containing no whitespace or nothing
   //((\s*\u0023[\S]* ?)*)                                                                 => a string beginning with a whitespace, then a # and then some not whitespace chars or nothing
-  
+  if (string.indexOf('/HEADER') !== -1) {
+    splitAt = '/HEADER';
+  } else if (string.indexOf('/HEAD') !== -1) {
+    splitAt = '/HEAD';
+  }
+
+  if (typeof splitAt === 'string') {
+    string = string.split(splitAt, 2)[1];
+  } else {
+    splitAt = string.split(/([(\d{9,})(\d+\u003A\d+\u003A\d+(\u002E\d*)?)]+\s\S)/i, 2)[0];
+    string = string.split(splitAt)[1];
+  }
+
   while ((osfArray = osfRegex.exec(string)) !== null) {
     output[i] = osfArray;
     i += 1;
@@ -115,9 +133,12 @@ function osfParser(string) {
   return output;
 }
 
-function osfExport(osf, mode) {
+function osfExport(osf, modefunction) {
   "use strict";
-  var i, osfline, line, tags, url, osfFirstTS, osfFirstHMS, osfTime, timeSec, timeHMS, parsed = '';
+  var i, osfline, tags, url, osfFirstTS, osfFirstHMS, osfTime, timeSec, timeHMS, iteminfo = {}, parsed = '';
+  parsed += modefunction('', 'pre');
+  iteminfo.afterChapter = 0;
+  iteminfo.nextisChapter = false;
   for (i = 0; i < osf.length; i += 1) {
     osfline = osf[i];
     osfTime = osfline[2];
@@ -141,45 +162,29 @@ function osfExport(osf, mode) {
       url = false;
     }
     tags = osfExtractTags(osfline[5], url);
-    if (osfline !== undefined) {
-      if ((mode === 'html')||(mode === undefined)) {
-        if (typeof timeSec === 'number') {
-          if (url !== false) {
-            line = '<a data-tooltip="' + timeSec + '" ' + osfBuildTags(tags, true) + ' href="' + url + '">' + osfline[3].trim() + '</a>';
-          } else {
-            line = '<span data-tooltip="' + timeSec + '" ' + osfBuildTags(tags, true) + '>' + osfline[3].trim() + '</span>';
-          }
-        } else {
-          if (url !== false) {
-            line = '<a' + osfBuildTags(tags, true) + ' href="' + url + '">' + osfline[3].trim() + '</a>';
-          } else {
-            line = '<span' + osfBuildTags(tags, true) + '>' + osfline[3].trim() + '</span>';
-          }
-        }
-        if (tags.indexOf('chapter') !== -1) {
-          line = '<h2>' + line + '<small>(' + timeHMS + ')</small></h2>';
-          parsed += line;
-        } else {
-          parsed += line + '; ';
-        }
-      } else if (mode === 'md') {
-        if (url !== false) {
-          line = '[' + osfline[3].trim() + '](' + url + ')';
-        } else {
-          line = osfline[3].trim();
-        }
-        if (tags.indexOf('chapter') !== -1) {
-          line = '\n#' + line + ' ^' + timeHMS + '  \n';
-          parsed += line;
-        } else {
-          parsed += line + '; ';
-        }
-      } else if (mode === 'chapter') {
-        if (tags.indexOf('chapter') !== -1) {
-          parsed += timeHMS + ' ' + osfline[3].trim() + '\n';
-        }
+    if (tags.indexOf('chapter') !== -1) {
+      iteminfo.afterChapter = 0;
+    } else {
+      iteminfo.afterChapter += 1;
+    }
+    if (osf[i + 1] !== undefined) {
+      if (osfExtractTags(osf[i + 1][5], false).indexOf('chapter') !== -1) {
+        iteminfo.nextisChapter = true;
+      } else {
+        iteminfo.nextisChapter = false;
       }
     }
+    if ((osfline !== undefined) && (modefunction !== undefined)) {
+      parsed += modefunction({
+        "timeSec": timeSec,
+        "timeHMS": timeHMS,
+        "osfline": osfline,
+        "url": url,
+        "tags": tags,
+        "iteminfo": iteminfo
+      });
+    }
   }
+  parsed += modefunction('', 'post');
   return parsed;
 }
