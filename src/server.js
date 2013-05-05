@@ -39,6 +39,7 @@ exports.documentTypes = documentTypes;
 exports.nconf = nconf;
 exports.db = db;
 exports.log4js = log4js;
+exports.pageurl = pageurl;
 
 // startup
 log4js.replaceConsole();
