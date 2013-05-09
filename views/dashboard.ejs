@@ -53,8 +53,8 @@
                 <input type="text" id="docname" name="docname">
 
                 <label class="control-label" for="doctype"><%= __('dashboard.docs.create.type') %></label>
-                <select id="doctype" name="doctype" >
-                    <option value="etherpad">Etherpad</option>
+                <select id="doctype" name="doctype" class="doctypeSelect">
+                    <option value="">Loading..</option>
                 </select>
                 
                 <label class="control-label" for="docgroup"><%= __('dashboard.docs.create.group') %></label>
@@ -116,6 +116,8 @@ var groups = []
 $(function ()
 {
     refreshGroups();
+    refreshDoctypes();
+
     $('#create-doc').click(createDoc);
     $('#create-group').click(createGroup);
     $('#save-template').click(saveTemplateText);
@@ -286,25 +288,40 @@ $(function ()
 
 function refreshGroups()
 {
-    $.ajax("/api/1/groups/")
-        .success(function(response)
+    refreshDropdown("groups", "groupSelect",
+        function (group)
         {
-            $(".groupSelect").each(function (i, select) { $(select).empty(); });
-            $.each(response.data,
-                function (i, group)
-                {
-                    var short = group.short;
-                    var name = group.name;
+            return {
+                text: group.name + " (" + group.short + ")",
+                value: group.short
+            };
+        }
+    );
+}
 
-                    $(".groupSelect").each(
-                        function (i, select)
-                        {
-                            $(select).append(new Option(name + " (" + short + ")", short));
-                        }
-                    );
-                }
-            )
-        });
+function refreshDoctypes()
+{
+    refreshDropdown("documenttypes", "doctypeSelect", function (doctype) { return { text: doctype, value: doctype }; });
+}
+
+function refreshDropdown(endpoint, cls, namecb)
+{
+    $.ajax("/api/1/" + endpoint)
+            .success(function(response)
+            {
+                $("." + cls).each(
+                    function (i, select)
+                    {
+                        $(select).empty();
+                        $.each(response.data, function (i, thing)
+                            {
+                                var opt = namecb(thing);
+                                $(select).append(new Option(opt.text, opt.value));
+                            }
+                        );
+                    }
+                );
+            });
 }
 
 function addRowButtons(oObj, type)
