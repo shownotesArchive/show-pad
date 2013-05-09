@@ -67,3 +67,47 @@ Functions for each endpoint:
 * `createOne`
 * `updateOne`
 * `deleteOne`
+
+An dummy api-endpoint could look like this:
+```javascript```
+var db, server;
+
+exports.name = "";
+
+exports.init = function (_db, _server, cb)
+{
+  server = _server;
+  db = _db;
+  cb();
+}
+
+exports.getOne = function (res, req, answerRequest)
+{
+  var name = req.params.entity;
+  answerRequest(res, 500, "nope", null);
+}
+
+exports.getMany = function (res, req, answerRequest)
+{
+  answerRequest(res, 500, "nope", null);
+}
+
+exports.createOne = function (res, req, answerRequest)
+{
+  var thing = req.body;
+  answerRequest(res, 500, "nope", null);
+}
+
+exports.updateOne = function (res, req, answerRequest)
+{
+  var thing = req.body;
+  var name = req.params.entity;
+  answerRequest(res, 500, "nope", null);
+}
+
+exports.deleteOne = function (res, req, answerRequest)
+{
+  var name = req.params.entity;
+  answerRequest(res, 500, "nope", null);
+}
+```
