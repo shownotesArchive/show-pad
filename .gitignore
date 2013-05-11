@@ -8,3 +8,7 @@ thumbs.db
 static/js/jquery-queryParser.min.js
 static/js/jquery.jeditable.mini.js
 static/js/etherpad.js
+static/js/podlove-web-player.js
+static/js/mediaelement-and-player.min.js
+static/css/podlove-web-player.css
+static/css/mediaelementplayer.min.css

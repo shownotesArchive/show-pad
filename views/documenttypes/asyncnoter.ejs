@@ -1,22 +1,73 @@
 <% layout('../doc.ejs') %>
 <% block('title', docname) -%>
+
+<!-- PWP -->
+<% stylesheet('/css/mediaelementplayer.min.css') %>
+<% stylesheet('/css/podlove-web-player.css') %>
+<% script('/js/podlove-web-player.js') %>
+<% script('/js/mediaelement-and-player.min.js') %>
+
+<!-- ShareJS -->
 <% script('/sharejs/channel/bcsocket.js') %>
 <% script('/sharejs/share.uncompressed.js') %>
 <% script('/sharejs/json.uncompressed.js') %>
 
+<center>
+    <audio id="asyncnoterPlayer">
+        <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.mp3" type='audio/mp4' />
+    </audio>
+</center>
+
 <div id="notes"></div>
 
 <script>
-    var doc = null;
+var webplayer, doc;
 
-    sharejs.open("<%=docname%>", 'json', '/sharejs/sock_bc', function(error, _doc)
-    {
-        doc = _doc;
-        if (doc.created) {
-            // TODO: create on serverside
-            doc.set([]);
+function setupWebplayer()
+{
+    $('#asyncnoterPlayer').podlovewebplayer(
+        {
+            title: 'ShowPad!',
+            permalink: '#',
+            subtitle: '',
+            chapters: [],
+            summary: '<p></p>',
+            downloads: [],
+            duration: '',
+            startVolume: 1,
+            width: '500px',
+            poster: '',
+            summaryVisible: false,
+            alwaysShowHours: true,
+            timecontrolsVisible: false,
+            sharebuttonsVisible: false,
+            chaptersVisible: false
         }
-        doc.at().push("foo");
-        alert(JSON.stringify(doc.get()));
-    });
+    );
+
+    webplayer = $('#asyncnoterPlayer')[0];
+}
+
+function setupSharejs()
+{
+    sharejs.open("<%=docname%>", 'json', '/sharejs/sock_bc',
+        function (error, _doc)
+        {
+            doc = _doc;
+            if (doc.created)
+            {
+                // TODO: create on serverside
+                doc.set([]);
+            }
+            doc.at().push("foo");
+            console.log(doc.get());
+        }
+    );
+}
+
+$(function()
+{
+    setupWebplayer();
+    setupSharejs();
+});
 </script>
