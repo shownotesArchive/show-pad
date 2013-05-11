@@ -4,6 +4,7 @@
   "apikey":"",
   "docsonindex": 10,
   "trustproxy": false,
+  "xsn_pw": "",
   "loglevel":
   {
     "doctypes": "INFO",
