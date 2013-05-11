@@ -1,0 +1,22 @@
+<% layout('../doc.ejs') %>
+<% block('title', docname) -%>
+<% script('/sharejs/channel/bcsocket.js') %>
+<% script('/sharejs/share.uncompressed.js') %>
+<% script('/sharejs/json.uncompressed.js') %>
+
+<div id="notes"></div>
+
+<script>
+    var doc = null;
+
+    sharejs.open("<%=docname%>", 'json', '/sharejs/sock_bc', function(error, _doc)
+    {
+        doc = _doc;
+        if (doc.created) {
+            // TODO: create on serverside
+            doc.set([]);
+        }
+        doc.at().push("foo");
+        alert(JSON.stringify(doc.get()));
+    });
+</script>

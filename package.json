@@ -25,6 +25,7 @@
     "limiter": "~1",
     "memory-cache": "0.0.x",
     "etherpad-lite-client": "0.7.0",
+    "share": "git://github.com/josephg/ShareJS.git",
     "recaptcha": "~1"
   },
   "engines": {
