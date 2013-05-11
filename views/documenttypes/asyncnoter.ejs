@@ -16,12 +16,22 @@
     <audio id="asyncnoterPlayer">
         <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.mp3" type='audio/mp4' />
     </audio>
+    <hr>
+    <div id="addnotes" class="form-horizontal">
+        <span>Add a note:</span>
+        <span id="addnotetime">&nbsp;</span>
+        <input id="addnotetext" type="text">
+        <button class="btn" id="addnote">Add!</button>
+    </div>
 </center>
 
 <div id="notes"></div>
 
 <script>
+// arch
 var webplayer, doc;
+// add notes
+var isInNote = false, inNoteTime;
 
 function setupWebplayer()
 {
@@ -54,15 +64,37 @@ function setupSharejs()
         function (error, _doc)
         {
             doc = _doc;
-            if (doc.created)
+            if (!doc.get())
             {
-                // TODO: create on serverside
                 doc.set([]);
             }
-            doc.at().push("foo");
-            console.log(doc.get());
+
+            var notes = doc.get();
+            $.each(notes, function(i, note) { addNoteToHTML(note); });
+            doc.at().on('insert', onDocInsert);
         }
     );
+
+    $('#addnotetext').on('input', function ()
+    {
+        var $text = $('#addnotetext');
+        if($text.val().length == 0)
+        {
+            isInNote = false;
+        }
+        else if(!isInNote)
+        {
+            isInNote = true;
+            inNoteTime = getCurrentTime();
+            $('#addnotetime').text(inNoteTime);
+        }
+    });
+
+    $('#addnote').click(userSubmitNote);
+    $('#addnotetext').keypress(function (e)
+    {
+        if((e.keyCode ? e.keyCode : e.which) == 13) userSubmitNote();
+    });
 }
 
 $(function()
@@ -70,4 +102,80 @@ $(function()
     setupWebplayer();
     setupSharejs();
 });
+
+function userSubmitNote()
+{
+    var text = $('#addnotetext').val();
+    if(text && text.length != 0)
+    {
+        userAddNote(text);
+    }
+}
+
+function onDocInsert(position, note)
+{
+    addNoteToHTML(note);
+}
+
+function userAddNote(text)
+{
+    isInNote = false;
+    $('#addnotetime').html('&nbsp;');
+    $('#addnotetext').val('');
+
+    addNoteToDoc({ time: inNoteTime, text: text });
+
+    $('#addnotetext').focus();
+}
+
+function addNoteToDoc(note)
+{
+    doc.at().push(note,
+        function (t)
+        {
+            addNoteToHTML(note);
+        }
+    );
+}
+
+function addNoteToHTML(note)
+{
+    var $notes = $('#notes li');
+    var position = -1;
+
+    var $note = $('<li>');
+    $note.attr('data-time', note.time);
+    $note.append($('<span>').addClass('time').text(note.time));
+    $note.append($('<span>').addClass('text').text(note.text));
+
+    for (var i = 0; i < $notes.length; i++)
+    {
+        if($($notes[i]).data('time') > note.time)
+        {
+            position = i;
+            break;
+        }
+    }
+
+    if(position == -1)
+    {
+        $('#notes').append($note);
+    }
+    else
+    {
+        $('#notes li').eq(position).before($note);
+    }
+}
+
+function getCurrentTime()
+{
+    var rawTime = $('.podlovewebplayer_wrapper .mejs-currenttime').text().split(':');
+    var time = 0;
+    // hours are optional.. so here comes the magic!
+    for(var i = rawTime.length - 1; i >= 0; i--)
+    {
+        time += parseInt(rawTime[i], 10) * Math.pow(60, rawTime.length - i - 1);
+    }
+    return time;
+}
 </script>

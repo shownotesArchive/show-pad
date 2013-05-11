@@ -224,3 +224,47 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     width: 60%;
     height: 200px;
 }
+
+#notes
+{
+    list-style-type: none;
+    margin: 10px;
+}
+
+#notes li
+{
+    margin: 0 3px 3px 3px;
+    padding: 0.4em;
+    padding-left: 1.5em;
+    font-size: 1.4em;
+    height: 18px;
+    border: 1px solid #CCC;
+    outline: none;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.1);
+}
+
+#notes li .time
+{
+    color: #CCC;
+    width: 40px;
+    display: inline-block;
+    margin-right: 10px;
+    padding-right: 10px;
+    border-right: solid #DDD 1px;
+    text-align: right;
+}
+
+#addnotes
+{
+    text-align: center;
+    margin-top: 20px;
+}
+
+#addnotetime
+{
+    width: 100px;
+    display: inline-block;
+    background-color: lightgray;
+    border-radius: 7px;
+}
