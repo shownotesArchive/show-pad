@@ -14,7 +14,9 @@
 
 <center>
     <audio id="asyncnoterPlayer">
-        <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.mp3" type='audio/mp4' />
+        <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.m4a" type='audio/mp4' />
+        <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.oga" type='audio/ogg; codecs="vorbis"' />
+        <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.mp3" type='audio/mpeg' />
     </audio>
     <hr>
     <div id="addnotes" class="form-horizontal">
@@ -47,6 +49,7 @@ function setupWebplayer()
             startVolume: 1,
             width: '500px',
             poster: '',
+            pluginPath: '<%=pwppath%>/static/',
             summaryVisible: false,
             alwaysShowHours: true,
             timecontrolsVisible: false,
