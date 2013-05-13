@@ -96,6 +96,7 @@
     "dashboard.docs": "Dokumente",
     "dashboard.docs.name": "Name",
     "dashboard.docs.type": "Typ",
+    "dashboard.docs.createTime": "Erstellungsdatum",
     "dashboard.docs.group": "Gruppe",
     "dashboard.docs.create": "Erstellen",
     "dashboard.docs.create.name": "Name:",

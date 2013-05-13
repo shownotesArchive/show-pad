@@ -38,6 +38,7 @@
                 <tr>
                     <th><%= __('dashboard.docs.name') %></th>
                     <th><%= __('dashboard.docs.type') %></th>
+                    <th><%= __('dashboard.docs.createTime') %></th>
                     <th><%= __('dashboard.docs.group') %></th>
                     <th></th>
                 </tr>
@@ -141,6 +142,18 @@ $(function ()
                         }
                     },
                     { mData: [ "type" ] },
+                    {
+                        mData: [ "createTime" ],
+                        fnRender: function (oObj)
+                            {
+                                var date = new Date(oObj.aData.createTime);
+                                var month = date.getMonth().toString();
+                                var day = date.getDate().toString();
+                                if(month.length == 1) month = "0" + month;
+                                if(day.length == 1) day = "0" + day;
+                                return (date.getYear() + 1900) + "." + month + "." + day;
+                            }
+                    },
                     { mData: [ "group" ] },
                     {
                         mData: null,

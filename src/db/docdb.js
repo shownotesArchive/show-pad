@@ -10,6 +10,7 @@ function Doc (docname, type, group)
   this.docname = docname;
   this.type = type;
   this.group = group;
+  this.createTime = +new Date();
 }
 
 Doc.prototype =
@@ -21,6 +22,10 @@ Doc.prototype =
     {
       this[prop] = rawDoc[prop];
     }
+
+    // docs without a createTime will fallback to 1970.
+    if(!rawDoc["createTime"])
+      this["createTime"] = 0;
   }
 }
 
