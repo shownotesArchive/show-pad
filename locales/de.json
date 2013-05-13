@@ -87,6 +87,7 @@
     "dashboard.users": "Nutzer",
     "dashboard.users.name": "Name",
     "dashboard.users.email": "E-Mail-Adresse",
+    "dashboard.users.createTime": "Anmeldedatum",
     "dashboard.users.role": "Rolle",
     "dashboard.users.selectrole": "Rolle auswählen &hellip;",
     "dashboard.users.status": "Status",

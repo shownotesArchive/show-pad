@@ -24,6 +24,7 @@
                 <tr>
                     <th><%= __('dashboard.users.name') %></th>
                     <th><%= __('dashboard.users.email') %></th>
+                    <th><%= __('dashboard.users.createTime') %></th>
                     <th><%= __('dashboard.users.role') %></th>
                     <th><%= __('dashboard.users.status') %></th>
                     <th><%= __('dashboard.users.groups') %></th>
@@ -144,15 +145,7 @@ $(function ()
                     { mData: [ "type" ] },
                     {
                         mData: [ "createTime" ],
-                        fnRender: function (oObj)
-                            {
-                                var date = new Date(oObj.aData.createTime);
-                                var month = date.getMonth().toString();
-                                var day = date.getDate().toString();
-                                if(month.length == 1) month = "0" + month;
-                                if(day.length == 1) day = "0" + day;
-                                return (date.getYear() + 1900) + "." + month + "." + day;
-                            }
+                        fnRender: function (oObj) { return formatDate(new Date(oObj.aData.createTime)); }
                     },
                     { mData: [ "group" ] },
                     {
@@ -203,6 +196,10 @@ $(function ()
                     { mData: [ "username" ] },
                     { mData: [ "email" ] },
                     {
+                        mData: [ "createTime" ],
+                        fnRender: function (oObj) { return formatDate(new Date(oObj.aData.createTime)); }
+                    },
+                    {
                         mData: [ "roles" ],
                         fnRender: function (oObj)
                         {
@@ -244,6 +241,7 @@ $(function ()
                 sUpdateURL: updateUser,
                 aoColumns:
                         [
+                            null,
                             null,
                             null,
                             {
@@ -298,6 +296,15 @@ $(function ()
                 $('#txt_template').text(response.data.text);
             });
 });
+
+function formatDate(date)
+{
+    var month = date.getMonth().toString();
+    var day = date.getDate().toString();
+    if(month.length == 1) month = "0" + month;
+    if(day.length == 1) day = "0" + day;
+    return (date.getYear() + 1900) + "." + month + "." + day;
+}
 
 function refreshGroups()
 {
