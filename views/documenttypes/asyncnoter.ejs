@@ -2,10 +2,10 @@
 <% block('title', docname) -%>
 
 <!-- PWP -->
-<% stylesheet('/css/mediaelementplayer.min.css') %>
-<% stylesheet('/css/podlove-web-player.css') %>
-<% script('/js/podlove-web-player.js') %>
-<% script('/js/mediaelement-and-player.min.js') %>
+<% pwppath = "/pwp/podlove-web-player-master/podlove-web-player"; %>
+
+<% script(pwppath + '/static/podlove-web-player.js') %>
+<% stylesheet(pwppath + '/static/podlove-web-player.css') %>
 
 <!-- ShareJS -->
 <% script('/sharejs/channel/bcsocket.js') %>
