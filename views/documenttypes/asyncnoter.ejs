@@ -115,7 +115,13 @@ function setupSharejs()
 
 function setupKeybindings()
 {
-    jwerty.key('shift+space', userPauseOrStart);
+    jwerty.key('ctrl+space', userPauseOrStart);
+
+    if(!isFlash)
+    {
+        jwerty.key('ctrl+w', userJumpForward);
+        jwerty.key('ctrl+q', userJumpBackward);
+    }
 }
 
 $(function()
@@ -135,6 +141,21 @@ function userPauseOrStart()
     {
         webplayer.pause();
     }
+}
+
+function userJumpForward()
+{
+    userJump(+60);
+}
+
+function userJumpBackward()
+{
+    userJump(-60);
+}
+
+function userJump(amount)
+{
+    webplayer.setCurrentTime(webplayer.currentTime + amount);
 }
 
 function userSubmitNote()
