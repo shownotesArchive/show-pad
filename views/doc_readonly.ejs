@@ -27,11 +27,11 @@
 <div class="doctext">Loading...</div>
 <pre class="doctext">Loading...</pre>
 
-<script>
+<script type="text/javascript">
 var oldexported = null;
 var hash = window.location.hash;
 if(hash && hash.length > 1) hash = hash.substr(1);
-var activeFormat = hash || "html";
+var activeFormat = hash || 'html';
 
 setInterval(getDocText, 1000);
 getDocText();
@@ -50,7 +50,7 @@ function getDocText()
                 $('#users').text(users);
                 $('#updateerror').addClass('hidden');
 
-                if(activeFormat == "raw")
+                if(activeFormat === 'raw')
                 {
                     exported = text;
                 }
@@ -76,16 +76,15 @@ function getDocText()
                 $('.doctext').hide();
                 switch(activeFormat)
                 {
-                    case "raw":
-                    case "chapter":
-                    case "md":
+                    case 'raw':
+                    case 'chapter':
+                    case 'md':
                         $('pre.doctext').show().text(exported);
                         break;
-                    case "html":
+                    case 'html':
                         $('div.doctext').show().html(exported);
                         break;
                 }
-
             }
         )
         .fail
@@ -105,9 +104,12 @@ $('#format.nav').click(
         var elem = $(evt.target);
         var format = elem.data("format");
 
-        $('#format.nav li').removeClass('disabled').addClass('active');
-        activeFormat = format;
-        selectFormat(activeFormat);
+        if(format != undefined)
+        {
+            $('#format.nav li').removeClass('disabled').addClass('active');
+            activeFormat = format;
+            selectFormat(format);
+        }
     }
 )
 
