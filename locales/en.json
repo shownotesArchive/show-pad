@@ -149,5 +149,7 @@
     "profile.password.submit": "Change password",
     "profile.password.error.other": "Your password could not be changed. Please contact an administrator.",
     "profile.password.error.pwmatch": "The passwords don't match.",
-    "profile.password.status.success": "Your password has been changed."
+    "profile.password.status.success": "Your password has been changed.",
+
+    "asyncnoter.flashwarning": "The player is currently in flash-mode. Some ShowPad-features may not be available.<br>Please switch to a browser which has better support for HTML5-Audio-Playback or ask your podcaster to supply more formats."
 }

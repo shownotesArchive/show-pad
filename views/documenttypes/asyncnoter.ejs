@@ -14,6 +14,7 @@
 
 <% script('/jwerty/jwerty.js') %>
 
+<div id="flashwarning" class="alert alert-warn hidden"><%-__('asyncnoter.flashwarning')%></div>
 <center>
     <audio id="asyncnoterPlayer">
         <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.m4a" type='audio/mp4' />
@@ -33,9 +34,13 @@
 
 <script>
 // arch
-var webplayer, doc;
+var webplayer
+  , doc
+  , isFlash = false
+
 // add notes
-var isInNote = false, inNoteTime;
+var isInNote = false
+  , inNoteTime
 
 function setupWebplayer()
 {
@@ -61,6 +66,12 @@ function setupWebplayer()
     );
 
     webplayer = $('#asyncnoterPlayer')[0];
+
+    if(!webplayer.setCurrentTime)
+    {
+        $('#flashwarning').removeClass('hidden');
+        isFlash = true;
+    }
 }
 
 function setupSharejs()

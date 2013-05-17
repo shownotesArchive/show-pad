@@ -149,5 +149,7 @@
     "profile.password.submit": "Passwort ändern",
     "profile.password.error.other": "Deine Passwort konnte nicht geändert werden. Bitte melde Dich bei einem Administrator.",
     "profile.password.error.pwmatch": "Die Passwörter stimmen nicht überein.",
-    "profile.password.status.success": "Dein Passwort wurde geändert."
+    "profile.password.status.success": "Dein Passwort wurde geändert.",
+
+    "asyncnoter.flashwarning": "Der Player befinet sich im Flash-Modus, daher sind manche ShowPad-Funktionen nicht nutzbar.<br>Bitte benutze einen Browser mit besserer HTML5-Audiounterstützung oder frage deinen Podcast nach mehr Formaten."
 }
