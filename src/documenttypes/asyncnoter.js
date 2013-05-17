@@ -39,6 +39,7 @@ exports.initExpress = function (app)
   sharejs.attach(app, options);
   model = app.model;
   app.use("/sharejs/channel", express.static(path.resolve(__dirname + '/../../node_modules/share/node_modules/browserchannel/dist')));
+  app.use("/jwerty", express.static(path.resolve(__dirname + '/../../node_modules/jwerty')));
 }
 
 function auth(agent, action)

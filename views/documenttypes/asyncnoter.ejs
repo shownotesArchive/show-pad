@@ -12,6 +12,8 @@
 <% script('/sharejs/share.uncompressed.js') %>
 <% script('/sharejs/json.uncompressed.js') %>
 
+<% script('/jwerty/jwerty.js') %>
+
 <center>
     <audio id="asyncnoterPlayer">
         <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.m4a" type='audio/mp4' />
@@ -100,11 +102,29 @@ function setupSharejs()
     });
 }
 
+function setupKeybindings()
+{
+    jwerty.key('shift+space', userPauseOrStart);
+}
+
 $(function()
 {
     setupWebplayer();
     setupSharejs();
+    setupKeybindings();
 });
+
+function userPauseOrStart()
+{
+    if(webplayer.paused)
+    {
+        webplayer.play();
+    }
+    else
+    {
+        webplayer.pause();
+    }
+}
 
 function userSubmitNote()
 {
