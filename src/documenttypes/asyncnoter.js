@@ -74,12 +74,48 @@ function auth(agent, action)
       handleAction(action, username, false);
       break;
 
-    // reading & writing for registered users
+    // updating for everyone, but with validation
     case "update":
+      var ops = action.op;
+      var allowed = true;
+
+      for (var op in ops)
+      {
+        if(!isAllowedOp(ops[op]))
+        {
+          allowed = false;
+          break;
+        }
+      }
+      handleAction(action, username, allowed);
+      break;
+
+    // reading for everyone
     case "read":
       handleAction(action, username, true);
       break;
   }
+}
+
+function isAllowedOp(op)
+{
+  if(op.p && op.li && Object.keys(op).length == 2)
+  {
+    var note = op.li;
+    var isValid = !!note.time && !!note.text &&
+                  isNumber(note.time) && typeof note.text == "string";
+
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+// http://stackoverflow.com/a/1830844
+function isNumber(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 function handleAction(action, username, accept)

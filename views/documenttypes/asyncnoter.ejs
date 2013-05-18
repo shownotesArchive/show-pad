@@ -30,6 +30,8 @@
     </div>
 </center>
 
+<br>
+<div id="err" class="alert alert-error hidden"></div>
 <div id="notes"></div>
 
 <script>
@@ -212,12 +214,23 @@ function userAddNote(text)
     $('#addnotetext').focus();
 }
 
+var errorTimeout;
+
 function addNoteToDoc(note)
 {
     doc.at().push(note,
-        function (t)
+        function (err, op)
         {
-            addNoteToHTML(note);
+            if(err)
+            {
+                clearTimeout(errorTimeout);
+                setTimeout(function () { $('#err').addClass('hidden') }, 5000);
+                $('#err').text(err).removeClass('hidden');
+            }
+            else
+            {
+                addNoteToHTML(note);
+            }
         }
     );
 }
