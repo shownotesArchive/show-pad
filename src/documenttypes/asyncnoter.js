@@ -160,7 +160,26 @@ exports.onCreateGroup = function (group, cb)
 /* Docs */
 exports.onCreateDoc = function (doc, cb)
 {
-  model.create(doc.docname, "json", cb);
+  async.series(
+    [
+      // create the doc
+      function (cb)
+      {
+        model.create(doc.docname, "json", cb);
+      },
+      // set the doc-content to []
+      function (cb)
+      {
+        var opData =
+        {
+          op: [{"p":[],"oi":[]}],
+          v: 0
+        };
+        model.applyOp(doc.docname, opData, cb);
+      }
+    ],
+    cb
+  );
 }
 
 exports.onDeleteDoc = function (doc, cb)

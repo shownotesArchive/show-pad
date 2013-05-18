@@ -96,10 +96,6 @@ function setupSharejs()
         function (error, _doc)
         {
             doc = _doc;
-            if (!doc.get())
-            {
-                doc.set([]);
-            }
 
             var notes = doc.get();
             $.each(notes, function(i, note) { addNoteToHTML(note); });
