@@ -44,6 +44,14 @@ var webplayer
 var isInNote = false
   , inNoteTime
 
+$(function()
+{
+    setupWebplayer();
+    setupSharejs();
+    setupUI();
+    setupKeybindings();
+});
+
 function setupWebplayer()
 {
     $('#asyncnoterPlayer').podlovewebplayer(
@@ -98,7 +106,10 @@ function setupSharejs()
             doc.at().on('insert', onDocInsert);
         }
     );
+}
 
+function setupUI()
+{
     $('#addnotetext').on('input', function ()
     {
         var $text = $('#addnotetext');
@@ -131,13 +142,6 @@ function setupKeybindings()
         jwerty.key('ctrl+q', userJumpBackward);
     }
 }
-
-$(function()
-{
-    setupWebplayer();
-    setupSharejs();
-    setupKeybindings();
-});
 
 function userPauseOrStart()
 {
@@ -246,7 +250,11 @@ function addNoteToHTML(note)
     $note.append($('<span>').addClass('text').text(note.text));
     
     if(!isFlash)
+    {
+        // jumping to the notes time does not work in the flash
+        // version because setCurrentTime doesn't.
         $note.click(userClickNote);
+    }
 
     for (var i = 0; i < $notes.length; i++)
     {
@@ -279,6 +287,8 @@ function setAddnotetimeSpan(text)
     }
 }
 
+// webplayer.currentTime does not work in the flash-version of mediaelement.js
+// so we have to squeeze the current time out of the HTML element which contains it..
 function getCurrentTime()
 {
     var rawTime = $('.podlovewebplayer_wrapper .mejs-currenttime').text().split(':');
