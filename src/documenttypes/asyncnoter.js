@@ -33,7 +33,11 @@ exports.initExpress = function (app)
         base: "/sharejs/rest"
       },
       auth: auth,
-      db: { type: 'none' }
+      db:
+      {
+        type: 'redis',
+        client: server.db.getClient()
+      }
     };
 
   sharejs.attach(app, options);

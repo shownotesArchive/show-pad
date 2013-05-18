@@ -364,6 +364,11 @@ exports.prepareSessionStore = function (express, options)
   return new RedisStore(options);
 }
 
+exports.getClient = function ()
+{
+  return client;
+}
+
 function initRedis(cb)
 {
   console.debug("Initiating redis..");
