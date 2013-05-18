@@ -76,7 +76,13 @@ function setupWebplayer()
 
 function setupSharejs()
 {
-    sharejs.open("<%=docname%>", 'json', '/sharejs/sock_bc',
+    var options =
+    {
+        origin: '/sharejs/sock_bc',
+        authentication: "<%=authtoken%>"
+    }
+
+    sharejs.open("<%=docname%>", 'json', options,
         function (error, _doc)
         {
             doc = _doc;

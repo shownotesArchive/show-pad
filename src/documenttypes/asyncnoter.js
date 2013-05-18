@@ -1,11 +1,13 @@
-var async  = require('async')
+var async   = require('async')
   , express = require('express')
-  , path = require('path')
+  , path    = require('path')
+  , crypto  = require('crypto')
   , sharejs = require('share').server
 
 var server = null
   , logger = null
   , model  = null
+  , sessions = {}
 
 exports.name = "asyncnoter";
 
@@ -48,14 +50,21 @@ exports.initExpress = function (app)
 
 function auth(agent, action)
 {
-  var username = "todo";
+  var username = sessions[agent.authentication];
 
   switch(action.type)
   {
     // connecting for everyone, also set the name
     case "connect":
-      agent.name = username;
-      handleAction(action, username, true);
+      if(!username)
+      {
+        handleAction(action, "???", false);
+      }
+      else
+      {
+        agent.name = username;
+        handleAction(action, username, true);
+      }
       break;
 
     // creating & deleting for nobody.
@@ -125,10 +134,13 @@ exports.onDeleteDoc = function (doc, cb)
 
 exports.onRequestDoc = function (req, res, user, doc, cb)
 {
+  var token = crypto.randomBytes(42).toString('hex');
+  sessions[token] = user.username;
   var locals =
   {
     docname: doc.docname,
-    groupname: doc.group
+    groupname: doc.group,
+    authtoken: token
   };
 
   res.render('documenttypes/asyncnoter.ejs', locals);
