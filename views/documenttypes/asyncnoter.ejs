@@ -224,7 +224,7 @@ function addNoteToDoc(note)
             if(err)
             {
                 clearTimeout(errorTimeout);
-                setTimeout(function () { $('#err').addClass('hidden') }, 5000);
+                errorTimeout = setTimeout(function () { $('#err').addClass('hidden') }, 5000);
                 $('#err').text(err).removeClass('hidden');
             }
             else
