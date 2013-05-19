@@ -151,5 +151,7 @@
     "profile.password.error.pwmatch": "The passwords don't match.",
     "profile.password.status.success": "Your password has been changed.",
 
+    "asyncnoter.addnote.txt": "Add a note:",
+    "asyncnoter.addnote.btn": "Add!",
     "asyncnoter.flashwarning": "The player is currently in flash-mode. Some ShowPad-features may not be available.<br>Please switch to a browser which has better support for HTML5-Audio-Playback or ask your podcaster to supply more formats."
 }
