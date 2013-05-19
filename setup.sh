@@ -17,7 +17,7 @@ cd ..
 
 mkdir pwp
 cd pwp
-wget https://github.com/podlove/podlove-web-player/archive/master.zip
-unzip master.zip
+wget https://github.com/podlove/podlove-web-player/archive/master.zip -O master.zip
+unzip -oq master.zip
 rm master.zip
 cd ..
