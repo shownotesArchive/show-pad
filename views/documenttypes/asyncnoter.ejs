@@ -292,7 +292,11 @@ function addNoteToHTML(index, note)
 
     for (var i = 0; i < $notes.length; i++)
     {
-        if(doc.get()[$($notes[i]).data('index')].time > note.time)
+        var currentIndex = $($notes[i]).data('index');
+        var currentNote = doc.get()[currentIndex];
+
+        if(currentNote.time > note.time ||
+           currentNote.time == note.time && currentIndex > index)
         {
             position = i;
             break;
