@@ -102,8 +102,9 @@ function isAllowedOp(op)
   if(op.p && op.li && Object.keys(op).length == 2)
   {
     var note = op.li;
-    var isValid = !!note.time && !!note.text &&
-                  isNumber(note.time) && typeof note.text == "string";
+    var isValid = !!note.time && isNumber(note.time) &&
+                  !!note.text && isString(note.text) &&
+                  Object.keys(note).length == 2;
 
     return true;
   }
@@ -116,6 +117,10 @@ function isAllowedOp(op)
 // http://stackoverflow.com/a/1830844
 function isNumber(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function isString(s) {
+  return typeof s == "string";
 }
 
 function handleAction(action, username, accept)
