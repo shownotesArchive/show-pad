@@ -13,6 +13,7 @@
 <% script('/sharejs/json.uncompressed.js') %>
 
 <% script('/jwerty/jwerty.js') %>
+<% script('/js/jquery.scrollTo-min.js') %>
 
 <div id="flashwarning" class="alert alert-warn hidden"><%-__('asyncnoter.flashwarning')%></div>
 <center>
@@ -39,6 +40,7 @@
 var webplayer
   , doc
   , isFlash = false
+  , scrollInterval
 
 // add notes
 var isInNote = false
@@ -50,6 +52,7 @@ $(function()
     setupSharejs();
     setupUI();
     setupKeybindings();
+    setupScrolling();
 });
 
 function setupWebplayer()
@@ -138,6 +141,40 @@ function setupKeybindings()
         jwerty.key('ctrl+w', userJumpForward);
         jwerty.key('ctrl+q', userJumpBackward);
     }
+}
+
+function setupScrolling()
+{
+    scrollInterval = setInterval(function ()
+    {
+        var time = getCurrentTime();
+        var notes = doc.get();
+        var $notes = $('#notes');
+
+        for (var i = 0; i < notes.length; i++)
+        {
+            if((i == notes.length - 1) || notes[i + 1].time > time)
+            {
+                var $currentNote = $notes.find('li.note[data-index=' + i + ']');
+                var $prevNote;
+
+                if(i == 0)
+                {
+                    $prevNote = $currentNote;
+                }
+                else
+                {
+                    $prevNote = $currentNote.siblings('li.note').eq($currentNote.index() - 1);
+                }
+
+                $notes.scrollTo($prevNote, 800);
+                $notes.find('li.note').css('background-color', '');
+                $currentNote.css('background-color', 'rgba(255,255,0,0.2)');
+                $currentNote.css('opactiy', "0.2");
+                break;
+            }
+        }
+    }, 1500);
 }
 
 function userPauseOrStart()
@@ -274,11 +311,12 @@ function removeNoteFromDoc(index)
 
 function addNoteToHTML(index, note)
 {
-    var $notes = $('#notes li');
+    var $notes = $('#notes li.note');
     var position = -1;
 
     var $note = $('<li>');
     $note.attr('data-index', index);
+    $note.addClass('note');
     $note.append($('<span>').addClass('time').text(note.time));
     $note.append($('<span>').addClass('text').text(note.text));
     $note.append($('<span>').addClass('delete pull-right').html("&#10008;").click(userDeleteNote));
@@ -309,13 +347,13 @@ function addNoteToHTML(index, note)
     }
     else
     {
-        $('#notes li').eq(position).before($note);
+        $notes.eq(position).before($note);
     }
 }
 
 function removeNoteFromHTML(index)
 {
-    $("#notes li[data-index=" + index + "]").remove();
+    $("#notes li.note[data-index=" + index + "]").remove();
 }
 
 function setAddnotetimeSpan(text)
