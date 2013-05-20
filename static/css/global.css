@@ -268,3 +268,13 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     background-color: lightgray;
     border-radius: 7px;
 }
+
+#notes li .delete
+{
+    float: right;
+}
+
+#notes li .delete:hover
+{
+    cursor: pointer;
+}

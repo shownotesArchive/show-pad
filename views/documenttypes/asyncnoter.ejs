@@ -98,8 +98,9 @@ function setupSharejs()
             doc = _doc;
 
             var notes = doc.get();
-            $.each(notes, function(i, note) { addNoteToHTML(note); });
+            $.each(notes, function(i, note) { addNoteToHTML(i, note); });
             doc.at().on('insert', onDocInsert);
+            doc.at().on('delete', onDocDelete);
         }
     );
 }
@@ -184,23 +185,35 @@ function userSubmitNote()
 
 function userClickNote(e)
 {
+    var $note = getNoteFromChild(e.target);
+    var index = $note.data('index');
+
+    var time = doc.get()[index].time;
+    webplayer.setCurrentTime(time);
+}
+
+function getNoteFromChild(child)
+{
     var $note;
-    if(e.target.tagName.toUpperCase() == "LI")
+    if(child.tagName.toUpperCase() == "LI")
     {
-        $note = $(e.target);
+        $note = $(child);
     }
     else
     {
-        $note = $(e.target).parent("li");
+        $note = $(child).parent("li");
     }
-
-    var time = $note.attr("data-time");
-    webplayer.setCurrentTime(time);
+    return $note;
 }
 
 function onDocInsert(position, note)
 {
-    addNoteToHTML(note);
+    addNoteToHTML(position, note);
+}
+
+function onDocDelete(position, note)
+{
+    removeNoteFromHTML(position);
 }
 
 function userAddNote(text)
@@ -212,6 +225,14 @@ function userAddNote(text)
     addNoteToDoc({ time: inNoteTime, text: text });
 
     $('#addnotetext').focus();
+}
+
+function userDeleteNote(e)
+{
+    var $note = getNoteFromChild(e.target);
+    var index = $note.data('index');
+
+    removeNoteFromDoc(index);
 }
 
 var errorTimeout;
@@ -229,21 +250,38 @@ function addNoteToDoc(note)
             }
             else
             {
-                addNoteToHTML(note);
+                addNoteToHTML(op[0].p[0], note);
             }
         }
     );
 }
 
-function addNoteToHTML(note)
+function removeNoteFromDoc(index)
+{
+    removeNoteFromHTML(index);
+    doc.at(index).remove(
+            function (err, op)
+            {
+                if(err)
+                {
+                    clearTimeout(errorTimeout);
+                    errorTimeout = setTimeout(function () { $('#err').addClass('hidden') }, 5000);
+                    $('#err').text(err).removeClass('hidden');
+                }
+            }
+    );
+}
+
+function addNoteToHTML(index, note)
 {
     var $notes = $('#notes li');
     var position = -1;
 
     var $note = $('<li>');
-    $note.attr('data-time', note.time);
+    $note.attr('data-index', index);
     $note.append($('<span>').addClass('time').text(note.time));
     $note.append($('<span>').addClass('text').text(note.text));
+    $note.append($('<span>').addClass('delete pull-right').html("&#10008;").click(userDeleteNote));
     
     if(!isFlash)
     {
@@ -254,7 +292,7 @@ function addNoteToHTML(note)
 
     for (var i = 0; i < $notes.length; i++)
     {
-        if($($notes[i]).data('time') > note.time)
+        if(doc.get()[$($notes[i]).data('index')].time > note.time)
         {
             position = i;
             break;
@@ -269,6 +307,11 @@ function addNoteToHTML(note)
     {
         $('#notes li').eq(position).before($note);
     }
+}
+
+function removeNoteFromHTML(index)
+{
+    $("#notes li[data-index=" + index + "]").remove();
 }
 
 function setAddnotetimeSpan(text)
