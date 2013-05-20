@@ -25,7 +25,7 @@
     "limiter": "~1",
     "memory-cache": "0.0.x",
     "etherpad-lite-client": "0.7.0",
-    "tinyOSF": "git://github.com/shownotes/tinyOSF.js.git",
+    "tinyosf": "0.1.x",
     "recaptcha": "~1"
   },
   "engines": {
