@@ -143,7 +143,7 @@ function initServer(cb)
   app.engine('ejs', ejslocals);
   app.set('view engine', 'ejs');
   app.use(express.static(path.resolve(__dirname + '/../static')));
-  app.use("/js/tinyOSF/", express.static(path.resolve(__dirname + '/../node_modules/tinyOSF')));
+  app.use("/js/tinyosf/", express.static(path.resolve(__dirname + '/../node_modules/tinyosf')));
   app.use(express.cookieParser());
 
   console.debug("Initiating server-i18n..");
