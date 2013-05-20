@@ -38,6 +38,11 @@ getDocText();
 
 function getDocText()
 {
+    if(!isPageVisible())
+    {
+        return;
+    }
+
     $.ajax('/doc/<%=docname%>/text')
         .success
         (
@@ -120,5 +125,28 @@ function selectFormat(format)
         .addClass('disabled')
         .removeClass('active');
     getDocText();
+}
+
+function isPageVisible()
+{
+    var visibility = "visible";
+
+    if(document.webkitVisibilityState)
+    {
+        // Chrome
+        visibility = document.webkitVisibilityState;
+    }
+    else if(document.visibilityState)
+    {
+        // FF
+        visibility = document.visibilityState;
+    }
+    else if(document.hidden)
+    {
+        // Opera
+        visibility = document.hidden ? "hidden" : "visible";
+    }
+
+    return visibility != "hidden";
 }
 </script>
