@@ -4,6 +4,11 @@
   "apikey":"",
   "docsonindex": 10,
   "trustproxy": false,
+  "xenim":
+  {
+    "password": "",
+    "disabled": true
+  },
   "loglevel":
   {
     "doctypes": "INFO",

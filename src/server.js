@@ -12,6 +12,7 @@ var express   = require('express')
   , url       = require('url')
   , cache     = require('memory-cache')
   , Recaptcha = require('recaptcha').Recaptcha
+  , amqp      = require('amqp')
   , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator');
@@ -20,6 +21,8 @@ var db            = require('./db.js')
   , api           = require('./api.js')
   , documentTypes = require('./documenttypes.js')
   , hoerapi       = require('./hoersuppe/hoerapi.js')
+  , xenimAmqp     = null
+  , xenimAmqpExc  = null
   , app           = null
   , mailTransport = null
   , pageurl       = null
@@ -50,6 +53,7 @@ async.series([
   initMail,
   initDatabase,
   initDocTypes,
+  initXenim,
   initApi,
   initi18n,
   initServer,
@@ -114,6 +118,62 @@ function initDocTypes(cb)
 {
   console.info("Initiating doctypes..");
   documentTypes.init(exports, cb);
+}
+
+function initXenim(cb)
+{
+  if(nconf.get("xenim:disabled"))
+  {
+    console.info("Xenim disabled in config.");
+    return cb();
+  }
+
+  console.info("Initiating xenim..");
+  var failTimeout = setTimeout(xenimFail, 5000);
+  var failed = false;
+
+  xenimAmqp = amqp.createConnection(
+    {
+      host: 'messages.streams.xenim.de',
+      vhost: "xsn_hls",
+      login: "shownotes",
+      password: nconf.get("xenim:password")
+    }
+  );
+
+  xenimAmqp.on('ready',
+    function ()
+    {
+      if(failed)
+        return;
+
+      console.debug("[Xenim] ready");
+      xenimAmqp.exchange('shownotes',
+        {
+          passive: true
+        },
+        function (exc)
+        {
+          if(failed)
+            return;
+
+          console.debug("[Xenim] got exchange");
+          clearTimeout(failTimeout);
+          xenimAmqpExc = exc;
+          cb();
+        }
+      );
+    }
+  );
+
+  function xenimFail()
+  {
+    console.debug("[Xenim] timeout");
+    failed = true;
+    xenimAmqp = null;
+    xenimAmqpExc = null;
+    cb(); // continue without xenim
+  }
 }
 
 function initApi(cb)
@@ -502,6 +562,44 @@ function processCreateDoc (req, res)
         db.setSingleHash("live2pad", hoerid, docname);
         cache.del("clientpods");
         cb();
+      },
+      // tell xenim about the new doc
+      function (cb)
+      {
+        if(nconf.get("xenim:disabled"))
+        {
+          return cb();
+        }
+
+        var xenimInfo = {};
+        xenimInfo.docname = docname;
+        xenimInfo.hoerid = hoerid;
+        xenimInfo.hoerpod = hoerPod.pod.podcast;
+
+        if(xenimAmqpExc)
+        {
+          tellXenim(xenimInfo);
+        }
+        else
+        {
+          console.log("Could send new doc to xenim: no connection");
+
+          process.nextTick(function ()
+          {
+            console.log("Reconnecting to xenim..");
+            initXenim(function (err)
+            {
+              var status = err ? ("error (" + err + ")") : "success";
+              console.log("Reconnect status: " + status);
+
+              if(!err)
+              {
+                tellXenim(xenimInfo);
+              }
+            });
+          });
+        }
+        cb();
       }
     ],
     reply
@@ -520,6 +618,20 @@ function processCreateDoc (req, res)
 
     console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
     res.json(status == "ok" ? 200 : 500, { status: status, docname: docname });
+  }
+
+  function tellXenim(xenimInfo)
+  {
+    try
+    {
+      xenimAmqpExc.publish('shownotes.padcreated', xenimInfo);
+      console.log("New doc %s sent to xenim.", xenimInfo.docname);
+    }
+    catch (ex)
+    {
+      xenimAmqp = null;
+      xenimAmqpExc = null;
+    }
   }
 }
 
