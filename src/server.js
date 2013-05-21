@@ -559,32 +559,35 @@ function processCreateDoc (req, res)
       // tell xenim about the new doc
       function (cb)
       {
+        var xenimInfo = {};
+        xenimInfo.docname = docname;
+        xenimInfo.hoerid = hoerid;
+        xenimInfo.hoerpod = hoerPod.pod.podcast;
+
         if(xenimAmqpExc)
         {
-          var xenimInfo = {};
-          xenimInfo.docname = docname;
-          xenimInfo.hoerid = hoerid;
-          xenimInfo.hoerpod = hoerPod.pod.podcast;
-          xenimAmqpExc.publish('shownotes.padcreated', xenimInfo, {},
-            function (err)
-            {
-              if(err)
-              {
-                console.log("Could send new doc to xenim:", err);
-              }
-              else
-              {
-                console.log("New doc sent to xenim.");
-              }
-              cb();
-            }
-          );
+          tellXenim(xenimInfo);
         }
         else
         {
           console.log("Could send new doc to xenim: no connection");
-          cb();
+
+          process.nextTick(function ()
+          {
+            console.log("Reconnecting to xenim..");
+            initXenim(function (err)
+            {
+              var status = err ? ("error (" + err + ")") : "success";
+              console.log("Reconnect status: " + status);
+
+              if(!err)
+              {
+                tellXenim(xenimInfo);
+              }
+            });
+          });
         }
+        cb();
       }
     ],
     reply
@@ -603,6 +606,20 @@ function processCreateDoc (req, res)
 
     console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
     res.json(status == "ok" ? 200 : 500, { status: status, docname: docname });
+  }
+
+  function tellXenim(xenimInfo)
+  {
+    try
+    {
+      xenimAmqpExc.publish('shownotes.padcreated', xenimInfo);
+      console.log("New doc %s sent to xenim.", xenimInfo.docname);
+    }
+    catch (ex)
+    {
+      xenimAmqp = null;
+      xenimAmqpExc = null;
+    }
   }
 }
 
