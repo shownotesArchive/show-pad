@@ -122,6 +122,12 @@ function initDocTypes(cb)
 
 function initXenim(cb)
 {
+  if(nconf.get("xenim:disabled"))
+  {
+    console.info("Xenim disabled in config.");
+    return cb();
+  }
+
   console.info("Initiating xenim..");
   var failTimeout = setTimeout(xenimFail, 5000);
   var failed = false;
@@ -131,7 +137,7 @@ function initXenim(cb)
       host: 'messages.streams.xenim.de',
       vhost: "xsn_hls",
       login: "shownotes",
-      password: nconf.get("xsn_pw")
+      password: nconf.get("xenim:password")
     }
   );
 
@@ -559,6 +565,11 @@ function processCreateDoc (req, res)
       // tell xenim about the new doc
       function (cb)
       {
+        if(nconf.get("xenim:disabled"))
+        {
+          return cb();
+        }
+
         var xenimInfo = {};
         xenimInfo.docname = docname;
         xenimInfo.hoerid = hoerid;
