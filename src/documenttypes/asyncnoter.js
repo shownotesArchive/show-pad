@@ -111,8 +111,8 @@ function checkOp(op)
   if(op.li && Object.keys(op).length == 2)
   {
     var note = op.li;
-    var isValid = !!note.time && isNumber(note.time) &&
-                  !!note.text && isString(note.text) &&
+    var isValid = isNumber(note.time) &&
+                  isString(note.text) &&
                   Object.keys(note).length == 2;
 
     return isValid ? "insert" : "invalid";
