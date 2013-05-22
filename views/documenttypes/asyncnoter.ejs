@@ -231,7 +231,7 @@ function userSubmitNote()
 function userClickNote(e)
 {
     var $note = getNoteFromChild(e.target);
-    var index = $note.data('index');
+    var index = $note.attr('data-index');
 
     var time = doc.get()[index].time;
     webplayer.setCurrentTime(time);
@@ -275,7 +275,7 @@ function userAddNote(text)
 function userDeleteNote(e)
 {
     var $note = getNoteFromChild(e.target);
-    var index = $note.data('index');
+    var index = $note.attr('data-index');
 
     removeNoteFromDoc(index);
 }
@@ -313,6 +313,21 @@ function removeNoteFromDoc(index)
                     errorTimeout = setTimeout(function () { $('#err').addClass('hidden') }, 5000);
                     $('#err').text(err).removeClass('hidden');
                 }
+                else
+                {
+                    $("#notes li.note").each(
+                            function (i, elem)
+                            {
+                                var $elem = $(elem);
+                                var elemIndex = $elem.attr('data-index');
+
+                                if(elemIndex > index)
+                                {
+                                    $elem.attr('data-index', elemIndex - 1);
+                                }
+                            }
+                    )
+                }
             }
     );
 }
@@ -338,7 +353,7 @@ function addNoteToHTML(index, note)
 
     for (var i = 0; i < $notes.length; i++)
     {
-        var currentIndex = $($notes[i]).data('index');
+        var currentIndex = $($notes[i]).attr('data-index');
         var currentNote = doc.get()[currentIndex];
 
         if(currentNote.time > note.time ||

@@ -78,10 +78,14 @@ function auth(agent, action)
     case "update":
       var ops = action.op;
       var allowed = true;
+      var canDelete = false;
 
       for (var op in ops)
       {
-        if(!isAllowedOp(ops[op]))
+        var type = checkOp(ops[op]);
+
+        if(type == "invalid" ||
+           type == "delete" && !canDelete)
         {
           allowed = false;
           break;
@@ -97,21 +101,29 @@ function auth(agent, action)
   }
 }
 
-function isAllowedOp(op)
+function checkOp(op)
 {
-  if(op.p && op.li && Object.keys(op).length == 2)
+  if(!op.p)
+  {
+    return "invalid";
+  }
+
+  if(op.li && Object.keys(op).length == 2)
   {
     var note = op.li;
     var isValid = !!note.time && isNumber(note.time) &&
                   !!note.text && isString(note.text) &&
                   Object.keys(note).length == 2;
 
-    return true;
+    return isValid ? "insert" : "invalid";
   }
-  else
+
+  if(op.ld && Object.keys(op).length == 2)
   {
-    return false;
+    return "delete";
   }
+
+  return "invalid";
 }
 
 // http://stackoverflow.com/a/1830844
