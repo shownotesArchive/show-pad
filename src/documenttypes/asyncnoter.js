@@ -52,53 +52,84 @@ function auth(agent, action)
 {
   var username = sessions[agent.authentication];
 
-  switch(action.type)
+  if(!username)
   {
-    // connecting for everyone, also set the name
-    case "connect":
-      if(!username)
-      {
-        handleAction(action, "???", false);
-      }
-      else
-      {
-        agent.name = username;
-        handleAction(action, username, true);
-      }
-      break;
-
-    // creating & deleting for nobody.
-    // creating and deleting docs is done serverside in onCreateDoc / onDeleteDoc
-    case "create":
-    case "delete":
-      handleAction(action, username, false);
-      break;
-
-    // updating for everyone, but with validation
-    case "update":
-      var ops = action.op;
-      var allowed = true;
-      var canDelete = false;
-
-      for (var op in ops)
-      {
-        var type = checkOp(ops[op]);
-
-        if(type == "invalid" ||
-           type == "delete" && !canDelete)
-        {
-          allowed = false;
-          break;
-        }
-      }
-      handleAction(action, username, allowed);
-      break;
-
-    // reading for everyone
-    case "read":
-      handleAction(action, username, true);
-      break;
+    action.reject();
+    return;
   }
+
+  async.waterfall(
+    [
+      // get user from DB
+      function (cb)
+      {
+        server.db.user.getUser(username,
+          function (err, user)
+          {
+            if(err)
+            {
+              sessions[agent.authentication] = null;
+            }
+            cb(err, user);
+          }
+        );
+      },
+      // check the action
+      function (user, cb)
+      {
+        switch(action.type)
+        {
+          // connecting for authed users, also set the name
+          case "connect":
+            agent.name = username;
+            handleAction(action, username, true);
+            break;
+
+          // updating for authed users, but with validation
+          case "update":
+            var ops = action.op;
+            var allowed = true;
+            var canDelete = user.hasRole('admin');
+
+            for (var op in ops)
+            {
+              var type = checkOp(ops[op]);
+
+              if(type == "invalid" ||
+                 type == "delete" && !canDelete)
+              {
+                allowed = false;
+                break;
+              }
+            }
+
+            handleAction(action, username, allowed);
+            break;
+
+          // creating & deleting for nobody.
+          // this is done serverside in onCreateDoc / onDeleteDoc
+          case "create":
+          case "delete":
+            handleAction(action, username, false);
+            break;
+
+          // reading for authed users
+          case "read":
+            handleAction(action, username, true);
+            break;
+        }
+
+        cb();
+      }
+    ],
+    function (err)
+    {
+      if(err && !action.responded)
+      {
+        action.reject();
+      }
+    }
+  );
 }
 
 function checkOp(op)
