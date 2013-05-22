@@ -145,9 +145,15 @@ function setupKeybindings()
 
 function setupScrolling()
 {
+    var lastTime = null;
+
     scrollInterval = setInterval(function ()
     {
         var time = getCurrentTime();
+
+        if(lastTime == time)
+            return;
+
         var notes = doc.get();
         var $notes = $('#notes');
 
@@ -174,6 +180,8 @@ function setupScrolling()
                 break;
             }
         }
+
+        lastTime = time;
     }, 1500);
 }
 
