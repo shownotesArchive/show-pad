@@ -317,7 +317,7 @@ function addNoteToHTML(index, note)
     var $note = $('<li>');
     $note.attr('data-index', index);
     $note.addClass('note');
-    $note.append($('<span>').addClass('time').text(note.time));
+    $note.append($('<span>').addClass('time').text(getHumanTime(note.time)));
     $note.append($('<span>').addClass('text').text(note.text));
     $note.append($('<span>').addClass('delete pull-right').html("&#10008;").click(userDeleteNote));
     
@@ -348,6 +348,22 @@ function addNoteToHTML(index, note)
     else
     {
         $notes.eq(position).before($note);
+    }
+}
+
+function getHumanTime(time)
+{
+    var seconds = pad(time % 60, 2);
+    var minutes = pad(Math.floor(time / 60), 2);
+    var hours = pad(Math.floor(time / 3600), 2);
+
+    return hours + ":" + minutes + ":" + seconds;
+
+    // http://stackoverflow.com/a/10073788
+    function pad(n, width, z) {
+        z = z || '0';
+        n = n + '';
+        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
     }
 }
 

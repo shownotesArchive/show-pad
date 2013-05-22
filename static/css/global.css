@@ -249,7 +249,6 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
 #notes li.note .time
 {
     color: #CCC;
-    width: 40px;
     display: inline-block;
     margin-right: 10px;
     padding-right: 10px;
