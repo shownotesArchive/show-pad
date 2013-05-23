@@ -769,7 +769,7 @@ function processDoc (req, res, mode)
             {
               if(err)
               {
-                console.err(logprefixstr + "error while showing doc in text-view: " + err);
+                console.error(logprefixstr + "error while showing doc in text-view:", err);
                 res.statusCode = 500;
                 res.end();
               }
