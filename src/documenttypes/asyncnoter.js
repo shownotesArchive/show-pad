@@ -258,7 +258,61 @@ exports.setText = function (doc, text, cb)
 
 exports.getText = function (doc, cb)
 {
-  cb();
+  async.waterfall(
+    [
+      // get the doc content from ShareJS
+      function (cb)
+      {
+        model.getSnapshot(doc.docname, cb);
+      },
+      // convert doc content to OSF
+      function (state, cb)
+      {
+        var notes = state.snapshot;
+
+        for (var i = 0; i < notes.length; i++)
+        {
+          notes[i].index = i;
+        }
+
+        notes.sort(
+          function (a, b)
+          {
+            if(a.time != b.time)
+              return a.time - b.time;
+            else
+              return a.index - b.index;
+          }
+        );
+
+        var osf = "HEADER\n/HEADER\n";
+
+        for (var i = 0; i < notes.length; i++)
+        {
+          osf += "\n" + getHumanTime(notes[i].time) + " " + notes[i].text;
+        }
+
+        cb(null, osf);
+      }
+    ],
+    cb
+  );
+}
+
+function getHumanTime(time)
+{
+  var seconds = pad(time % 60, 2);
+  var minutes = pad(Math.floor(time / 60), 2);
+  var hours = pad(Math.floor(time / 3600), 2);
+
+  return hours + ":" + minutes + ":" + seconds;
+
+  // http://stackoverflow.com/a/10073788
+  function pad(n, width, z) {
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+  }
 }
 
 /* other */
