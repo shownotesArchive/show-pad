@@ -43,9 +43,7 @@ body
 }
 
 .navbar .btn {
-    margin-top: 6px;
     margin-right: -12px;
-    padding: 2px 12px;
     font-size: 13px;
     color: #333333;
 }
