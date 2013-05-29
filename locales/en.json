@@ -72,6 +72,7 @@
     "showdoc.error.readonly.auth": "Do you want to <a href='/login'>log into your account</a> or <a href='/register'>register a new one</a> to edit this document?",
     "showdoc.error.readonly.choosen": "You are viewing this document in readonly-mode, but you can also <a href='%s'>edit</a> it.",
     "showdoc.error.other": "The document could not be loaded.",
+    "showdoc.readonlylink": "Switch to readonly-mode",
     "showdoc.readonly.updateerror": "Refresh failed.",
     "showdoc.readonly.users": "Users watching this:",
     "showdoc.readonly.format": "Format",

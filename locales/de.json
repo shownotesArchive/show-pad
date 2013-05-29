@@ -72,6 +72,7 @@
     "showdoc.error.readonly.auth": "Du kannst dich <a href='/login'>einloggen</a> oder <a href='/register'>registrieren</a> um das Dokument zu bearbeiten.",
     "showdoc.error.readonly.choosen": "Du hast dieses Dokument im Lesemodus geöffnet. Möchtest du es <a href='%s'>bearbeiten</a>?",
     "showdoc.error.other": "Das Dokument konnte nicht geladen werden.",
+    "showdoc.readonlylink": "Zum Lesemodus wechseln",
     "showdoc.readonly.updateerror": "Der Text konnte nicht aktualisiert werden.",
     "showdoc.readonly.users": "Benutzer auf diesem Dokument:",
     "showdoc.readonly.format": "Format",
