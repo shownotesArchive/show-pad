@@ -545,7 +545,7 @@ function processCreateDoc (req, res)
             function (podcastdata, cb)
             {
               var fields = { podcast: podcastdata, live: hoerPod.pod, doc: { name: docname } };
-              db.templatedb.getText(fields, function (err, text) { onError("tpl", err, cb, [text]) });
+              db.template.getText(fields, function (err, text) { onError("tpl", err, cb, [text]) });
             },
             // set the doc-text
             function (text, cb)

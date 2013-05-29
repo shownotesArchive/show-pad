@@ -2,6 +2,8 @@ var db
   , ejs   = require('ejs')
   , async = require('async');
 
+exports.name = "template";
+
 exports.init = function (_db, _cb)
 {
   db = _db;

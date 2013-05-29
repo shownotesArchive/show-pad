@@ -3,6 +3,8 @@ var db
   , util   = require('util')
   , crypto = require('crypto');
 
+exports.name = "doc";
+
 function Doc (docname, type, group)
 {
   if(!docname || !type || !group)

@@ -2,6 +2,8 @@ var db
   , async  = require('async')
   , util   = require('util');
 
+exports.name = "group";
+
 function Group (short, name, type)
 {
   if(!name || !short)
