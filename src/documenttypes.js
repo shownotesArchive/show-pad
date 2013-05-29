@@ -1,5 +1,6 @@
 var async     = require('async')
-  , fs        = require('fs');
+  , fs        = require('fs')
+  , pluginloader = require('./pluginloader.js')
 
 var server
   , logger
@@ -13,26 +14,15 @@ exports.init = function (_server, cb)
   server = _server;
   logger = server.getLogger("doctypes");
 
-  fs.readdir('./src/documenttypes', function (err, files)
-  {
-    if(err)
+  pluginloader.load('./src/documenttypes', [server],
+    function (err, plugins)
     {
-      logger.error("Could not load doctypes: " + err);
+      if(err) return cb("Could not load doctypes: " + err);
+
+      documentTypes = plugins;
       cb();
-      return;
     }
-
-    logger.debug("Found %s doctypes!", files.length);
-
-    async.eachSeries(files,
-      function (file, cb)
-      {
-        var t = require('./documenttypes/' + file);
-        documentTypes[t.name] = t;
-        logger.debug("Initiating %s...", t.name);
-        documentTypes[t.name].init(_server, cb);
-      }, cb);
-  });
+  );
 }
 
 exports.onExpressInit = function (app)

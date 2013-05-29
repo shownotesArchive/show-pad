@@ -1,5 +1,6 @@
 var async  = require('async')
   , fs    = require('fs')
+  , pluginloader = require('./pluginloader.js')
   , apikey = null
   , server
   , db;
@@ -29,26 +30,15 @@ exports.init = function (_server, _cb)
     console.warn("No API-Key defined.");
   }
 
-  fs.readdir('./src/api', function (err, files)
-  {
-    if(err)
+  pluginloader.load('./src/api', [db, server],
+    function (err, plugins)
     {
-      console.error("Could not load api: " + err);
-      cb();
-      return;
+      if(err) return cb("Could not load api: " + err);
+
+      endpoints = plugins;
+      _cb();
     }
-
-    console.debug("Found %s apiendpoints!", files.length);
-    async.eachSeries(files,
-      function (file, cb)
-      {
-        var endpoint = require('./api/' + file);
-
-        console.debug("Initiating endpoint: %s...", endpoint.name);
-        endpoints[endpoint.name] = endpoint;
-        endpoints[endpoint.name].init(db, server, cb);
-      }, _cb);
-  });
+  );
 }
 
 /* see /doc/api.md for details */
