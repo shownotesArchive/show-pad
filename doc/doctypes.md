@@ -1,7 +1,7 @@
 Document-Types
 ==============
 
-ShowPad is able to handle multiple types of documents at one, for example: document `mm106` can be etherpad-lite, `cre132` asyncnoter.
+ShowPad is able to handle multiple types of documents, at once. For example: document `mm106` could be of type etherpad-lite and `cre132` may exist as doctype asyncnoter.
 A doctype is represented by a javascript-file in `/src/documenttypes/`. All doctypes in this directory are automatically loaded.
 
 The basic structure of this file has to look like this:
@@ -9,7 +9,8 @@ The basic structure of this file has to look like this:
 var server = null
   , logger = null
 
-// the name of this doctype, this is the name used internally
+// name of this doctype
+// is used internally
 // as well as in the dashboard when creating documents.
 exports.name = "";
 
@@ -29,41 +30,46 @@ exports.initExpress = function (app)
 {
 }
 
-/* User-Functions */
+/* User functions */
 // called when a user has sucessfully logged in, you can
 // use the res-parameter to create additional cookies
 exports.onLogin = function (user, res, cb)
 {
+  // code
   cb();
 }
 
 exports.onCreateUser = function (user, cb)
 {
+  // code
   cb();
 }
 
 exports.onLogout = function (user, res, cb)
 {
+  // code
   cb();
 }
 
-/* Group-Functions */
+/* Group functions */
 exports.onCreateGroup = function (group, cb)
 {
+  // code
   cb();
 }
 
-/* Document-Functions */
+/* Document functions */
 exports.onCreateDoc = function (doc, cb)
 {
-  // the doctype should make use that the document
-  // has been created and is fully useable once the
+  // the doctype should make ensure that the document
+  // has been created and is fully functional once the
   // callback is called.
   cb();
 }
 
 exports.onDeleteDoc = function (doc, cb)
 {
+  // code
   cb();
 }
 
@@ -88,7 +94,7 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
   cb();
 }
 
-/* Document-Content */
+/* Document content */
 exports.setText = function (doc, text, cb)
 {
   // `text` is a string in OSF-format
