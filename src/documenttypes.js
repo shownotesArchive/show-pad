@@ -19,7 +19,7 @@ exports.init = function (_server, cb)
     {
       if(err) return cb("Could not load doctypes: " + err);
 
-      documentTypes = plugins;
+      exports.documentTypes = documentTypes = plugins;
       cb();
     }
   );
