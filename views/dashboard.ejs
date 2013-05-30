@@ -510,6 +510,7 @@ function createThing(type, thing, name, errors, cb)
                 var table = getTableForType(type);
 
                 rtnThing.DT_RowId = name;
+                rtnThing.createTime = new Date();
                 table.fnAddData(rtnThing);
 
                 createSuccess.show();
