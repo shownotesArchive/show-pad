@@ -100,10 +100,10 @@ function setupSharejs()
         {
             doc = _doc;
 
-            var notes = doc.get();
+            var notes = getNotes();
             $.each(notes, function(i, note) { addNoteToHTML(i, note); });
-            doc.at().on('insert', onDocInsert);
-            doc.at().on('delete', onDocDelete);
+            doc.at("notes").on('insert', onDocInsert);
+            doc.at("notes").on('delete', onDocDelete);
         }
     );
 }
@@ -154,7 +154,7 @@ function setupScrolling()
         if(lastTime == time)
             return;
 
-        var notes = doc.get();
+        var notes = getNotes();
         var $notes = $('#notes');
 
         for (var i = 0; i < notes.length; i++)
@@ -233,7 +233,7 @@ function userClickNote(e)
     var $note = getNoteFromChild(e.target);
     var index = $note.attr('data-index');
 
-    var time = doc.get()[index].time;
+    var time = getNotes()[index].time;
     webplayer.setCurrentTime(time);
 }
 
@@ -284,7 +284,7 @@ var errorTimeout;
 
 function addNoteToDoc(note)
 {
-    doc.at().push(note,
+    doc.at("notes").push(note,
         function (err, op)
         {
             if(err)
@@ -295,7 +295,7 @@ function addNoteToDoc(note)
             }
             else
             {
-                addNoteToHTML(op[0].p[0], note);
+                addNoteToHTML(op[0].p[1], note);
             }
         }
     );
@@ -304,7 +304,7 @@ function addNoteToDoc(note)
 function removeNoteFromDoc(index)
 {
     removeNoteFromHTML(index);
-    doc.at(index).remove(
+    doc.at(["notes", index]).remove(
             function (err, op)
             {
                 if(err)
@@ -354,7 +354,7 @@ function addNoteToHTML(index, note)
     for (var i = 0; i < $notes.length; i++)
     {
         var currentIndex = $($notes[i]).attr('data-index');
-        var currentNote = doc.get()[currentIndex];
+        var currentNote = getNotes()[currentIndex];
 
         if(currentNote.time > note.time ||
            currentNote.time == note.time && currentIndex > index)
@@ -419,5 +419,10 @@ function getCurrentTime()
         time += parseInt(rawTime[i], 10) * Math.pow(60, rawTime.length - i - 1);
     }
     return time;
+}
+
+function getNotes()
+{
+    return doc.at("notes").get();
 }
 </script>

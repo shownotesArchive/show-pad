@@ -134,7 +134,7 @@ function auth(agent, action)
 
 function checkOp(op)
 {
-  if(!op.p)
+  if(!op.p || (op.p[0] != "notes" || op.p.length != 2))
   {
     return "invalid";
   }
@@ -220,7 +220,7 @@ exports.onCreateDoc = function (doc, cb)
       {
         var opData =
         {
-          op: [{"p":[],"oi":[]}],
+          op: [ { "p":[], "oi": { meta:[], notes: [] } } ],
           v: 0
         };
         model.applyOp(doc.docname, opData, cb);
@@ -268,7 +268,7 @@ exports.getText = function (doc, cb)
       // convert doc content to OSF
       function (state, cb)
       {
-        var notes = state.snapshot;
+        var notes = state.snapshot.notes;
 
         for (var i = 0; i < notes.length; i++)
         {
