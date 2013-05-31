@@ -88,6 +88,7 @@ function auth(agent, action)
           // updating for authed users, but with validation
           case "update":
             var ops = action.op;
+            var metaOps = [];
             var allowed = true;
             var canDelete = user.hasRole('admin');
 
@@ -101,9 +102,38 @@ function auth(agent, action)
                 allowed = false;
                 break;
               }
+              else if(type == "insert" || type == "delete")
+              {
+                var metaOp = { "p": [ "meta", ops[op].p[1] ] };
+
+                if(type == "insert")
+                  metaOp["li"] = { creator: username, createtime: +new Date() };
+                else if(type == "delete")
+                  metaOp["ld"] = {};
+
+                metaOps.push(metaOp);
+              }
             }
 
-            handleAction(action, username, allowed);
+            if(allowed)
+            {
+              applyOp(action.docName, metaOps, action.v,
+                function (err)
+                {
+                  if(err)
+                  {
+                    logger.error("Could not apply user change:", err);
+                    allowed = false;
+                  }
+
+                  handleAction(action, username, allowed);
+                }
+              );
+            }
+            else
+            {
+              handleAction(action, username, false);
+            }
             break;
 
           // creating & deleting for nobody.
