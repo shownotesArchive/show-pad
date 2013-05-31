@@ -218,16 +218,28 @@ exports.onCreateDoc = function (doc, cb)
       // set the doc-content to []
       function (cb)
       {
-        var opData =
-        {
-          op: [ { "p":[], "oi": { meta:[], notes: [] } } ],
-          v: 0
-        };
-        model.applyOp(doc.docname, opData, cb);
+        var op = { "p":[], "oi": { meta:[], notes: [] } };
+        applyOp(doc.docname, op, 0, cb);
       }
     ],
     cb
   );
+}
+
+function applyOp(docname, op, v, cb)
+{
+  if(!Array.isArray(op))
+  {
+    op = [op];
+  }
+
+  var opData =
+  {
+    op: op,
+    v: v
+  };
+
+  model.applyOp(docname, opData, cb);
 }
 
 exports.onDeleteDoc = function (doc, cb)
