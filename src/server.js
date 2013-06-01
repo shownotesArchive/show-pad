@@ -1024,16 +1024,13 @@ function processRegister (req, res)
   req.assert('password', 'pw-invalid').len(8, 255);
   req.assert('passwordr', 'pwr-invalid').len(8, 255);
 
-  var errors = req.validationErrors();
+  var errors = req.validationErrors() || [];
 
   var username = req.param('username');
   var password = req.param('password');
   var email = req.param('email');
-  var password = req.param('password');
   var passwordr = req.param('passwordr');
-
-  if(!errors)
-    errors = [];
+  var emailToken;
 
   var values =
     {
@@ -1058,14 +1055,6 @@ function processRegister (req, res)
     registerLimiters[req.ip] = new RateLimiter(2, 'minute', true);
   }
 
-  var emailToken;
-  var mailLocals =
-    {
-      username: username,
-      page: pageurl,
-      link: pageurl + "activate/" + username + "/" // pageurl *always* ends with '/'
-    };
-
   async.series([
     // check the rate limiting
     function (cb)
@@ -1089,7 +1078,8 @@ function processRegister (req, res)
             {
               cb();
             }
-          });
+          }
+        );
       }
       else
       {
@@ -1102,7 +1092,6 @@ function processRegister (req, res)
       crypto.randomBytes(16, function (err, bytes)
         {
           emailToken = bytes.toString('hex');
-          mailLocals.link += emailToken;
           cb();
         });
     },
@@ -1121,13 +1110,12 @@ function processRegister (req, res)
             else
               usererror = ["other-error"];
             res.redirect('/register?errors=' + JSON.stringify(usererror) + "&values=" + JSON.stringify(values));
+            cb();
           }
           else
           {
-            var emailTemplate = "activation-";
-            emailTemplate += req.locale;
-
-            sendMail(emailTemplate, mailLocals, email, res.locals.__("register.email.subject"), function (err, result)
+            sendActivationMail(username, email, req.locale, emailToken,
+              function (err, result)
               {
                 // sending the email didn't work
                 if(err)
@@ -1135,9 +1123,10 @@ function processRegister (req, res)
                   // delete the created user
                   db.user.deleteUser(username, function ()
                     {
-                      console.info("[%s] Register failed (email):", username, + err);
+                      console.info("[%s] Register failed (email):", username, err);
                       res.redirect('/register?errors=' + JSON.stringify(["email-error"]) + "&values=" + JSON.stringify(values));
-                    });
+                    }
+                  );
                 }
                 else
                 {
@@ -1146,12 +1135,35 @@ function processRegister (req, res)
                     {
                       console.info("[%s] Registered", username);
                       res.redirect('/login?error=registered&values=[]');
-                    });
+                    }
+                  );
                 }
-              });
+
+                cb();
+              }
+            );
           }
-        });
-    }]);
+        }
+      );
+    }]
+  );
+}
+
+function sendActivationMail(username, email, locale, emailToken, cb)
+{
+  var emailTemplate = "activation-" + locale;
+  var mailLocals =
+  {
+    username: username,
+    page: pageurl,
+    link: pageurl + "activate/" + username + "/" + emailToken // pageurl *always* ends with '/'
+  };
+
+  // https://github.com/mashpie/i18n-node/blob/7fd1177b8e7e15387b79e7b5825693a5be3735a2/i18n.js#L280
+  var subject = i18n.__.call({locale: locale}, "register.email.subject");
+
+  console.info("[%s] Sending activation email", username);
+  sendMail(emailTemplate, mailLocals, email, subject, cb);
 }
 
 function getErrorArray(errors)
