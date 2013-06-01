@@ -351,10 +351,39 @@ function addRowButtons(oObj, type)
 {
     var rowId = oObj.aData.DT_RowId;
     var rowIndex = oObj.iDataRow;
-    return '<a href="#" data-type="'     + type     + '"' +
-           ' data-rowindex="' + rowIndex + '"' +
-           ' data-rowid="'    + rowId    + '"' +
-           ' onclick="deleteThing(this)" class="pull-right"><%= __("dashboard.delete") %> <i class="icon-trash"></i></a>';
+    var controls =
+    {
+        "delete": { text: '<%= __("dashboard.delete") %> ', icon: "icon-trash", func: "deleteThing" }
+    };
+
+    var $control = $('<div>');
+
+    for (var name in controls)
+    {
+        var control = controls[name];
+
+        var $link = $('<a>');
+
+        $link.attr('href', '#');
+        $link.attr('data-type', type);
+        $link.attr('data-rowindex', rowIndex);
+        $link.attr('data-rowid', rowId);
+        $link.attr('onclick', control.func + "(this)");
+        $link.addClass('pull-right');
+        $link.text(control.text);
+
+        if(control.icon)
+        {
+            var $icon = $('<i>');
+            $icon.addClass(control.icon);
+            $link.append($icon);
+        }
+
+        $control.append($link);
+    }
+
+    // http://stackoverflow.com/a/6967704
+    return $control[0].outerHTML;
 }
 
 function createDoc()
