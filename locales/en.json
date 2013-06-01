@@ -75,6 +75,7 @@
     "showdoc.readonlylink": "Switch to readonly-mode",
     "showdoc.readonly.updateerror": "Refresh failed.",
     "showdoc.readonly.users": "Users watching this:",
+    "showdoc.readonly.loading": "Loading...",
     "showdoc.readonly.format": "Format",
     "showdoc.readonly.format.html": "Parsed",
     "showdoc.readonly.format.raw": "Raw",

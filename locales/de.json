@@ -75,6 +75,7 @@
     "showdoc.readonlylink": "Zum Lesemodus wechseln",
     "showdoc.readonly.updateerror": "Der Text konnte nicht aktualisiert werden.",
     "showdoc.readonly.users": "Benutzer auf diesem Dokument:",
+    "showdoc.readonly.loading": "Lade...",
     "showdoc.readonly.format": "Format",
     "showdoc.readonly.format.html": "Geparst",
     "showdoc.readonly.format.raw": "Text",
