@@ -2,6 +2,8 @@ var async   = require('async')
   , express = require('express')
   , path    = require('path')
   , crypto  = require('crypto')
+  , url     = require('url')
+  , http    = require('http')
   , sharejs = require('share').server
 
 var server = null
@@ -46,6 +48,59 @@ exports.initExpress = function (app)
   model = app.model;
   app.use("/sharejs/channel", express.static(path.resolve(__dirname + '/../../node_modules/share/node_modules/browserchannel/dist')));
   app.use("/jwerty", express.static(path.resolve(__dirname + '/../../node_modules/jwerty')));
+
+  app.get("/createasync", getCreateAsync);
+  app.post("/createasync", postCreateAsync);
+  app.get("/createasync/checkstatus", getCreateAsyncCheckStatus);
+}
+
+function getCreateAsync(req, res)
+{
+  if(!canCreateDoc())
+    return res.redirect("/");
+
+  res.render('documenttypes/asyncnoter_create.ejs', {});
+}
+
+function postCreateAsync(req, res)
+{
+
+}
+
+function getCreateAsyncCheckStatus(req, res)
+{
+  if(!canCreateDoc() || !req.query.url)
+    return res.end();
+
+  var fileUrl = url.parse(req.query.url);
+
+  console.log("Requesting %s//%s%s for %s", fileUrl.protocol, fileUrl.host, fileUrl.pathname, res.locals.user.username);
+
+  var options =
+  {
+    hostname: fileUrl.hostname,
+    port: fileUrl.port,
+    path: fileUrl.pathname,
+    method: 'HEAD',
+    agent: false // => `Connection: close`
+  };
+
+  var fileReq = http.request(options, function(fileRes)
+  {
+    res.json({ result: "ok", status: fileRes.statusCode });
+  });
+
+  fileReq.on('error', function(e)
+  {
+    res.json({ result: "error" });
+  });
+
+  fileReq.end();
+}
+
+function canCreateDoc(user)
+{
+  return true;
 }
 
 function auth(agent, action)

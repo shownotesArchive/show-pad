@@ -279,3 +279,29 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     background-color: lightgray;
     border-radius: 7px;
 }
+
+
+div.format .status
+{
+    font-size: 27px;
+    margin-left: 5px;
+}
+
+div.format .status > .fail
+{
+    color: red;
+    margin-right: 4px;
+}
+
+div.format .status > .success
+{
+    color: green;
+    margin-right: -1px;
+}
+
+div.format .status > .statustext
+{
+    font-size: 17px;
+    vertical-align: middle;
+    color: gray;
+}

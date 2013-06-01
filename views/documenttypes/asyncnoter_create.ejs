@@ -1,0 +1,158 @@
+<% layout('../layout.ejs') %>
+<% block('title', 'Create Document') -%>
+
+<h4>Hi Podcaster!</h4>
+<p>
+Please enter a docname (could be <code id="docname-example"></code>) and links to your media-files.
+The more formats you supply the more users will be able to use the HTML5-Version of the PWP
+in ShowPad, wich has richer functionality. This formular will try to guess the other URLs once
+you entered the mp3-URL, if a guess is wrong just correct the URL in the according textbox.
+</p>
+<hr>
+<form id="form">
+    <div class="control-group">
+        <label class="control-label" for="inputEmail">Docname:</label>
+        <div class="controls">
+            <input type="text" id="inputEmail">
+        </div>
+    </div>
+    <button class="btn btn-success">Create Document</button>
+</form>
+
+<script>
+var podcasts =
+[
+    "mobilemacs",
+    "wrint",
+    "wikigeeks",
+    "cre",
+    "chaosradio",
+    "sendungsbewusstsein",
+    "einschlafen",
+    "schallrauch"
+];
+
+var podcast = podcasts[getRandomInt(0, podcasts.length - 1)];
+var episode = getRandomInt(0, 255) + "";
+episode = new Array(3 - episode.length + 1).join('0') + episode;
+
+var docname = podcast + "-" + episode;
+
+$('#docname-example').text(docname);
+
+function getRandomInt(min, max)
+{
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+</script>
+
+<script>
+var formats = [ "mp3", "m4a", "oga" ];
+var labelTimeout;
+
+for(var format in formats)
+{
+    format = formats[format];
+    addFormat(format);
+}
+
+function addFormat(format)
+{
+    var $group = $('<div>').addClass('control-group').addClass('format');
+    var $label = $('<label>').addClass('control-label');
+    var $txt = $('<input type="text">');
+    var $status = $('<span>').addClass('status');
+
+    $group.attr('id', 'format-' + format);
+    $group.attr('data-format', format);
+
+    $label.text(format + ":");
+
+    $status.append($('<span>').addClass('fail hidden').html('&#10007;'));
+    $status.append($('<span>').addClass('success hidden').html('&#10003;'));
+    $status.append($('<span>').addClass('statustext'));
+
+    $group.append($label);
+    $group.append($('<div>').addClass('controls').append($txt).append($status));
+
+    $('#form button').before($group);
+}
+
+var $mp3 = $('#format-mp3 input');
+var $formats = $('div.format');
+
+$mp3.on('input',
+        function ()
+        {
+            var url = $mp3.val();
+            url = url.slice(0, url.length - 3);
+
+            $formats.each(
+                    function (i, format)
+                    {
+                        var $format = $(format);
+                        var $txt = $format.find('input');
+                        var format = $format.data('format');
+
+                        if(format == "mp3")
+                            return;
+                        if($txt.val().length != 0 && $txt.val() != $txt.attr('data-old'))
+                            return;
+
+                        var text = (url.length < format.length) ? "" : (url + format);
+                        $txt.val(text);
+                        $txt.attr('data-old', $txt.val());
+
+                    }
+            );
+
+            clearTimeout(labelTimeout);
+            labelTimeout = setTimeout(updateLabels, 1500);
+        }
+);
+
+function updateLabels()
+{
+    $formats.each(
+            function (i, format)
+            {
+                var $format = $(format);
+                var $txt = $format.find('input');
+                var file = $txt.val();
+
+                $.getJSON('/createasync/checkstatus?url=' + encodeURIComponent(file),
+                    function (data)
+                    {
+                        var fail, failReason;
+
+                        if(data.result == "ok")
+                        {
+                            if(data.status >= 200 && data.status < 400)
+                                fail = false;
+                            else
+                                fail = true;
+                        }
+                        else
+                        {
+                            fail = true;
+                        }
+
+                        if(fail)
+                        {
+                            $format.find('.fail').removeClass('hidden');
+                            $format.find('.success').addClass('hidden');
+                        }
+                        else
+                        {
+                            $format.find('.fail').addClass('hidden');
+                            $format.find('.success').removeClass('hidden');
+                        }
+
+                        var statustext = !!data.status ? "(" + data.status + ")" : "";
+                        $format.find('.statustext').text(statustext);
+                    }
+                )
+            }
+    );
+}
+</script>
