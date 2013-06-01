@@ -233,7 +233,7 @@ $(function ()
                         mData: null,
                         bSortable: false,
                         sDefaultContent: '',
-                        sWidth: '85px',
+                        sWidth: '140px',
                         fnRender: function (oObj) { return addRowButtons(oObj, 'users') }
                     }
                 ]
@@ -356,6 +356,11 @@ function addRowButtons(oObj, type)
         "delete": { text: '<%= __("dashboard.delete") %> ', icon: "icon-trash", func: "deleteThing" }
     };
 
+    if(type == "users" && Object.keys(oObj.aData.activateEmailTokens).length == 1)
+    {
+        controls["sendmail"] = { text: '<%= __("dashboard.users.sendActivation.text") %> ', icon: "icon-envelope", func: 'sendUserActivation' };
+    }
+
     var $control = $('<div>');
 
     for (var name in controls)
@@ -380,10 +385,36 @@ function addRowButtons(oObj, type)
         }
 
         $control.append($link);
+        $control.append("<br>");
     }
 
     // http://stackoverflow.com/a/6967704
     return $control[0].outerHTML;
+}
+
+function sendUserActivation(element)
+{
+    element = $(element);
+    // disable link, http://stackoverflow.com/a/13977403
+    element.css('pointer-events', 'none');
+
+    var id = element.data('rowid');
+
+    $.get('/dashboard/sendactivation/' + id,
+        function (data)
+        {
+            element.css('pointer-events', ""); // re-enable link
+            
+            if(data.result == "success")
+            {
+                alert("<%= __('dashboard.users.sendActivation.success') %>");
+            }
+            else
+            {
+                alert("<%= __('dashboard.users.sendActivation.fail') %>");
+            }
+        }
+    );
 }
 
 function createDoc()

@@ -306,6 +306,7 @@ function initServer(cb)
   app.post('/profile', processProfile);
 
   app.get('/dashboard', function(req, res) { res.render('dashboard', { pageurl: pageurl, locale: req.locale }); });
+  app.get('/dashboard/sendactivation/:username', sendDashboardUserActivation);
 
   app.get('/logout', processLogout);
 
@@ -1427,6 +1428,39 @@ function processProfile(req, res)
       ]
     );
   }
+}
+
+function sendDashboardUserActivation(req, res)
+{
+  var user = res.locals.user;
+  if(!user || !user.hasRole("admin"))
+    return res.redirect("/");
+
+  var activationUser = req.param("username");
+
+  async.waterfall(
+    [
+      function (cb)
+      {
+        db.user.getUser(activationUser, cb);
+      },
+      function (user, cb)
+      {
+        var tokens = Object.keys(user.activateEmailTokens);
+
+        if(tokens.length != 1)
+          return cb("token");
+
+        var token = user.activateEmailTokens[tokens[0]];
+
+        sendActivationMail(user.username, token.email, req.locale, tokens[0], cb);
+      }
+    ],
+    function (err)
+    {
+      res.json({ result: err ? "fail" : "success" });
+    }
+  );
 }
 
 function processEmailActivation(req, res)
