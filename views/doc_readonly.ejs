@@ -93,15 +93,7 @@ function updateUI()
     else
     {
         var parsed = osfParser(lastOsf);
-        if(activeFormat === 'html') {
-            exported = osfExport(parsed, osfExport_HTML);
-        } else if(activeFormat === 'md') {
-            exported = osfExport(parsed, osfExport_Markdown);
-        } else if(activeFormat === 'chapter') {
-            exported = osfExport(parsed, osfExport_Chapter);
-        } else if(activeFormat === 'glossary') {
-            exported = osfExport(parsed, osfExport_Glossary);
-        }
+        exported = osfExport(parsed, osfExportModules[activeFormat]);
     }
 
     $('.doctext').hide();
