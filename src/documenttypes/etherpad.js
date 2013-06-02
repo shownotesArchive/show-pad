@@ -300,7 +300,12 @@ exports.getText = function (doc, cb)
         logger.error("Could not get padtext: %s, %s", docname, err);
       else
         logger.debug("Got padtext:", docname);
-      cb(err, data);
+
+      var text = null;
+      if(data && data.text)
+        text = data.text;
+
+      cb(err, text);
     });
 }
 
@@ -317,6 +322,7 @@ exports.getLastModifed = function (doc, cb)
         logger.error("Could not get pad-lastEdited: %s, %s", docname, err);
       else
         logger.debug("Got pad-lastEdited:", docname);
-      cb(err, data);
+      var date = new Date(data.lastEdited);
+      cb(err, date);
     });
 }
