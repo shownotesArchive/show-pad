@@ -5,7 +5,7 @@ A realtime web application written in node.js whose aim it is to replace
 the current etherpad-solution and provide a perfect enviroment to write
 shownotes for various podcasts. See also: http://shownot.es/
 
-The favicon is a modified version of the [shownotes-icon](https://github.com/shownotes/shownot.es/blob/master/favicon.ico).
+The favicon is the [shownotes-icon](https://github.com/shownotes/shownot.es/blob/master/favicon.ico).
 
 
 Setup
@@ -14,7 +14,8 @@ Setup
 ### General
 To start ShowPad just run the supplied `run.sh`, which will call `setup.sh` if needed.
 `setup.sh` will install all dependencies and download static third party css or js files.
-A redis-socket is needed to run ShowPad, its path can be set in `config.json`.
+A redis-server which is configured to use unix-sockets is needed, see `unixsocket redis.sock`
+in your redis-config. The minimum redis-version is because of a change in the [`sadd`](http://redis.io/commands/sadd)-command.
 
 ### etherpad-lite
 ShowPad is able to support multiple document types, but at the moment there is only the etherpad-lite one.
@@ -61,19 +62,21 @@ The mail-config inside `config.json` looks like this:
 }
 ```
 
-### Redis
-At least redis 2.4 is needed to run ShowPad because of a change in the [`sadd`](http://redis.io/commands/sadd)-command.
-Your redis-server has to be configuired to use unix-sockets for connections (`unixsocket redis.sock` in `redis.conf`).
-
 Technologies used
 -----------------
 
 * Serverside: [node.js](http://nodejs.org/)
   * http/routing: [express.js](http://expressjs.com/)
+  * persistant sessions: [connect-redis](https://github.com/visionmedia/connect-redis)
+  * [async.js](https://github.com/caolan/async), because it's awesome!
+  * emails: [nodemailer](http://www.nodemailer.com/)
+  * rate limiting: [limiter](https://github.com/jhurliman/node-rate-limiter)
+  * caching: [memory-cache](https://github.com/ptarjan/node-cache)
   * templaing: [ejs](http://embeddedjs.com/) + [ejs-locals](https://github.com/RandomEtc/ejs-locals) (blocks)
   * database: [redis](http://redis.io/) + [node_redis](https://github.com/mranney/node_redis)
   * logging: [log4js-node](https://github.com/nomiddlename/log4js-node)
   * localization: [i18n-node](https://github.com/mashpie/i18n-node)
+  * [amqp](https://github.com/postwait/node-amqp)
   * configuration: [nconf](https://github.com/flatiron/nconf)
   * cookies: [cookie](https://github.com/shtylman/node-cookie) + [cookie-signature](https://github.com/visionmedia/node-cookie-signature)
   * validating forms: [express-validator](https://github.com/ctavan/express-validator)
