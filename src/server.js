@@ -737,6 +737,17 @@ function processDoc (req, res, mode)
       else if(err == "text")
       {
         var cacheName = "doctext_" + docname;
+        var clientDate;
+
+        if(/[0-9{13}]/.test(req.query.t))
+        {
+          clientDate = new Date(parseInt(req.query.t, 10));
+        }
+        else
+        {
+          clientDate = new Date(0);
+        }
+
         var text = cache.get(cacheName);
 
         var ip = req.ip;
@@ -757,30 +768,61 @@ function processDoc (req, res, mode)
 
         // get the number of users
         var users = Object.keys(readonlyUsers[docname]).length;
+        var respData =
+        {
+          status: "ok",
+          users: users,
+          date: +new Date()
+        };
 
-        if(text)
-        {
-          res.json(200, { text: text, users: users });
-        }
-        else
-        {
-          documentTypes.getText(doc,
-            function (err, text)
+        async.waterfall(
+          [
+            function (cb)
             {
-              if(err)
+              documentTypes.getLastModifed(doc,
+                function (err, lastMod)
+                {
+                  var isClientUpToDate = (lastMod < clientDate);
+                  cb(isClientUpToDate ? "up2date" : null);
+                }
+              );
+            },
+            // try to get the text
+            function (cb)
+            {
+              if(text)
               {
-                console.error(logprefixstr + "error while showing doc in text-view:", err);
-                res.statusCode = 500;
-                res.end();
+                cb(null, text);
               }
               else
               {
-                cache.put(cacheName, text, 1000);
-                res.json(200, { text: text, users: users });
+                documentTypes.getText(doc, cb);
               }
+            },
+            // send it to the client
+            function (text, cb)
+            {
+              respData.text = text;
+              cache.put(cacheName, text, 1000);
+              res.json(200, respData);
+              cb();
             }
-          );
-        }
+          ],
+          function (err)
+          {
+            if(err == "up2date")
+            {
+              respData.status = "up2date";
+              res.json(200, respData);
+            }
+            else if(err)
+            {
+              console.error(logprefixstr + "error while showing doc in text-view:", err);
+              res.statusCode = 500;
+              res.end();
+            }
+          }
+        );
       }
       else if(err)
       {

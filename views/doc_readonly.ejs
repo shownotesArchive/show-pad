@@ -24,11 +24,13 @@
 </ul>
 <hr>
 <div class="alert hidden" id="updateerror"></div>
-<div class="doctext"><%= __('showdoc.readonly.loading') %></div>
+<div class="doctext" style="display: none"><%= __('showdoc.readonly.loading') %></div>
 <pre class="doctext"><%= __('showdoc.readonly.loading') %></pre>
 
 <script type="text/javascript">
-var oldexported = null;
+var lastUpdate = null;
+var lastOsf = null;
+
 var hash = window.location.hash;
 if(hash && hash.length > 1) hash = hash.substr(1);
 var activeFormat = hash || 'html';
@@ -43,53 +45,27 @@ function getDocText()
         return;
     }
 
-    $.ajax('/doc/<%=docname%>/text')
+    $.ajax('/doc/<%=docname%>/text?t=' + (+lastUpdate))
         .success
         (
             function (res)
             {
+                var status = res.status;
+                var date = new Date(res.date);
                 var text = res.text;
                 var users = res.users;
-                var exported;
 
                 $('#users').text(users);
                 $('#updateerror').addClass('hidden');
 
-                if(activeFormat === 'raw')
+                if(status == "up2date")
                 {
-                    exported = text;
-                }
-                else
-                {
-                    var parsed = osfParser(text);
-                    if(activeFormat === 'html') {
-                        exported = osfExport(parsed, osfExport_HTML);
-                    } else if(activeFormat === 'md') {
-                        exported = osfExport(parsed, osfExport_Markdown);
-                    } else if(activeFormat === 'chapter') {
-                        exported = osfExport(parsed, osfExport_Chapter);
-                    } else if(activeFormat === 'glossary') {
-                        exported = osfExport(parsed, osfExport_Glossary);
-                    }
-                }
-
-                if(oldexported == exported)
                     return;
-
-                oldexported = exported;
-
-                $('.doctext').hide();
-                switch(activeFormat)
-                {
-                    case 'raw':
-                    case 'chapter':
-                    case 'md':
-                        $('pre.doctext').show().text(exported);
-                        break;
-                    case 'html':
-                        $('div.doctext').show().html(exported);
-                        break;
                 }
+
+                lastUpdate = date;
+                lastOsf = text;
+                updateUI();
             }
         )
         .fail
@@ -99,6 +75,48 @@ function getDocText()
                 $('#updateerror').removeClass('hidden').text("<%=__('showdoc.readonly.updateerror')%>")
             }
         );
+}
+
+function updateUI()
+{
+    var exported;
+
+    if(!lastOsf)
+    {
+        return;
+    }
+
+    if(activeFormat === 'raw')
+    {
+        exported = lastOsf;
+    }
+    else
+    {
+        var parsed = osfParser(lastOsf);
+        if(activeFormat === 'html') {
+            exported = osfExport(parsed, osfExport_HTML);
+        } else if(activeFormat === 'md') {
+            exported = osfExport(parsed, osfExport_Markdown);
+        } else if(activeFormat === 'chapter') {
+            exported = osfExport(parsed, osfExport_Chapter);
+        } else if(activeFormat === 'glossary') {
+            exported = osfExport(parsed, osfExport_Glossary);
+        }
+    }
+
+    $('.doctext').hide();
+
+    switch(activeFormat)
+    {
+        case 'raw':
+        case 'chapter':
+        case 'md':
+            $('pre.doctext').show().text(exported);
+            break;
+        case 'html':
+            $('div.doctext').show().html(exported);
+            break;
+    }
 }
 
 selectFormat(activeFormat);
@@ -114,6 +132,7 @@ $('#format.nav').click(
             $('#format.nav li').removeClass('disabled').addClass('active');
             activeFormat = format;
             selectFormat(format);
+            updateUI();
         }
     }
 )
@@ -124,7 +143,6 @@ function selectFormat(format)
         .parent('li')
         .addClass('disabled')
         .removeClass('active');
-    getDocText();
 }
 
 function isPageVisible()
