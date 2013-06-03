@@ -680,19 +680,23 @@ function processDoc (req, res, mode)
           db.group.getGroup(doc.group, cb);
         }
       },
-      // get the doc-group
+      // find out whether the client is allowed to view this document
+      // and which mode to show them
       function (_group, cb)
       {
         group = _group;
 
         isPublic = (group.type == "open");
+        // a user is authorized to view a document if
+        //   *) the group is public
+        //   *) the group is closed and the user is in the docs group
         isAuthed = !! (user && (user.inGroup(group.short) || isPublic));
 
         logprefixstr = getShowDocStr(username, docname, isPublic, isAuthed, isText, isReadonly);
 
         if((isAuthed || isPublic) && isText)
         {
-          // show the readwrite-view
+          // return the text for readonly-view refreshes
           cb("text");
         }
         else if(isAuthed && !isReadonly)
@@ -702,19 +706,19 @@ function processDoc (req, res, mode)
         }
         else if((isPublic && !isAuthed))
         {
-          // show the readonly-view
+          // show the readonly-view (because of missing auth)
           readonlyReason = "auth";
           cb("readonly");
         }
         else if(isReadonly && isAuthed)
         {
-          // show the readonly-view
+          // show the readonly-view (because the user used the /readonly-link)
           readonlyReason = "choosen";
           cb("readonly");
         }
         else
         {
-          // fail
+          // auth-fail, show an error
           cb("auth");
         }
       },
