@@ -56,7 +56,7 @@ exports.initExpress = function (app)
 
 function getCreateAsync(req, res)
 {
-  if(!canCreateDoc())
+  if(!canCreateDoc(res.locals.user))
     return res.redirect("/");
 
   res.render('documenttypes/asyncnoter_create.ejs', {});
@@ -69,7 +69,7 @@ function postCreateAsync(req, res)
 
 function getCreateAsyncCheckStatus(req, res)
 {
-  if(!canCreateDoc() || !req.query.url)
+  if(!canCreateDoc(res.locals.user) || !req.query.url)
     return res.end();
 
   var fileUrl = url.parse(req.query.url);
@@ -100,7 +100,7 @@ function getCreateAsyncCheckStatus(req, res)
 
 function canCreateDoc(user)
 {
-  return true;
+  return user && user.hasRole("podcaster");
 }
 
 function auth(agent, action)
