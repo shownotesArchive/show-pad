@@ -1,3 +1,8 @@
+// this script is used to check if all locaes are up to date
+// with the first one. It simply tries to find all strings
+// which are in the very first locale given in `localename`
+// in all the other locales.
+
 var localenames = [ "en", "de" ]
 var locales = {};
 
