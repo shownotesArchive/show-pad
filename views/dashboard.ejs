@@ -305,9 +305,11 @@ function formatDate(date)
 
 function refreshGroups()
 {
+    groups = [];
     refreshDropdown("groups", "groupSelect",
         function (group)
         {
+            groups.push(group);
             return {
                 text: group.name + " (" + group.short + ")",
                 value: group.short
