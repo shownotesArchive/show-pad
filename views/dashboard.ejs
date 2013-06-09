@@ -136,16 +136,15 @@ $(function ()
                 aoColumns: [
                     {
                         mData: [ "docname" ],
-                        fnRender: function (oObj)
+                        mRender: function (docname)
                         {
-                            var docname = oObj.aData.docname;
                             return "<a href='<%= pageurl %>doc/" + docname + "'>" + docname + "</a>";
                         }
                     },
                     { mData: [ "type" ] },
                     {
                         mData: [ "createTime" ],
-                        fnRender: function (oObj) { return formatDate(new Date(oObj.aData.createTime)); }
+                        mRender: function (createTime) { return formatDate(new Date(createTime)); }
                     },
                     { mData: [ "group" ] },
                     {
@@ -170,11 +169,9 @@ $(function ()
                     { mData: [ "name" ] },
                     {
                         mData: [ "type" ],
-                        fnRender: function (oObj)
+                        mRender: function (type)
                         {
-                            var type = oObj.aData.type;
-                            type = type.charAt(0).toUpperCase() + type.slice(1);
-                            return type;
+                            return type.charAt(0).toUpperCase() + type.slice(1);
                         }
                     },
                     {
@@ -203,9 +200,8 @@ $(function ()
                     },
                     {
                         mData: [ "roles" ],
-                        fnRender: function (oObj)
+                        mRender: function (roles)
                         {
-                            var roles = oObj.aData.roles;
                             if(roles.indexOf('admin') != -1 || roles == "Admin")
                                 return "Admin";
                             if(roles.indexOf('user') != -1 || roles == "User")
@@ -214,18 +210,16 @@ $(function ()
                     },
                     {
                         mData: [ "status" ],
-                        fnRender: function (oObj)
+                        mRender: function (status)
                         {
-                            var status = oObj.aData.status;
                             status = status.charAt(0).toUpperCase() + status.slice(1);
                             return status;
                         }
                     },
                     {
                         mData: [ "groups" ],
-                        fnRender: function (oObj)
+                        mRender: function (groups)
                         {
-                            var groups = oObj.aData.groups;
                             return groups.join(", ");
                         }
                     },
