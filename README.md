@@ -14,8 +14,8 @@ Setup
 ### General
 To start ShowPad just run the supplied `run.sh`, which will call `setup.sh` if needed.
 `setup.sh` will install all dependencies and download static third party css or js files.
-A redis-server which is configured to use unix-sockets is needed, see `unixsocket redis.sock`
-in your redis-config. The minimum redis-version is because of a change in the [`sadd`](http://redis.io/commands/sadd)-command.
+A redis-server which is configured to use unix-sockets is needed, set `unixsocket redis.sock`
+in your redis-config. The minimum redis-version is 2.4 because of a change in the [`sadd`](http://redis.io/commands/sadd)-command.
 
 ### etherpad-lite
 ShowPad is able to support multiple document types, but at the moment there is only the etherpad-lite one.
@@ -61,6 +61,14 @@ The mail-config inside `config.json` looks like this:
   }
 }
 ```
+
+### Contributing
+The entry point of showpad is [`server.js`](https://github.com/shownotes/show-pad/blob/master/src/server.js).
+Search for `console.info("Let's go")` to find the first few lines of meaningful code that are executed.
+ShowPad then goes on and loads the [doctypes](https://github.com/shownotes/show-pad/blob/master/doc/doctypes.md),
+databases (missing doc, #36), [API](https://github.com/shownotes/show-pad/blob/master/doc/api.md) and what not.
+In case you're having trouble with the templating take a look at [`templating.md`](https://github.com/shownotes/show-pad/blob/master/doc/templating.md).
+
 
 Technologies used
 -----------------
