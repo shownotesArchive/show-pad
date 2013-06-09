@@ -112,6 +112,29 @@
   </div>
 </div>
 
+<!-- Group/Role-Editor (will be .clone()'d in addModal()) -->
+<div id="collectioneditor" class="modal hide fade" tabindex="-1" role="dialog">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&#x00D7;</button>
+        <h3 class="title"></h3>
+    </div>
+    <div class="modal-body">
+        <ul class="list">
+        </ul>
+        <div class="form-inline add">
+            <label class="control-label text"></label>&nbsp;
+            <select class="select">
+            </select>
+
+            <button class="btn primary submit" type="submit"><%= __('dashboard.colledit.add') %></button>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal"><%= __('dashboard.colledit.abort') %></button>
+        <button class="btn btn-primary"><%= __('dashboard.colledit.save') %></button>
+    </div>
+</div>
+
 <script>
 var groups = []
 
@@ -119,6 +142,9 @@ $(function ()
 {
     refreshGroups();
     refreshDoctypes();
+    addModal("user-grp",
+             "<%= __('dashboard.colledit.user.group.title') %>",
+             "<%= __('dashboard.colledit.user.group.addText') %>");
 
     $('#create-doc').click(createDoc);
     $('#create-group').click(createGroup);
@@ -323,6 +349,88 @@ function refreshDoctypes()
     refreshDropdown("documenttypes", "doctypeSelect", function (doctype) { return { text: doctype, value: doctype }; });
 }
 
+function addModal(type, title, addText)
+{
+    var $protoModal = $('#collectioneditor');
+    var $modal = $protoModal.clone();
+    var $modalBody = $modal.children('.modal-body:first');
+
+    $modal.attr('id', null);
+    $modal.attr('data-type', type);
+
+    $modal.find('.modal-header > .title').text(title);
+    $modalBody.find('.add > .text:first').text(addText);
+
+    $protoModal.after($modal);
+}
+
+function openModal(type, id, possible, current)
+{
+    var $modal = $('.modal[data-type=' + type + ']');
+    var $list = $modal.find('.list:first');
+    var $select = $modal.find('.select:first');
+
+    $modal.attr('id', id);
+
+    $list.empty();
+    for (var i = 0; i < current.length; i++)
+    {
+        var cur = possible[i];
+        addCurrentItem(cur);
+    }
+
+    $select.empty();
+    for (var i = 0; i < possible.length; i++)
+    {
+        var pos = possible[i];
+
+        var $option = $('<option>');
+        $option.attr('value', pos.val);
+        $option.text(pos.text);
+
+        $select.append($option);
+    }
+
+    $modal.find('button.submit').click(
+        function ()
+        {
+            var $selected = $select.children(':selected:first');
+            var val = $selected.attr('value');
+            var text = $selected.text();
+
+            addCurrentItem({ val: val, text: text });
+        }
+    )
+
+    $modal.modal();
+
+    function addCurrentItem(cur)
+    {
+        var $lis = $list.children();
+
+        // don't add items twice
+        for (var i = 0; i < $lis.length; i++)
+        {
+            var li = $lis[i];
+            if($(li).attr('data-val') == cur.val)
+                return;
+        }
+
+        var $li = $('<li><span></span>&nbsp;<i class="icon-trash" style="cursor: pointer;"></i></li>');
+
+        $li.attr('data-val', cur.val);
+        $li.find('span').text(cur.text);
+        $li.children('i:first').click(
+            function (e)
+            {
+                $(e.target).parent().remove();
+            }
+        )
+
+        $list.append($li);
+    }
+}
+
 function refreshDropdown(endpoint, cls, namecb)
 {
     $.ajax("/api/1/" + endpoint)
@@ -352,9 +460,14 @@ function addRowButtons(oObj, type)
         "delete": { text: '<%= __("dashboard.delete") %> ', icon: "icon-trash", func: "deleteThing" }
     };
 
-    if(type == "users" && Object.keys(oObj.aData.activateEmailTokens).length == 1)
+    if(type == "users")
     {
-        controls["sendmail"] = { text: '<%= __("dashboard.users.sendActivation.text") %> ', icon: "icon-envelope", func: 'sendUserActivation' };
+        controls["editgroups"] = { text: '<%= __("dashboard.users.editgroups.text") %> ', icon: "icon-wrench", func: 'editUserGroups' };
+
+        if(Object.keys(oObj.aData.activateEmailTokens).length == 1)
+        {
+            controls["sendmail"] = { text: '<%= __("dashboard.users.sendActivation.text") %> ', icon: "icon-envelope", func: 'sendUserActivation' };
+        }
     }
 
     var $control = $('<div>');
@@ -386,6 +499,44 @@ function addRowButtons(oObj, type)
 
     // http://stackoverflow.com/a/6967704
     return $control[0].outerHTML;
+}
+
+function editUserGroups(element)
+{
+    element = $(element);
+    var id = element.data('rowid');
+    var index = element.data('rowindex');
+    var user = usertable.fnGetData(index);
+
+    var possibleGrps = [];
+    var groupLookup = {};
+    for (var i = 0; i < groups.length; i++)
+    {
+        var grp = groups[i];
+
+        groupLookup[grp.short] = grp.name;
+        possibleGrps.push(
+            {
+                val: grp.short,
+                text: grp.name
+            }
+        );
+    }
+
+    var currentGrps = [];
+    for (var i = 0; i < user.groups.length; i++)
+    {
+        var grp = user.groups[i];
+
+        currentGrps.push(
+            {
+                val: grp,
+                text: groupLookup[grp]
+            }
+        );
+    }
+
+    openModal('user-grp', id, possibleGrps, currentGrps);
 }
 
 function sendUserActivation(element)
