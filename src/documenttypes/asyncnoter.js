@@ -339,6 +339,7 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
   var locals =
   {
     docname: doc.docname,
+    pageurl: server.pageurl,
     groupname: doc.group,
     authtoken: token
   };

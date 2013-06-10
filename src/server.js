@@ -11,6 +11,7 @@ var express   = require('express')
   , path      = require('path')
   , url       = require('url')
   , cache     = require('memory-cache')
+  , punycode  = require('punycode')
   , Recaptcha = require('recaptcha').Recaptcha
   , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
@@ -84,6 +85,9 @@ function initConfig(cb)
   // add '/' at the end of pageurl if needed
   if(pageurl.charAt(pageurl.length - 1) != '/')
     pageurl += '/';
+
+  pageurl = punycode.toASCII(pageurl);
+  exports.pageurl = pageurl;
 
   sessionSecret = nconf.get("sessionSecret");
   if(!sessionSecret || sessionSecret.length == 0)
