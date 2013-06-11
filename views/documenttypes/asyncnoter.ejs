@@ -101,7 +101,7 @@ function setupSharejs()
             doc = _doc;
 
             var notes = getNotes();
-            $.each(notes, function(i, note) { addNoteToHTML(i, note); });
+            $.each(notes, addNoteToHTML);
             doc.at("notes").on('insert', onDocInsert);
             doc.at("notes").on('delete', onDocDelete);
         }
@@ -377,7 +377,7 @@ function addNoteToHTML(index, note)
 function getHumanTime(time)
 {
     var seconds = pad(time % 60, 2);
-    var minutes = pad(Math.floor(time / 60), 2);
+    var minutes = pad(Math.floor(time % 60), 2);
     var hours = pad(Math.floor(time / 3600), 2);
 
     return hours + ":" + minutes + ":" + seconds;

@@ -400,7 +400,7 @@ exports.getText = function (doc, cb)
 function getHumanTime(time)
 {
   var seconds = pad(time % 60, 2);
-  var minutes = pad(Math.floor(time / 60), 2);
+  var minutes = pad(Math.floor(time % 60), 2);
   var hours = pad(Math.floor(time / 3600), 2);
 
   return hours + ":" + minutes + ":" + seconds;
