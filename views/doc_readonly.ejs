@@ -10,10 +10,10 @@
 <h4><%= __('showdoc.readonly.format') %></h4>
 <ul id="format" class="nav nav-pills">
     <li class="active">
-        <a href="#block" data-format="block"><%= __('showdoc.readonly.format.block') %></a>
+        <a href="#html" data-format="html"><%= __('showdoc.readonly.format.block') %></a>
     </li>
     <li class="active">
-        <a href="#list" data-format="list"><%= __('showdoc.readonly.format.list') %></a>
+        <a href="#htmllist" data-format="htmllist"><%= __('showdoc.readonly.format.list') %></a>
     </li>
     <li class="active">
         <a href="#raw" data-format="raw"><%= __('showdoc.readonly.format.raw') %></a>
@@ -36,7 +36,7 @@ var lastOsf = null;
 
 var hash = window.location.hash;
 if(hash && hash.length > 1) hash = hash.substr(1);
-var activeFormat = hash || 'block';
+var activeFormat = hash || 'html';
 
 setInterval(getDocText, 1000);
 getDocText();
@@ -108,8 +108,8 @@ function updateUI()
         case 'md':
             $('pre.doctext').show().text(exported);
             break;
-        case 'block':
-        case 'list':
+        case 'html':
+        case 'htmllist':
             $('div.doctext').show().html(exported);
             break;
     }
