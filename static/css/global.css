@@ -247,7 +247,7 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
 {
     list-style-type: none;
     margin: 10px;
-    height: 300px;
+    min-height: 300px;
     overflow: scroll;
 }
 

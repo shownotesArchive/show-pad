@@ -36,6 +36,11 @@
 <div id="notes"></div>
 
 <script>
+// do this in js because 100% in CSS is the full page height and bla
+function fixNotesHeight() { $('#notes').css('height', ($(window).height() - 450) + 'px'); }
+fixNotesHeight();
+$(window).resize(fixNotesHeight);
+
 // arch
 var webplayer
   , doc
