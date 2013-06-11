@@ -3,6 +3,7 @@
   "sessionSecret":"",
   "apikey":"",
   "docsonindex": 10,
+  "showbeta": false,
   "loglevel":
   {
     "doctypes": "INFO",

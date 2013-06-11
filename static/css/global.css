@@ -5,6 +5,24 @@ body
     background-color: #666;
 }
 
+.betaribbon
+{
+    position: absolute;
+    top: 50px;
+    left: -80px;
+    background-color: rgba(255,0,0,0.9);
+    width: 320px;
+    height: 40px;
+    font-size: 35px;
+    padding-top: 20px;
+    opacity: 0.45;
+    text-align: center;
+    z-index: 99999;
+    transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+}
+
 .navbar
 {
     margin-top: 20px;

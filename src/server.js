@@ -182,6 +182,7 @@ function initServer(cb)
 
   app.use(function(req, res, next)
     {
+      res.locals.isbeta = nconf.get("isbeta") == true;
       res.locals.user = null;
       res.locals.page = req.path;
       if(!req.session.user)
