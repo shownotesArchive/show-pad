@@ -48,6 +48,18 @@ body
     color: #333333;
 }
 
+.doctext {
+    font-family: "Lucida Grande", "Lucida Sans Unicode", Geneva, sans-serif;
+}
+
+.doctext ol, .doctext ul {
+    list-style: none;
+}
+
+.doctext h1, .doctext h2 {
+    font-size: 27px;
+}
+
 #content
 {
     position: relative;
