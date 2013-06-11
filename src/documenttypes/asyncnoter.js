@@ -73,13 +73,17 @@ function getCreateAsyncCheckStatus(req, res)
     return res.end();
 
   var fileUrl = url.parse(req.query.url);
+  var hostname = fileUrl.hostname;
+
+  if(!fileUrl.protocol || !hostname || hostname.indexOf('.') == -1)
+    return res.end();
 
   console.log("Requesting %s//%s%s for %s", fileUrl.protocol, fileUrl.host, fileUrl.pathname, res.locals.user.username);
 
   var options =
   {
     hostname: fileUrl.hostname,
-    port: fileUrl.port,
+    port: 80,
     path: fileUrl.pathname,
     method: 'HEAD',
     agent: false // => `Connection: close`
