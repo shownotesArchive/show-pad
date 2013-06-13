@@ -50,7 +50,6 @@ exports.handleRequest = function (req, res)
 
   var user = res.locals.user;
 
-  console.info("[API] REQUEST %s %s", method, req.url);
 
   var apikeyValid = apikey != null && query["apikey"] == apikey;
   var adminValid = !!user && user.hasRole("admin");
@@ -64,6 +63,16 @@ exports.handleRequest = function (req, res)
     console.warn("API-Auth failed, APIKey=%s, Admin=%s (%s)", apikeyValid, adminValid, username);
     answerRequest(res, 401, "Unauthorized", null);
     return;
+  }
+  else
+  {
+    var auth = "";
+    if(apikeyValid)
+      auth = "apikey";
+    else if(adminValid)
+      auth = "user=" + user.username;
+
+    console.info("[API] REQUEST auth=%s %s %s", auth, method, req.url);
   }
 
   var endpoint = endpoints[params.endpoint];
