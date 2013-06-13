@@ -1,7 +1,7 @@
 var async  = require('async')
   , fs    = require('fs')
   , pluginloader = require('./pluginloader.js')
-  , apikey = null
+  , apikeys = []
   , server
   , db;
 
@@ -12,22 +12,25 @@ exports.init = function (_server, _cb)
   server = _server;
   db = server.db;
 
-  var tmpapikeyey = server.nconf.get("apikey");
-  if(tmpapikeyey && tmpapikeyey.length != 0)
+  var tmpapikeys = server.nconf.get("apikeys");
+
+  for (var i = 0; i < tmpapikeys.length; i++)
   {
-    if(tmpapikeyey.length < 30)
+    var apikey = tmpapikeys[i];
+
+    if(!apikey || !apikey.key || !apikey.name)
     {
-      console.warn("Your API-Key is too short. Please use at least 30 characters.");
+      console.warn("API-Key-Setting %s is invalid. Please supply an name and key.", i);
+    }
+    if(apikey.key.length < 30)
+    {
+      console.warn("API-Key for %s is too short. Please use at least 30 characters.", apikey.name);
     }
     else
     {
-      console.log("API-Key is '%s'", tmpapikeyey);
-      apikey = tmpapikeyey;
+      console.log("API-Key of %s is %s", apikey.name, apikey.key);
+      apikeys.push(apikey);
     }
-  }
-  else
-  {
-    console.warn("No API-Key defined.");
   }
 
   pluginloader.load('./src/api', [db, server],
@@ -50,8 +53,8 @@ exports.handleRequest = function (req, res)
 
   var user = res.locals.user;
 
-
-  var apikeyValid = apikey != null && query["apikey"] == apikey;
+  var apikeyName = checkAPIKey(query["apikey"]);
+  var apikeyValid = !!apikeyName;
   var adminValid = !!user && user.hasRole("admin");
 
   if(!apikeyValid && !adminValid)
@@ -68,7 +71,7 @@ exports.handleRequest = function (req, res)
   {
     var auth = "";
     if(apikeyValid)
-      auth = "apikey";
+      auth = "apikey=" + apikeyName;
     else if(adminValid)
       auth = "user=" + user.username;
 
@@ -113,6 +116,24 @@ exports.handleRequest = function (req, res)
     else
       answerRequest(res, 405, "Method Not Allowed", null); // would be delete all
   }
+}
+
+function checkAPIKey(apikey)
+{
+  if(!apikey || typeof apikey != "string")
+  {
+    return null;
+  }
+
+  for (var i = 0; i < apikeys.length; i++)
+  {
+    if(apikeys[i].key == apikey)
+    {
+      return apikeys[i].name;
+    }
+  }
+
+  return null;
 }
 
 function answerRequest(res, statusCode, msg, data)

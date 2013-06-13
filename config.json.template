@@ -1,7 +1,7 @@
 {
   "pageurl":"",
   "sessionSecret":"",
-  "apikey":"",
+  "apikeys":[],
   "docsonindex": 10,
   "trustproxy": false,
   "xenim":
