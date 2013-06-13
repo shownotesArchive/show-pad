@@ -318,6 +318,9 @@ function initServer(cb)
   app.put('/api/:version/:endpoint/:entity?', api.handleRequest);
   app.delete('/api/:version/:endpoint/:entity?', api.handleRequest);
 
+  // public API
+  app.get('/publicapi/docnames', processPublicDocnames);
+
   cb(null);
 }
 
@@ -1631,4 +1634,87 @@ function evaluateRecaptcha(req, cb)
       }
     });
   }
+}
+
+function processPublicDocnames(req, res)
+{
+  var cacheName = "publicdocnames";
+
+  async.waterfall(
+    [
+      // check the cache
+      function (cb)
+      {
+        var docs = cache.get(cacheName);
+
+        if(docs)
+          cb("cache", docs);
+        else
+          cb();
+      },
+      // get docnames
+      function (cb)
+      {
+        db.getObjectsOfType('doc', cb);
+      },
+      // get live2pad-mapping
+      function (docnames, cb)
+      {
+        db.getHash("live2pad",
+          function (err, liveToDoc)
+          {
+            if(err)
+            {
+              cb(err);
+            }
+            else
+            {
+              cb(null, docnames, liveToDoc);
+            }
+          }
+        );
+      },
+      // add live-ids to docnames
+      function (docnames, liveToDoc, cb)
+      {
+        var docs = [];
+        var liveLookup = {};
+
+        for (var id in liveToDoc)
+        {
+          liveLookup[liveToDoc[id]] = id;
+        }
+
+        for (var i = 0; i < docnames.length; i++)
+        {
+          docs.push(
+            {
+              docname: docnames[i],
+              hoerid: liveLookup[docnames[i]] || null
+            }
+          )
+        }
+
+        cache.put(cacheName, docs, 10000);
+        cb(null, docs);
+      }
+    ],
+    function (err, result)
+    {
+      var resp =
+      {
+        "status": 200,
+        "message": "ok",
+        "data": result
+      };
+
+      if(err && err != "cache")
+      {
+        resp.status = 500;
+        resp.data = null;
+      }
+
+      res.json(resp.status, resp);
+    }
+  );
 }
