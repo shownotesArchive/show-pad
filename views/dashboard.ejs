@@ -364,18 +364,20 @@ function addModal(type, title, addText)
     $protoModal.after($modal);
 }
 
-function openModal(type, id, possible, current)
+function openModal(type, id, possible, current, cb)
 {
     var $modal = $('.modal[data-type=' + type + ']');
     var $list = $modal.find('.list:first');
     var $select = $modal.find('.select:first');
+    var $saveBtn = $modal.find('.btn-primary');
+    var possibleValues = [];
 
     $modal.attr('id', id);
 
     $list.empty();
     for (var i = 0; i < current.length; i++)
     {
-        var cur = possible[i];
+        var cur = current[i];
         addCurrentItem(cur);
     }
 
@@ -383,6 +385,7 @@ function openModal(type, id, possible, current)
     for (var i = 0; i < possible.length; i++)
     {
         var pos = possible[i];
+        possibleValues.push(pos.val);
 
         var $option = $('<option>');
         $option.attr('value', pos.val);
@@ -400,7 +403,27 @@ function openModal(type, id, possible, current)
 
             addCurrentItem({ val: val, text: text });
         }
-    )
+    );
+
+    $saveBtn.off('click');
+    $saveBtn.click(
+        function ()
+        {
+            var newelements = [];
+            var $elements = $list.children();
+
+            for (var i = 0; i < $elements.length; i++)
+            {
+                var $elem = $($elements[i]);
+                var val = $elem.attr('data-val');
+
+                if(possibleValues.indexOf(val) != -1)
+                    newelements.push(val);
+            }
+
+            cb(newelements);
+        }
+    );
 
     $modal.modal();
 
@@ -425,7 +448,7 @@ function openModal(type, id, possible, current)
             {
                 $(e.target).parent().remove();
             }
-        )
+        );
 
         $list.append($li);
     }
@@ -536,7 +559,12 @@ function editUserGroups(element)
         );
     }
 
-    openModal('user-grp', id, possibleGrps, currentGrps);
+    openModal('user-grp', id, possibleGrps, currentGrps, applyGroups);
+
+    function applyGroups(groups)
+    {
+        alert("Setting groups: " + groups.join(', '));
+    }
 }
 
 function sendUserActivation(element)
