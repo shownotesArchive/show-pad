@@ -142,9 +142,14 @@ $(function ()
 {
     refreshGroups();
     refreshDoctypes();
+
     addModal("user-grp",
-             "<%= __('dashboard.colledit.user.group.title') %>",
-             "<%= __('dashboard.colledit.user.group.addText') %>");
+            "<%= __('dashboard.colledit.user.group.title') %>",
+            "<%= __('dashboard.colledit.user.group.addText') %>");
+
+    addModal("user-role",
+            "<%= __('dashboard.colledit.user.role.title') %>",
+            "<%= __('dashboard.colledit.user.role.addText') %>");
 
     $('#create-doc').click(createDoc);
     $('#create-group').click(createGroup);
@@ -228,10 +233,7 @@ $(function ()
                         mData: [ "roles" ],
                         mRender: function (roles)
                         {
-                            if(roles.indexOf('admin') != -1 || roles == "Admin")
-                                return "Admin";
-                            if(roles.indexOf('user') != -1 || roles == "User")
-                                return "User";
+                            return roles.join(", ");
                         }
                     },
                     {
@@ -267,15 +269,7 @@ $(function ()
                             null,
                             null,
                             null,
-                            {
-                                event: 'click',
-                                indicator: '<%= __("dashboard.users.selectrole") %>',
-                                loadtext: 'loading...',
-                                id: "userRole",
-                                type: 'select',
-                                onblur: 'submit',
-                                data: "{'admin':'Admin','user':'User'}"
-                            },
+                            null,
                             {
                                 event: 'click',
                                 indicator: '<%= __("dashboard.users.selectstatus") %>',
@@ -421,7 +415,11 @@ function openModal(type, id, possible, current, cb)
                     newelements.push(val);
             }
 
-            cb(newelements);
+            var close = cb(newelements);
+            if(close)
+            {
+                $modal.modal('hide');
+            }
         }
     );
 
@@ -486,6 +484,7 @@ function addRowButtons(oObj, type)
     if(type == "users")
     {
         controls["editgroups"] = { text: '<%= __("dashboard.users.editgroups.text") %> ', icon: "icon-wrench", func: 'editUserGroups' };
+        controls["editroles"] = { text: '<%= __("dashboard.users.editroles.text") %> ', icon: "icon-wrench", func: 'editUserRoles' };
 
         if(Object.keys(oObj.aData.activateEmailTokens).length == 1)
         {
@@ -563,7 +562,56 @@ function editUserGroups(element)
 
     function applyGroups(groups)
     {
-        alert("Setting groups: " + groups.join(', '));
+        var rtn = updateThing("users", id, "err", { groups: groups }, "", null, null);
+        return rtn != "err";
+    }
+}
+
+function editUserRoles(element)
+{
+    element = $(element);
+    var id = element.data('rowid');
+    var index = element.data('rowindex');
+    var user = usertable.fnGetData(index);
+
+    var possibleRoles =
+        [
+            {
+                val: "user",
+                text: "User"
+            },
+            {
+                val: "admin",
+                text: "Admin"
+            }
+        ];
+
+    var roleLookup = {};
+    for (var i = 0; i < possibleRoles.length; i++)
+    {
+        var role = possibleRoles[i];
+        roleLookup[role.val] = role.text;
+    }
+
+    var currentRoles = [];
+    for (var i = 0; i < user.roles.length; i++)
+    {
+        var role = user.roles[i];
+
+        currentRoles.push(
+            {
+                val: role,
+                text: roleLookup[role]
+            }
+        );
+    }
+
+    openModal('user-role', id, possibleRoles, currentRoles, applyRoles);
+
+    function applyRoles(roles)
+    {
+        var rtn = updateThing("users", id, "err", { roles: roles }, "", null, null);
+        return rtn != "err";
     }
 }
 
@@ -685,15 +733,13 @@ function updateUser(value, settings)
     var username = rawData.data;
     var data = {};
 
-    if(rawData.rowName == "userRole")
-    {
-        data.roles = [ "user" ];
-        if(value == "admin")
-            data.roles.push("admin");
-    }
-    else if(rawData.rowName == "userStatus")
+    if(rawData.rowName == "userStatus")
     {
         data.status = value;
+    }
+    else
+    {
+        alert("Invalid row: " + rawData.rowName);
     }
 
     return updateThing("users", username, error, data, value, settings, refreshGroups);
@@ -702,7 +748,6 @@ function updateUser(value, settings)
 function updateThing(type, name, error, data, value, settings, cb)
 {
     var returnValue = error;
-    console.log(arguments)
 
     $.ajax(
         {
@@ -716,8 +761,11 @@ function updateThing(type, name, error, data, value, settings, cb)
             returnValue = value;
         }).fail(function ()
         {
-            // return an error later and reset the local value
-            settings.onreset();
+            if(settings)
+            {
+                // return an error later and reset the local value
+                settings.onreset();
+            }
         });
 
     if(cb)
