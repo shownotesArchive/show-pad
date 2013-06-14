@@ -478,16 +478,18 @@ function addRowButtons(oObj, type)
     var rowIndex = oObj.iDataRow;
     var controls =
     {
-        "delete": { text: '<%= __("dashboard.delete") %> ', icon: "icon-trash", func: "deleteThing" }
+        "delete": { text: '<%= __("dashboard.delete") %>', icon: "icon-trash", func: "deleteThing" }
     };
 
     if(type == "users")
     {
-        controls["editgroups"] = { text: '<%= __("dashboard.users.editgroups.text") %> ', icon: "icon-wrench", func: 'editUserGroups' };
-        controls["editroles"] = { text: '<%= __("dashboard.users.editroles.text") %> ', icon: "icon-wrench", func: 'editUserRoles' };
+        controls["delete"].break = true;
+        controls["editgroups"] = { text: '<%= __("dashboard.users.editgroups.text") %>', icon: "icon-wrench", func: 'editUserGroups' };
+        controls["editroles"] = { text: '<%= __("dashboard.users.editroles.text") %>', icon: "icon-wrench", func: 'editUserRoles' };
 
         if(Object.keys(oObj.aData.activateEmailTokens).length == 1)
         {
+            controls["editroles"].break = true;
             controls["sendmail"] = { text: '<%= __("dashboard.users.sendActivation.text") %> ', icon: "icon-envelope", func: 'sendUserActivation' };
         }
     }
@@ -506,6 +508,7 @@ function addRowButtons(oObj, type)
         $link.attr('data-rowid', rowId);
         $link.attr('onclick', control.func + "(this)");
         $link.addClass('pull-right');
+        $link.css('margin-left', '0.25em');
         $link.text(control.text);
 
         if(control.icon)
@@ -516,7 +519,8 @@ function addRowButtons(oObj, type)
         }
 
         $control.append($link);
-        $control.append("<br>");
+        if(control.break)
+            $control.append($('<br>'));
     }
 
     // http://stackoverflow.com/a/6967704
