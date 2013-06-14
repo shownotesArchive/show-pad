@@ -377,7 +377,9 @@ function getClientPods (cb)
       {
         var startDate = new Date();
         startDate.setDate(startDate.getDate()-1); // yesterday
-        hoerapi.getLive(nconf.get("docsonindex"), startDate, null, cb);
+        var endDate = new Date();
+        endDate.setDate(endDate.getDate()+1); // yesterday
+        hoerapi.getLive(null, startDate, endDate, cb);
       },
       // get podcast<->pad mapping
       function (podcasts, cb)
@@ -400,8 +402,9 @@ function getClientPods (cb)
       function (podcasts, liveToPad, cb)
       {
         var clientPods = [];
+        var maxRows = nconf.get("docsonindex");
 
-        for (var i = 0; i < podcasts.length; i++)
+        for (var i = 0; i < podcasts.length && clientPods.length < maxRows; i++)
         {
           var id = podcasts[i].id;
           var doc = {};
@@ -422,7 +425,7 @@ function getClientPods (cb)
           var liveDate = new Date(+podcasts[i].livedate);
           liveDate.setHours(0,0,0,0);
 
-          if(!doc.exists && today - liveDate === 0)
+          if(!doc.exists && today - liveDate > 0)
           {
             // podcast from yesterday and no created doc => skip it
             continue;
