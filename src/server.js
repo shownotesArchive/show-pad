@@ -357,6 +357,8 @@ function processIndex (req, res)
 function getClientPods (cb)
 {
   var cacheName = "clientpods";
+  var today = new Date();
+  today.setHours(0,0,0,0);
 
   async.waterfall(
     [
@@ -373,7 +375,9 @@ function getClientPods (cb)
       // get hoersuppe-live-podcasts
       function (cb)
       {
-        hoerapi.getLive(nconf.get("docsonindex"), null, null, cb);
+        var startDate = new Date();
+        startDate.setDate(startDate.getDate()-1); // yesterday
+        hoerapi.getLive(nconf.get("docsonindex"), startDate, null, cb);
       },
       // get podcast<->pad mapping
       function (podcasts, cb)
@@ -403,6 +407,8 @@ function getClientPods (cb)
           var doc = {};
           var docName = liveToPad[id];
 
+          podcasts[i].livedate = new Date(podcasts[i].livedate);
+
           if(docName)
           {
             doc.exists = true;
@@ -413,6 +419,15 @@ function getClientPods (cb)
             doc.exists = false;
           }
 
+          var liveDate = new Date(+podcasts[i].livedate);
+          liveDate.setHours(0,0,0,0);
+
+          if(!doc.exists && today - liveDate === 0)
+          {
+            // podcast from yesterday and no created doc => skip it
+            continue;
+          }
+
           clientPods.push(
             {
               pod: podcasts[i],
@@ -421,7 +436,7 @@ function getClientPods (cb)
           );
         }
 
-        clientPods.sort( function (a, b) { return a.time - b.time; });
+        clientPods.sort( function (a, b) { return a.pod.livedate - b.pod.livedate; });
         cache.put(cacheName, clientPods, 60000);
 
         cb(null, clientPods);
