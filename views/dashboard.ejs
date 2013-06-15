@@ -568,6 +568,9 @@ function editUserGroups(element)
     function applyGroups(groups)
     {
         var rtn = updateThing("users", id, "err", { groups: groups }, "", null, null);
+        user.groups = groups;
+        usertable.fnDeleteRow(index, false);
+        usertable.fnAddData(user, true);
         return rtn != "err";
     }
 }
@@ -616,6 +619,9 @@ function editUserRoles(element)
     function applyRoles(roles)
     {
         var rtn = updateThing("users", id, "err", { roles: roles }, "", null, null);
+        user.roles = roles;
+        usertable.fnDeleteRow(index, false);
+        usertable.fnAddData(user, true);
         return rtn != "err";
     }
 }
