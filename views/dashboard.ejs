@@ -352,7 +352,7 @@ function addModal(type, title, addText)
     $modal.attr('id', null);
     $modal.attr('data-type', type);
 
-    $modal.find('.modal-header > .title').text(title);
+    $modal.find('.modal-header > .title').attr('data-raw', title);
     $modalBody.find('.add > .text:first').text(addText);
 
     $protoModal.after($modal);
@@ -364,9 +364,10 @@ function openModal(type, id, possible, current, cb)
     var $list = $modal.find('.list:first');
     var $select = $modal.find('.select:first');
     var $saveBtn = $modal.find('.btn-primary');
+    var $title = $modal.find('.modal-header > .title');
     var possibleValues = [];
 
-    $modal.attr('id', id);
+    $title.text($title.attr('data-raw').replace('$ID', id));
 
     $list.empty();
     for (var i = 0; i < current.length; i++)
