@@ -94,11 +94,12 @@ Technologies used
   * [jQuery](http://jquery.com/) (MIT)
   * [jQuery-queryParser](https://github.com/mattsnider/jquery-plugin-query-parser) (MIT)
   * [twitter bootstrap](http://twitter.github.com/bootstrap/) (Apache v2.0)
-  * [noisetexturegenerator](http://noisetexturegenerator.com/)
+  * [Subtle Patterns](http://subtlepatterns.com/) (CC-BY-SA)
   * [datatables](http://datatables.net/) (BSD 3-clause)
   * [recaptcha](http://www.google.com/recaptcha) (http://www.google.com/recaptcha/terms)
   * [jquery-datatables-editable](https://code.google.com/p/jquery-datatables-editable/) (BSD 3-clause)
   * [jEditable](http://www.appelsiini.net/projects/jeditable) (MIT)
   * [tinyOSF.js](https://github.com/shownotes/tinyOSF.js) (MIT)
+  * [etherpad-jquery](https://github.com/tomassedovic/etherpad-lite-client-js) (MIT)
 
 [![flattr](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1225851/ShowPad)
