@@ -12,7 +12,7 @@ exports.init = function (_options, cb)
     // load dbs
     function (cb)
     {
-      pluginloader.load('./src/db', [exports],
+      pluginloader.load('./src/db', [exports], console,
         function (err, plugins)
         {
           if(err) return cb("Could not load db: " + err);

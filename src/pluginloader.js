@@ -2,7 +2,7 @@ var async = require('async')
   , fs    = require('fs')
   , path  = require('path')
 
-exports.load = function (basepath, initArgs, cb)
+exports.load = function (basepath, initArgs, logger, cb)
 {
   basepath = path.resolve(basepath);
 
@@ -38,24 +38,24 @@ exports.load = function (basepath, initArgs, cb)
       {
         var plugins = {};
 
-        console.debug("Found %s plugins to load", files.length);
+        logger.debug("Found %s plugins to load", files.length);
 
         async.eachSeries(files,
           function (file, cb)
           {
-            console.debug("Loading plugin '%s'..", file);
+            logger.debug("Loading plugin '%s'..", file);
 
             var plugin = require(path.join(basepath, file));
 
             if(!plugin.name)
             {
-              console.error("Could not load plugin %s, it has no name.", file);
+              logger.error("Could not load plugin %s, it has no name.", file);
               process.exit(1);
             }
 
             if(plugins[plugin.name])
             {
-              console.error("Could not load plugin %s, a plugin with that name already exists.", file);
+              logger.error("Could not load plugin %s, a plugin with that name already exists.", file);
               process.exit(1);
             }
 

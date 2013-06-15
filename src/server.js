@@ -44,8 +44,10 @@ exports.log4js = log4js;
 exports.pageurl = pageurl;
 
 // startup
+console.log("Let's go!");
 log4js.replaceConsole();
-console.info("Let's go");
+
+var startupLogger = getLogger("startup");
 
 async.series([
   initConfig,
@@ -62,18 +64,20 @@ function (err)
 {
   if(err)
   {
-    console.error(err);
+    startupLogger.error(err);
     process.exit(1);
   }
   else
   {
-    console.info("All done!");
+    startupLogger.info("All done!");
   }
+
+  startupLogger = null;
 });
 
 function initConfig(cb)
 {
-  console.info("Initiating configuration..");
+  startupLogger.info("Initiating configuration..");
   nconf.file({ file: 'config.json' });
 
   nconf.defaults({
@@ -102,20 +106,20 @@ function initConfig(cb)
 function initMail(cb)
 {
   var type = nconf.get('mail:type');
-  console.info("Initiating mail (%s)..", type);
+  startupLogger.info("Initiating mail (%s)..", type);
   mailTransport = nodemailer.createTransport(type, nconf.get('mail:options'));
   cb();
 }
 
 function initDatabase(cb)
 {
-  console.info("Initiating database..");
+  startupLogger.info("Initiating database..");
   db.init(nconf.get("database"), cb);
 }
 
 function initDocTypes(cb)
 {
-  console.info("Initiating doctypes..");
+  startupLogger.info("Initiating doctypes..");
   documentTypes.init(exports, cb);
 }
 
@@ -123,11 +127,11 @@ function initXenim(cb)
 {
   if(nconf.get("xenim:disabled"))
   {
-    console.info("Xenim disabled in config.");
+    startupLogger.info("Xenim disabled in config.");
     return cb();
   }
 
-  console.info("Initiating xenim..");
+  startupLogger.info("Initiating xenim..");
   var failTimeout = setTimeout(xenimFail, 5000);
   var failed = false;
 
@@ -146,7 +150,7 @@ function initXenim(cb)
       if(failed)
         return;
 
-      console.debug("[Xenim] ready");
+      startupLogger.debug("[Xenim] ready");
       xenimAmqp.exchange('shownotes',
         {
           passive: true
@@ -156,7 +160,7 @@ function initXenim(cb)
           if(failed)
             return;
 
-          console.debug("[Xenim] got exchange");
+          startupLogger.debug("[Xenim] got exchange");
           clearTimeout(failTimeout);
           xenimAmqpExc = exc;
           cb();
@@ -167,7 +171,7 @@ function initXenim(cb)
 
   function xenimFail()
   {
-    console.debug("[Xenim] timeout");
+    startupLogger.debug("[Xenim] timeout");
     failed = true;
     xenimAmqp = null;
     xenimAmqpExc = null;
@@ -177,13 +181,13 @@ function initXenim(cb)
 
 function initApi(cb)
 {
-  console.info("Initiating api..");
+  startupLogger.info("Initiating api..");
   api.init(exports, cb);
 }
 
 function initi18n(cb)
 {
-  console.info("Initiating i18n..");
+  startupLogger.info("Initiating i18n..");
   i18n.configure({
       locales:['en', 'de'],
       cookie: 'locale',
@@ -196,7 +200,7 @@ function initi18n(cb)
 
 function initServer(cb)
 {
-  console.info("Initiating server..");
+  startupLogger.info("Initiating server..");
 
   app = express();
   app.engine('ejs', ejslocals);
@@ -205,7 +209,7 @@ function initServer(cb)
   app.use("/js/tinyosf/", express.static(path.resolve(__dirname + '/../node_modules/tinyosf')));
   app.use(express.cookieParser());
 
-  console.debug("Initiating server-i18n..");
+  startupLogger.debug("Initiating server-i18n..");
   app.use(i18n.init);
 
   // binding template helpers to request (Credits to https://github.com/enyo #12)
@@ -221,7 +225,7 @@ function initServer(cb)
       next();
     });
 
-  console.debug("Initiating server-forms..");
+  startupLogger.debug("Initiating server-forms..");
   app.use(express.bodyParser());
   app.use(expressValidator);
 
@@ -231,7 +235,7 @@ function initServer(cb)
     app.get('trust proxy');
   }
 
-  console.debug("Initiating server-sessions..");
+  startupLogger.debug("Initiating server-sessions..");
   // sessions
   sessionStore = db.prepareSessionStore(express, {});
   app.use(express.session({ secret: sessionSecret, store: sessionStore }));
@@ -267,10 +271,10 @@ function initServer(cb)
     }
   });
 
-  console.debug("Initiating doctypes (express)..");
+  startupLogger.debug("Initiating doctypes (express)..");
   documentTypes.onExpressInit(app);
 
-  console.debug("Initiating server-routes..");
+  startupLogger.debug("Initiating server-routes..");
   // routes
   app.get('/', processIndex);
   app.post('/createDoc', processCreateDoc);
@@ -326,11 +330,12 @@ function initServer(cb)
 
 function startServer(cb)
 {
-  console.info("Starting http..");
+  startupLogger.info("Starting http..");
   app.listen(nconf.get("http:port"), nconf.get("http:ip"), cb);
 }
 
-exports.getLogger = function (category)
+exports.getLogger = getLogger;
+function getLogger(category)
 {
   var logger = log4js.getLogger(category);
   var level = nconf.get("loglevel:" + category) || "DEBUG";

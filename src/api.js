@@ -3,6 +3,7 @@ var async  = require('async')
   , pluginloader = require('./pluginloader.js')
   , apikeys = []
   , server
+  , logger
   , db;
 
 var endpoints = {};
@@ -10,6 +11,7 @@ var endpoints = {};
 exports.init = function (_server, _cb)
 {
   server = _server;
+  logger = server.getLogger("api");
   db = server.db;
 
   var tmpapikeys = server.nconf.get("apikeys");
@@ -20,20 +22,20 @@ exports.init = function (_server, _cb)
 
     if(!apikey || !apikey.key || !apikey.name)
     {
-      console.warn("API-Key-Setting %s is invalid. Please supply an name and key.", i);
+      logger.warn("API-Key-Setting %s is invalid. Please supply an name and key.", i);
     }
     if(apikey.key.length < 30)
     {
-      console.warn("API-Key for %s is too short. Please use at least 30 characters.", apikey.name);
+      logger.warn("API-Key for %s is too short. Please use at least 30 characters.", apikey.name);
     }
     else
     {
-      console.log("API-Key of %s is %s", apikey.name, apikey.key);
+      logger.info("API-Key of %s is %s", apikey.name, apikey.key);
       apikeys.push(apikey);
     }
   }
 
-  pluginloader.load('./src/api', [db, server],
+  pluginloader.load('./src/api', [db, server], logger,
     function (err, plugins)
     {
       if(err) return cb("Could not load api: " + err);
@@ -63,7 +65,7 @@ exports.handleRequest = function (req, res)
     if(user)
       username = user.username;
 
-    console.warn("API-Auth failed, APIKey=%s, Admin=%s (%s)", apikeyValid, adminValid, username);
+    logger.warn("API-Auth failed, APIKey=%s, Admin=%s (%s)", apikeyValid, adminValid, username);
     answerRequest(res, 401, "Unauthorized", null);
     return;
   }
@@ -75,7 +77,7 @@ exports.handleRequest = function (req, res)
     else if(adminValid)
       auth = "user=" + user.username;
 
-    console.info("[API] REQUEST auth=%s %s %s", auth, method, req.url);
+    logger.info("[API] REQUEST auth=%s %s %s", auth, method, req.url);
   }
 
   var endpoint = endpoints[params.endpoint];

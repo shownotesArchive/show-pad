@@ -14,7 +14,7 @@ exports.init = function (_server, cb)
   server = _server;
   logger = server.getLogger("doctypes");
 
-  pluginloader.load('./src/documenttypes', [server],
+  pluginloader.load('./src/documenttypes', [server], logger,
     function (err, plugins)
     {
       if(err) return cb("Could not load doctypes: " + err);
