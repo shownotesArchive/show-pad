@@ -137,6 +137,7 @@
 
 <script>
 var groups = []
+  , groupLookup = {}
 
 $(function ()
 {
@@ -246,9 +247,25 @@ $(function ()
                     },
                     {
                         mData: [ "groups" ],
-                        mRender: function (groups)
+                        mRender: function (userGroups)
                         {
-                            return groups.join(", ");
+                            var strGroups = [];
+
+                            for (var i = 0; i < userGroups.length; i++)
+                            {
+                                var short = userGroups[i];
+                                var name = groupLookup[short];
+                                var str;
+
+                                if(name)
+                                    str = name;
+                                else
+                                    str = "(" + short + ")"
+
+                                strGroups.push(str);
+                            }
+
+                            return strGroups.join(", ");
                         }
                     },
                     {
@@ -326,10 +343,13 @@ function formatDate(date)
 function refreshGroups()
 {
     groups = [];
+    groupLookup = {};
     refreshDropdown("groups", "groupSelect",
         function (group)
         {
             groups.push(group);
+            groupLookup[group.short] = group.name;
+
             return {
                 text: group.name + " (" + group.short + ")",
                 value: group.short
@@ -536,12 +556,10 @@ function editUserGroups(element)
     var user = usertable.fnGetData(index);
 
     var possibleGrps = [];
-    var groupLookup = {};
     for (var i = 0; i < groups.length; i++)
     {
         var grp = groups[i];
 
-        groupLookup[grp.short] = grp.name;
         possibleGrps.push(
             {
                 val: grp.short,
