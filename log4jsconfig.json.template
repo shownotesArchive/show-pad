@@ -7,7 +7,7 @@
       "pattern": "-yyyy-MM-dd"
     },
     {
-      "type": "Console"
+      "type": "console"
     }
   ]
 }
