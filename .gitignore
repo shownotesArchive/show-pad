@@ -1,12 +1,22 @@
+# node stuff
 node_modules
 npm-debug.log
+
+# config files
 config.json
 log4jsconfig.json
+
+# log dir
 logs
+
+# OS files
 *.db
 .DS_Store
-thumbs.db
+
+# IDEs
 .idea
+
+# deps downloaded by setup.sh
 static/js/jquery-queryParser.min.js
 static/js/jquery.jeditable.mini.js
 static/js/etherpad.js
