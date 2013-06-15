@@ -45,6 +45,7 @@ exports.pageurl = pageurl;
 
 // startup
 console.log("Let's go!");
+log4js.configure('log4jsconfig.json', {});
 log4js.replaceConsole();
 
 var startupLogger = getLogger("startup");

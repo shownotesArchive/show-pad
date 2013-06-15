@@ -1,6 +1,8 @@
 node_modules
 npm-debug.log
 config.json
+log4jsconfig.json
+logs
 *.db
 .DS_Store
 thumbs.db
