@@ -781,21 +781,24 @@ function processDoc (req, res, mode)
 
         var text = cache.get(cacheName);
 
-        var ip = req.ip;
-
-        // create dummy objects
-        readonlyUsers[docname] = readonlyUsers[docname] || {};
-        readonlyUsersTimeouts[docname] = readonlyUsersTimeouts[docname] || {};
-
-        // remember this user and clear its timeout
-        readonlyUsers[docname][ip] = true;
-        if(readonlyUsersTimeouts[docname][ip])
+        if(req.query["bot"] != 1)
         {
-          clearTimeout(readonlyUsersTimeouts[docname][ip]);
-        }
+          var ip = req.ip;
 
-        // set a timeout of 2s to remove the user
-        readonlyUsersTimeouts[docname][ip] = setTimeout(function () { delete readonlyUsers[docname][ip]; }, 2000);
+          // create dummy objects
+          readonlyUsers[docname] = readonlyUsers[docname] || {};
+          readonlyUsersTimeouts[docname] = readonlyUsersTimeouts[docname] || {};
+
+          // remember this user and clear its timeout
+          readonlyUsers[docname][ip] = true;
+          if(readonlyUsersTimeouts[docname][ip])
+          {
+            clearTimeout(readonlyUsersTimeouts[docname][ip]);
+          }
+
+          // set a timeout of 2s to remove the user
+          readonlyUsersTimeouts[docname][ip] = setTimeout(function () { delete readonlyUsers[docname][ip]; }, 2000);
+        }
 
         // get the number of users
         var users = Object.keys(readonlyUsers[docname]).length;
