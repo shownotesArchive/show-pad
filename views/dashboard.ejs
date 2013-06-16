@@ -783,7 +783,14 @@ function updateThing(type, name, error, data, value, settings, cb)
             type: "PUT",
             url: "/api/1/" + type + "/" + name,
             async: false,
-            data: data
+            // jQuery strips out all empty objects and arrays
+            // in `data` when we hand over the real object.
+            // If the admin removes a user from thier last group
+            // the `groups`-array will be empty and not transmitted
+            // to the server.
+            // To circumvent this we encode the data ourselves..
+            contentType: 'application/json',
+            data: JSON.stringify(data)
         }).success(function ()
         {
             // don't return an error
