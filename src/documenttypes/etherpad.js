@@ -56,106 +56,8 @@ exports.initExpress = function (app)
 /* Users */
 exports.onLogin = function (user, res, cb)
 {
-  var authorID, sessionIDs = [], groups;
-
-  async.series(
-    [
-      // create author
-      function (cb)
-      {
-        etherpad.createAuthorIfNotExistsFor(
-          {
-            name: user.username,
-            authorMapper: user.username
-          },
-          function (err, data)
-          {
-            if(!err)
-            {
-              authorID = data.authorID;
-              logger.debug("[%s] AuthorID: %s", user.username, authorID);
-            }
-            cb(err);
-          });
-      },
-      // get all groups
-      function (cb)
-      {
-        server.db.group.getGroups(
-          function (err, _groups)
-          {
-            if(!err)
-              groups = _groups;
-            cb(err);
-          }
-        );
-      },
-      // create sessions for all groups of this user and all open groups
-      function (cb)
-      {
-        var sessionGroups = [];
-
-        for (var id in groups)
-        {
-          if(groups[id].type == "open")
-          {
-            sessionGroups.push(groups[id].short);
-          }
-        }
-
-        sessionGroups = sessionGroups.concat(user.groups);
-
-        async.each(sessionGroups,
-          function (showGroup, cb)
-          {
-            etherpad.createSession(
-              {
-                authorID: authorID,
-                groupID: eplGroupIDs[showGroup],
-                validUntil: new Date().getTime() + sessionMaxAge
-              },
-              function (err, data)
-              {
-                if(!err)
-                {
-                  sessionIDs.push(data.sessionID);
-                  logger.debug("[%s] %s (%s) SessionID: %s", user.username, showGroup, eplGroupIDs[showGroup], data.sessionID);
-                }
-                cb(err);
-              });
-          }, cb);
-      },
-      // save session and set cookie
-      function (cb)
-      {
-        var cookieStr = "";
-        for (var id in sessionIDs)
-        {
-          cookieStr += sessionIDs[id] + ',';
-        }
-        cookieStr = cookieStr.substr(0, cookieStr.length - 1);
-
-        if(!user.eplSessions)
-          user.eplSessions = [];
-
-        var userChanges = { username: user.username, eplSessions: sessionIDs.concat(user.eplSessions) };
-        server.db.user.updateUser(userChanges,
-          function (err)
-          {
-            if(err)
-            {
-              logger.debug("[%s] Login failed", user.username);
-            }
-            else
-            {
-              res.cookie("sessionID", cookieStr, { maxAge: sessionMaxAge, httpOnly: false});
-              logger.debug("[%s] Logged in", user.username);
-            }
-
-            cb(err);
-          });
-      }
-    ], cb);
+  // do nothing
+  cb();
 }
 
 exports.onCreateUser = function (user, cb)
@@ -172,9 +74,10 @@ exports.onLogout = function (user, res, cb)
   if(!sessions || sessions.length == 0)
   {
     // no need to stress the db and etherpad
-    logger.warn("[%s] has no sessions", username);
     return cb();
   }
+
+  res.clearCookie("sessionID");
 
   async.series(
     [
@@ -259,16 +162,91 @@ exports.onDeleteDoc = function (doc, cb)
 
 exports.onRequestDoc = function (req, res, user, doc, cb)
 {
-  var locals =
-    {
-      docname: doc.name,
-      groupID: eplGroupIDs[doc.group],
-      eplurl: eplurl,
-      padId: req.params.docname
-    };
+  var docgroup = doc.group
+    , authorID
+    , sessionID
+    , user = res.locals.user
 
-  res.render('documenttypes/etherpad.ejs', locals);
-  cb();
+  async.series(
+    [
+      // create author
+      function (cb)
+      {
+        etherpad.createAuthorIfNotExistsFor(
+          {
+            name: user.username,
+            authorMapper: user.username
+          },
+          function (err, data)
+          {
+            if(!err)
+            {
+              authorID = data.authorID;
+              logger.debug("[%s] AuthorID: %s", user.username, authorID);
+            }
+            cb(err);
+          }
+        );
+      },
+      // create session for this pad
+      function (cb)
+      {
+        etherpad.createSession(
+          {
+            authorID: authorID,
+            groupID: eplGroupIDs[docgroup],
+            validUntil: (new Date().getTime() + sessionMaxAge) / 1000 // seconds
+          },
+          function (err, data)
+          {
+            if(!err)
+            {
+              sessionID = data.sessionID;
+              logger.debug("[%s] %s (%s) SessionID: %s", user.username, docgroup, eplGroupIDs[docgroup], data.sessionID);
+            }
+            cb(err);
+          }
+        );
+      },
+      // save new session to db and set cookie containing all sessions this user has
+      function (cb)
+      {
+        if(!user.eplSessions)
+          user.eplSessions = [];
+
+        user.eplSessions = [sessionID].concat(user.eplSessions);
+
+        var userChanges = { username: user.username, eplSessions: user.eplSessions };
+        server.db.user.updateUser(userChanges,
+          function (err)
+          {
+            if(err)
+            {
+              logger.debug("[%s] Login failed", user.username);
+            }
+            else
+            {
+              logger.debug("[%s] Logged in", user.username);
+
+              var locals =
+              {
+                docname: doc.name,
+                groupID: eplGroupIDs[doc.group],
+                eplurl: eplurl,
+                padId: req.params.docname
+              };
+
+              res.cookie("sessionID", user.eplSessions.join(','), { maxAge: sessionMaxAge, httpOnly: false }); // miliseconds
+              res.render('documenttypes/etherpad.ejs', locals);
+            }
+
+            cb(err);
+          }
+        );
+      }
+    ],
+    cb
+  );
 }
 
 /* Pad text */
