@@ -782,13 +782,13 @@ function processDoc (req, res, mode)
 
         var text = cache.get(cacheName);
 
+        // create dummy objects
+        readonlyUsers[docname] = readonlyUsers[docname] || {};
+        readonlyUsersTimeouts[docname] = readonlyUsersTimeouts[docname] || {};
+
         if(req.query["bot"] != 1)
         {
           var ip = req.ip;
-
-          // create dummy objects
-          readonlyUsers[docname] = readonlyUsers[docname] || {};
-          readonlyUsersTimeouts[docname] = readonlyUsersTimeouts[docname] || {};
 
           // remember this user and clear its timeout
           readonlyUsers[docname][ip] = true;
