@@ -41,6 +41,8 @@ exports.init = function (_server, cb)
     ],
     function (err)
     {
+      setInterval(deleteAllExpiredEplSessions, 1000*60*60*60); // every hour
+
       if(err == "nosessions")
         err = null;
       cb(err);
@@ -68,8 +70,22 @@ exports.onCreateUser = function (user, cb)
 
 exports.onLogout = function (user, res, cb)
 {
+  res.clearCookie("sessionID");
+  deleteEplSessionsOfUser(user, true, cb);
+}
+
+function deleteEplSessionsOfUser(user, removeAll, cb)
+{
+  if(typeof removeAll == "function")
+  {
+    cb = removeAll;
+    removeAll = false;
+  }
+
   var sessions = user.eplSessions;
+  var deleteSessions = [];
   var username = user.username;
+  var now = +new Date();
 
   if(!sessions || sessions.length == 0)
   {
@@ -77,20 +93,48 @@ exports.onLogout = function (user, res, cb)
     return cb();
   }
 
-  res.clearCookie("sessionID");
+  var newSessions = sessions.slice(0); // clone array, http://davidwalsh.name/javascript-clone-array
 
   async.series(
     [
+      // find out which sessions should be deleted
+      function (cb)
+      {
+        if(removeAll)
+        {
+          deleteSessions = sessions;
+          newSessions = [];
+          return cb();
+        }
+
+        async.each(sessions,
+          function (sid, cb)
+          {
+            etherpad.getSessionInfo({sessionID: sid},
+              function (err, data)
+              {
+                if(err || (data.validUntil * 1000) < now)
+                {
+                  deleteSessions.push(sid);
+                  newSessions.splice(newSessions.indexOf(sid), 1);
+                }
+                cb();
+              }
+            );
+          },
+          cb
+        );
+      },
       // delete epl sessions
       function (cb)
       {
-        async.each(sessions,
+        async.each(deleteSessions,
           function (sid, cb)
           {
             etherpad.deleteSession({sessionID: sid},
               function (err)
               {
-                if(err)
+                if(err && err.message != "sessionID does not exist")
                   logger.error("[%s] could not delete session", username, sid, err);
                 else
                   logger.debug("[%s] session deleted", username, sid);
@@ -101,7 +145,10 @@ exports.onLogout = function (user, res, cb)
       // remove sessions from db
       function (cb)
       {
-        var userChanges = { username: user.username, eplSessions: [] };
+        if(sessions.length == newSessions.length)
+          return cb();
+
+        var userChanges = { username: user.username, eplSessions: newSessions };
         server.db.user.updateUser(userChanges,
           function (err)
           {
@@ -114,6 +161,31 @@ exports.onLogout = function (user, res, cb)
       }
     ], cb
   );
+}
+
+function deleteAllExpiredEplSessions()
+{
+  async.waterfall(
+    [
+      // the all users
+      function (cb)
+      {
+        server.db.user.getUsers(cb);
+      },
+      // delete sessions
+      function (users, cb)
+      {
+        async.forEachSeries(users, deleteEplSessionsOfUser, cb);
+      }
+    ],
+    function (err)
+    {
+      if(err)
+      {
+        logger.error("Could not clean up EPL sessions:", err);
+      }
+    }
+  )
 }
 
 /* Groups */
