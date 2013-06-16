@@ -697,6 +697,7 @@ function processDoc (req, res, mode)
 
         if(!doc)
         {
+          res.statusCode = 404;
           res.render('doc', { error: "nodoc" });
           cb("nodoc");
         }
@@ -862,11 +863,24 @@ function processDoc (req, res, mode)
       {
         console.warn(logprefixstr + "error while showing doc: " + err);
 
-        locals.docname = docname;
-        if(err != "auth" && err != "nodoc")
-          locals.err = "other";
+        var error = null;
+
+        if(err == "auth")
+        {
+          error = err;
+        }
+        else if(err == "nodoc")
+        {
+          res.statusCode = 404;
+          error = err;
+        }
         else
-          locals.err = err;
+        {
+          error = "other";
+        }
+
+        locals.docname = docname;
+        locals.err = error;
 
         res.render('doc', locals);
       }
