@@ -10,6 +10,7 @@ function Doc (docname, type, group)
   if(!docname || !type || !group)
     throw "Invalid arguments";
   this.docname = docname;
+  this.snapshots = {};
   this.type = type;
   this.group = group;
   this.createTime = +new Date();

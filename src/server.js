@@ -282,6 +282,7 @@ function initServer(cb)
   app.get('/doc/:docname', function (req, res) { processDoc(req, res, "normal"); });
   app.get('/doc/:docname/readonly', function (req, res) { processDoc(req, res, "readonly"); });
   app.get('/doc/:docname/text', function (req, res) { processDoc(req, res, "text"); });
+  app.get('/doc/:docname/snapshot', processDocSnapshot);
 
   // UI
   app.get('/login', function(req, res) { res.render('login'); });
@@ -823,10 +824,19 @@ function processDoc (req, res, mode)
             {
               if(text)
               {
+                // return the cached text
                 cb(null, text);
+              }
+              else if(Object.keys(doc.snapshots).length != 0)
+              {
+                // return the latest snapshot
+                var dates = Object.keys(doc.snapshots).sort();
+                var snapshot = doc.snapshots[dates[0]];
+                cb(null, snapshot.text);
               }
               else
               {
+                // return the lastest OSF from the doctype
                 documentTypes.getText(doc, cb);
               }
             },
@@ -876,6 +886,76 @@ function getShowDocStr (username, docname, isPublic, isAuthed, isText, isReadonl
                                            ", isAuthed=" + isAuthed +
                                            ", isText="   + isText +
                                          ", isReadonly=" + isReadonly + ", ";
+}
+
+function processDocSnapshot(req, res)
+{
+  var user = res.locals.user
+    , docname = req.param("docname")
+    , doc = null
+
+  if(!docname)
+  {
+    res.writeHead(400);
+    res.end();
+    return;
+  }
+
+  if(!user.hasRole("reviewer"))
+  {
+    res.redirect("/");
+    return;
+  }
+
+  console.log("Attempting to save snapshot for doc %s..", docname);
+
+  async.waterfall(
+    [
+      // get the doc
+      function (cb)
+      {
+        db.doc.getDoc(docname, cb);
+      },
+      // get the doctext from the doctype
+      function (_doc, cb)
+      {
+        doc = _doc;
+        documentTypes.getText(doc, cb);
+      },
+      // save the current doctext as snapshot
+      function (doctext, cb)
+      {
+        doc.snapshots["" + (+new Date())] =
+        {
+          text: doctext,
+          user: user.username
+        };
+
+        var docChanges =
+          {
+            docname: docname,
+            snapshots: doc.snapshots
+          };
+
+        db.doc.updateDoc(docChanges, cb);
+      }
+    ],
+    function (err)
+    {
+      if(err)
+      {
+        console.log("Could save snapshot for doc %s: %s", docname, err);
+        res.writeHead(500);
+      }
+      else
+      {
+        console.log("Snapshot for doc %s saved", docname);
+        res.writeHead(200);
+      }
+
+      res.end();
+    }
+  )
 }
 
 function processLogin (req, res)
