@@ -48,6 +48,19 @@ body
     color: #333333;
 }
 
+@media (max-width: 400px)
+{
+    body
+    {
+        padding-right: 5px;
+        padding-left: 5px;
+    }
+    .navbar
+    {
+        margin-top: 5px;
+    }
+}
+
 .doctext {
     font-family: "Lucida Grande", "Lucida Sans Unicode", Geneva, sans-serif;
 }
