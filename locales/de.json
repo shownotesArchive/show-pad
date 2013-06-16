@@ -18,6 +18,7 @@
     "header.profile": "Profil",
     "header.dashboard": "Dashboard",
     "header.register": "Registrieren",
+    "header.login": "Einloggen",
 
     "login": "Login",
     "login.username": "Benutzername",

@@ -43,13 +43,14 @@
 							<li><a href="/dashboard"><%= __('header.dashboard') %></a></li>
 						<% } %>
 		            <% } else { %>
-						<li><a href="/register"><%= __('header.register') %></a></li>
+                        <li><a href="/register"><%= __('header.register') %></a></li>
+                        <li><a href="/login" class="visible-phone"><%= __('header.login') %></a></li>
 		            <% } %>
 				</ul>
 
 				<% if (page != "/register" && page != "/login") { %>
 				<% if (!user) { %>
-					<form class="navbar-form pull-right" action="/login" method="POST">
+					<form class="navbar-form pull-right hidden-phone" action="/login" method="POST">
 		                <input type="text" name="username" class="span2" placeholder="<%= __('login.username') %>">
 		                <input type="password" name="password" class="span2" placeholder="<%= __('login.password') %>">
 		                <input type="submit" value="<%= __('login.login') %>" class="btn" />
