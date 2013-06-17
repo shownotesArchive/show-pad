@@ -85,7 +85,6 @@ function deleteEplSessionsOfUser(user, removeAll, cb)
   var sessions = user.eplSessions;
   var deleteSessions = [];
   var username = user.username;
-  var now = +new Date();
 
   if(!sessions || sessions.length == 0)
   {
@@ -110,10 +109,10 @@ function deleteEplSessionsOfUser(user, removeAll, cb)
         async.each(sessions,
           function (sid, cb)
           {
-            etherpad.getSessionInfo({sessionID: sid},
-              function (err, data)
+            isEplSessionValid(sid,
+              function (valid, group)
               {
-                if(err || (data.validUntil * 1000) < now)
+                if(!valid)
                 {
                   deleteSessions.push(sid);
                   newSessions.splice(newSessions.indexOf(sid), 1);
@@ -160,6 +159,19 @@ function deleteEplSessionsOfUser(user, removeAll, cb)
           });
       }
     ], cb
+  );
+}
+
+function isEplSessionValid(sid, cb)
+{
+  etherpad.getSessionInfo({sessionID: sid},
+    function (err, data)
+    {
+      var isValid = (!err && (data.validUntil * 1000) > +new Date());
+      var group = (data ? data.groupID : null);
+
+      cb(isValid, group);
+    }
   );
 }
 
@@ -235,12 +247,35 @@ exports.onDeleteDoc = function (doc, cb)
 exports.onRequestDoc = function (req, res, user, doc, cb)
 {
   var docgroup = doc.group
+    , eplgroup = eplGroupIDs[docgroup]
     , authorID
     , sessionID
     , user = res.locals.user
 
+  if(!user.eplSessions)
+    user.eplSessions = [];
+
   async.series(
     [
+      // see if a session is needed
+      function (cb)
+      {
+        async.each(user.eplSessions,
+          function (sid, cb)
+          {
+            isEplSessionValid(sid,
+              function (valid, group)
+              {
+                if(valid && group == eplgroup)
+                  cb("sessionexists");
+                else
+                  cb();
+              }
+            )
+          },
+          cb
+        )
+      },
       // create author
       function (cb)
       {
@@ -266,7 +301,7 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
         etherpad.createSession(
           {
             authorID: authorID,
-            groupID: eplGroupIDs[docgroup],
+            groupID: eplgroup,
             validUntil: (new Date().getTime() + sessionMaxAge) / 1000 // seconds
           },
           function (err, data)
@@ -274,7 +309,7 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
             if(!err)
             {
               sessionID = data.sessionID;
-              logger.debug("[%s] %s (%s) SessionID: %s", user.username, docgroup, eplGroupIDs[docgroup], data.sessionID);
+              logger.debug("[%s] %s (%s) SessionID: %s", user.username, docgroup, eplgroup, data.sessionID);
             }
             cb(err);
           }
@@ -283,9 +318,6 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
       // save new session to db and set cookie containing all sessions this user has
       function (cb)
       {
-        if(!user.eplSessions)
-          user.eplSessions = [];
-
         user.eplSessions = [sessionID].concat(user.eplSessions);
 
         var userChanges = { username: user.username, eplSessions: user.eplSessions };
@@ -299,17 +331,6 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
             else
             {
               logger.debug("[%s] Logged in", user.username);
-
-              var locals =
-              {
-                docname: doc.name,
-                groupID: eplGroupIDs[doc.group],
-                eplurl: eplurl,
-                padId: req.params.docname
-              };
-
-              res.cookie("sessionID", user.eplSessions.join(','), { maxAge: sessionMaxAge, httpOnly: false }); // miliseconds
-              res.render('documenttypes/etherpad.ejs', locals);
             }
 
             cb(err);
@@ -317,7 +338,26 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
         );
       }
     ],
-    cb
+    function (err)
+    {
+      if(!err || err == "sessionexists")
+      {
+        var locals =
+        {
+          docname: doc.name,
+          groupID: eplGroupIDs[doc.group],
+          eplurl: eplurl,
+          padId: req.params.docname
+        };
+
+        res.cookie("sessionID", user.eplSessions.join(','), { maxAge: sessionMaxAge, httpOnly: false }); // miliseconds
+        res.render('documenttypes/etherpad.ejs', locals);
+
+        err = null;
+      }
+
+      cb(err);
+    }
   );
 }
 
