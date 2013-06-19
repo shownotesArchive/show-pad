@@ -218,3 +218,13 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     width: 60%;
     height: 200px;
 }
+
+#docrightheader > *
+{
+    margin-left: 10px;
+}
+
+#docleftheader > *
+{
+    margin-right: 10px;
+}
