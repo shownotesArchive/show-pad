@@ -19,6 +19,13 @@ function Doc (docname, type, group)
 Doc.prototype =
 {
   constructor: Doc,
+  getLatestSnapshot: function ()
+  {
+    var dates = Object.keys(this.snapshots).sort();
+    var snapshot = this.snapshots[dates[0]];
+    snapshot.date = dates[0];
+    return snapshot;
+  },
   fromRawData: function (rawDoc)
   {
     for (var prop in rawDoc)

@@ -834,8 +834,7 @@ function processDoc (req, res, mode)
               else if(Object.keys(doc.snapshots).length != 0)
               {
                 // return the latest snapshot
-                var dates = Object.keys(doc.snapshots).sort();
-                var snapshot = doc.snapshots[dates[0]];
+                var snapshot = doc.getLatestSnapshot();
                 cb(null, snapshot.text);
               }
               else
