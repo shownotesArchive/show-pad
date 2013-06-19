@@ -2,13 +2,19 @@
 <% block('title', padId) -%>
 <% script('/js/etherpad.js') %>
 
-<p id="padhelpheader" class="question">
-    <i class="icon-circle-arrow-right padhelparrows"></i>
-    <i class="icon-circle-arrow-down padhelparrows" style="display:none"></i>
-    <a id="alter" href="#">Quickguide: Wie schreibe ich hier Shownotes?</a>
-    <a id="switch_view" href="/doc/<%=padId%>/readonly"><%= __('showdoc.readonlylink') %></a>
-</p>
-<div style="display:none;" id="padhelp">
+<div class="pull-left">
+    <p id="padhelpheader">
+        <i class="icon-circle-arrow-right padhelparrows"></i>
+        <i class="icon-circle-arrow-down padhelparrows" style="display:none"></i>
+        <a id="alter" href="#">Quickguide: Wie schreibe ich hier Shownotes?</a>
+    </p>
+</div>
+
+<div class="pull-right">
+    <a href="/doc/<%=padId%>/readonly"><%= __('showdoc.readonlylink') %></a>
+</div>
+
+<div style="clear: both" id="padhelp">
     <div id="padhelptext">
         <p>Durch die Eingabe von <kbd>#</kbd><kbd>#</kbd><kbd>#</kbd> + <kbd>Leer</kbd> im ShowPad wird automatisch die aktuelle Laufzeit eingefügt.</p>
         <p>Sendungsnotizen sollten wie folgt aufgebaut sein:</p>
@@ -24,13 +30,13 @@
 // Quickguide toggle function    
 $("#alter").click(function () 
     {
-        $("#padhelp").toggle(200);
+        $("#padhelptext").toggle(200);
         $(".padhelparrows").toggle(0);
     }
 );
 </script>
 
-<div id="pad"></div>
+<div id="pad" style="clear: both;"></div>
 
 <script type="text/javascript">
 // show pad
@@ -44,8 +50,6 @@ $('#pad').pad(
         'host': '<%=eplurl%>',
         'height': ($(window).height() - 200) + "px",
         'width': '100%',
-        <% if (user) { %>
-        	'userName': '<%=user.username%>'
-        <% } %>
+        "userName": '<%=user.username%>'
     });
 </script>

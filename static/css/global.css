@@ -147,14 +147,21 @@ body
 
 #padhelp
 {
+    position:relative;
+}
+
+#padhelptext
+{
     width: calc(100% - 41px);
     background-color:white;
+    top: -10px;
     position: absolute;
-    display:block;
+    display: none;
+    padding: 10px;
 
     border: 1px solid #EEEEEE;
     border-radius: 3px;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
+    box-shadow: 0 8px 8px rgba(0,0,0,0.3);
 }
 
 #padhelpheader
