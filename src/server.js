@@ -920,7 +920,8 @@ function processDocSnapshot(req, res)
 
   if(!user.hasRole("reviewer"))
   {
-    res.redirect("/");
+    res.writeHead(401);
+    res.end();
     return;
   }
 

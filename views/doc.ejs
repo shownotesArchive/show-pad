@@ -13,7 +13,40 @@
     </div>
     <div class="pull-right" id="docrightheader">
         <%- blocks.rightheader %>
+        <% if(user.hasRole('reviewer')) { %>
+            <a href="#" id="snapshotlink">
+                <%= __('showdoc.snapshotlink') %>
+                <span class="snapshotstatus" id="snapshotfail">&#10007;</span>
+                <span class="snapshotstatus" id="snapshotsuccess">&#10003;</span>
+            </a>
+        <% } %>
         <a href="<%=page%>/readonly"><%= __('showdoc.readonlylink') %></a>
     </div>
     <%- body %>
+    <script>
+        $('#snapshotlink').click(
+            function ()
+            {
+                $.get('<%=page%>/snapshot')
+                    .done(function()
+                        {
+                            $('#snapshotsuccess').css('display', 'inline');
+                        }
+                    )
+                    .fail(function()
+                        {
+                            $('#snapshotfail').css('display', 'inline');
+                        }
+                    )
+                    .always(function ()
+                        {
+                            setTimeout(function ()
+                            {
+                                $('.snapshotstatus').css('display', 'none');
+                            }, 1500);
+                        }
+                    );
+            }
+        );
+    </script>
 <% } %>

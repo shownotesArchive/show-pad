@@ -228,3 +228,18 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
 {
     margin-right: 10px;
 }
+
+#snapshotfail, #snapshotsuccess
+{
+    display: none;
+}
+
+#snapshotfail
+{
+    color: red;
+}
+
+#snapshotsuccess
+{
+    color: green;
+}
