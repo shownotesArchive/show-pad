@@ -48,6 +48,19 @@ body
     color: #333333;
 }
 
+@media (max-width: 400px)
+{
+    body
+    {
+        padding-right: 5px;
+        padding-left: 5px;
+    }
+    .navbar
+    {
+        margin-top: 5px;
+    }
+}
+
 .doctext {
     font-family: "Lucida Grande", "Lucida Sans Unicode", Geneva, sans-serif;
 }
@@ -93,11 +106,6 @@ body
     color: #59c3ff;
 }
 
-#register-form
-{
-    width: 900px;
-}
-
 #register-form .control-label
 {
     text-align: left;
@@ -110,42 +118,11 @@ body
     margin-left: 0px;
 }
 
-#register-submit
-{
-    margin-right: 515px;
-    margin-top: -5;
-    margin-bottom: 15px;
-}
-
-#login-form
-{
-    width: 900px;
-}
-
 #login-form .control-label
 {
     text-align: left;
     margin-left: 15px;
     width: 100px;
-}
-
-#login-submit
-{
-    margin-right: 565px;
-    margin-top: -5;
-    margin-bottom: 15px;
-}
-
-.profile-form 
-{
-    width: 900px;
-}
-
-.profile-form button
-{
-    margin-top: -5px;
-    margin-bottom: 15px;
-    margin-right: 485px;
 }
 
 .profile-form .control-label
@@ -170,14 +147,21 @@ body
 
 #padhelp
 {
+    position:relative;
+}
+
+#padhelptext
+{
     width: calc(100% - 41px);
     background-color:white;
+    top: -10px;
     position: absolute;
-    display:block;
+    display: none;
+    padding: 10px;
 
     border: 1px solid #EEEEEE;
     border-radius: 3px;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.2),0 0 0 3px #FFFFFF inset;
+    box-shadow: 0 8px 8px rgba(0,0,0,0.3);
 }
 
 #padhelpheader
@@ -233,4 +217,14 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
 {
     width: 60%;
     height: 200px;
+}
+
+#docrightheader > *
+{
+    margin-left: 10px;
+}
+
+#docleftheader > *
+{
+    margin-right: 10px;
 }

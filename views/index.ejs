@@ -3,7 +3,7 @@
 <% script('js/etherpad.js') %>
 
 <h3><%= __('index.podcasts.header') %></h3>
-<table class="table" id="newdoclist">
+<table class="table" id="newdoclist" style="margin-bottom: 0px">
     <thead>
     <tr>
         <td style="font-weight: bold;"><%= __('index.podcasts.podname') %></td>
@@ -30,7 +30,7 @@
                     <%= exists ? podcasts[i].doc.name : '' %>
                 </td>
                 <td class="<%= exists ? 'joindoc' : 'createdoc' %>">
-                    <button class="btn btn-<%= exists ? 'info' : 'success' %>"
+                    <button class="btn btn-<%= exists ? 'info' : 'success' %> pull-right"
                             data-docname="<%=podcasts[i].doc.name%>"
                             data-short="<%=podcasts[i].pod.podcast%>"
                             data-id="<%=podcasts[i].pod.id%>">
@@ -39,13 +39,9 @@
                 </td>
             </tr>
         <% } %>
-        <tr>
-            <td></td>
-            <td></td>
-            <td colspan="2"><span class="pull-right"><%-__('index.podcasts.poweredby')%></span>            </td>
-        </tr>
     </tbody>
 </table>
+<span class="pull-right" style="margin-bottom: 20px;"><%-__('index.podcasts.poweredby')%></span>
 
 <div id="createPadModal" class="modal hide fade" tabindex="-1" role="dialog">
     <div class="modal-header">

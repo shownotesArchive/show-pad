@@ -29,7 +29,7 @@
     "connect-redis": "1.4.x",
     "ejs-locals": "~1",
     "async": "0.2.x",
-    "log4js": "0.5.x",
+    "log4js": "0.6.x",
     "express-validator": "0.3.x",
     "redis": "0.8.x",
     "ejs": "0.8.x",
