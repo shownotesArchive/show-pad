@@ -70,7 +70,8 @@ exports.onCreateUser = function (user, cb)
 
 exports.onLogout = function (user, res, cb)
 {
-  res.clearCookie("sessionID");
+  if(res)
+    res.clearCookie("sessionID");
   deleteEplSessionsOfUser(user, true, cb);
 }
 
