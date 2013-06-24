@@ -4,7 +4,7 @@ var async   = require('async')
   , crypto  = require('crypto')
   , url     = require('url')
   , http    = require('http')
-  , sharejs = require('share').server
+  , sharejs = require('share')
 
 var server = null
   , logger = null
@@ -44,7 +44,7 @@ exports.initExpress = function (app)
       }
     };
 
-  sharejs.attach(app, options);
+  sharejs.server.attach(app, options);
   model = app.model;
   app.use("/sharejs/channel", express.static(path.resolve(__dirname + '/../../node_modules/share/node_modules/browserchannel/dist')));
   app.use("/jwerty", express.static(path.resolve(__dirname + '/../../node_modules/jwerty')));
@@ -110,6 +110,8 @@ function canCreateDoc(user)
 function auth(agent, action)
 {
   var username = sessions[agent.authentication];
+  var user = null;
+  var snapshot = null;
 
   if(!username)
   {
@@ -117,24 +119,43 @@ function auth(agent, action)
     return;
   }
 
-  async.waterfall(
+  async.series(
     [
       // get user from DB
       function (cb)
       {
         server.db.user.getUser(username,
-          function (err, user)
+          function (err, _user)
           {
             if(err)
             {
               sessions[agent.authentication] = null;
             }
-            cb(err, user);
+            user = _user;
+            cb(err);
           }
         );
       },
+      // get the documents state at the time this action was created
+      function (cb)
+      {
+        if(action.docName && action.type != "read")
+        {
+          getSnapshotAtRevision(action.docName, action.v,
+            function (err, _snapshot)
+            {
+              snapshot = _snapshot;
+              cb(err);
+            }
+          );
+        }
+        else
+        {
+          cb();
+        }
+      },
       // check the action
-      function (user, cb)
+      function (cb)
       {
         switch(action.type)
         {
@@ -218,6 +239,67 @@ function auth(agent, action)
         action.reject();
       }
     }
+  );
+}
+
+function getSnapshotAtRevision(docname, v, cb)
+{
+  var snapshot
+    , content
+    , ops = []
+
+  async.waterfall(
+    [
+      // get latest revision
+      function (cb)
+      {
+        model.getSnapshot(docname,
+          function (err, _snapshot)
+          {
+            snapshot = _snapshot;
+            content = snapshot.snapshot;
+            cb(err);
+          }
+        );
+      },
+      // get ops that happend between `v` and `snapshot.v`
+      function (cb)
+      {
+        if(v == snapshot.v)
+          return cb();
+
+        model.getOps(docname, v, snapshot.v,
+          function (err, _ops)
+          {
+            ops = _ops;
+            cb(err);
+          }
+        );
+      },
+      // invert and apply ops
+      function (cb)
+      {
+        var json = sharejs.types.json;
+        var err = null;
+
+        try
+        {
+          for (var i = ops.length - 1; i >= 0; i--) // reverse order
+          {
+            var op = ops[i].op;
+            op = json.invert(op);
+            content = json.apply(content, op);
+          }
+        }
+        catch (_err)
+        {
+          err = _err;
+        }
+
+        cb(err, content);
+      }
+    ],
+    cb
   );
 }
 
