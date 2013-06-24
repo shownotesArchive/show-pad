@@ -8,5 +8,12 @@
         <span style="color:darkred"><%= __('showdoc.error') %>: <%= __('showdoc.error.' + err) %></span>
     <% } %>
 <% } else { %>
+    <div class="pull-left" id="docleftheader">
+        <%- blocks.leftheader %>
+    </div>
+    <div class="pull-right" id="docrightheader">
+        <%- blocks.rightheader %>
+        <a href="<%=page%>/readonly"><%= __('showdoc.readonlylink') %></a>
+    </div>
     <%- body %>
 <% } %>

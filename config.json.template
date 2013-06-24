@@ -1,9 +1,15 @@
 {
   "pageurl":"",
   "sessionSecret":"",
-  "apikey":"",
+  "apikeys":[],
   "docsonindex": 10,
   "showbeta": false,
+  "trustproxy": false,
+  "xenim":
+  {
+    "password": "",
+    "disabled": true
+  },
   "loglevel":
   {
     "doctypes": "INFO",

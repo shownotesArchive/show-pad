@@ -3,6 +3,8 @@ var db
   , util   = require('util')
   , crypto = require('crypto');
 
+exports.name = "user";
+
 function User (username)
 {
   if(!username)

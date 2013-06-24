@@ -18,7 +18,7 @@ exports.getOne = function (res, req, answerRequest)
 
 exports.getMany = function (res, req, answerRequest)
 {
-  db.templatedb.getRawTemplate(
+  db.template.getRawTemplate(
     function (err, tpl)
     {
       if(err)
@@ -38,7 +38,7 @@ exports.createOne = function (res, req, answerRequest)
   }
   else
   {
-    db.templatedb.saveRawTemplate(tpl);
+    db.template.saveRawTemplate(tpl);
     answerRequest(res, 200, "ok", null);
   }
 }

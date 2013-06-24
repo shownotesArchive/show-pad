@@ -39,7 +39,11 @@
         </div>
     </div>
     <input type="hidden" name="type" value="email" />
-    <button class="btn primary pull-right" type="submit" id="profile-submit-email"><%= __('profile.email.submit') %></button>
+    <div class="control-group">
+        <label class="control-label"></label>
+        <div class="controls"><button class="btn primary" type="submit" id="profile-submit-email"><%= __('profile.email.submit') %></button>
+        </div>
+    </div>
 </form>
 
 <hr style="clear:both">
@@ -68,7 +72,12 @@
         </div>
     </div>
     <input type="hidden" name="type" value="password" />
-    <button class="btn primary pull-right" type="submit" id="profile-submit-pw" disabled="disabled"><%= __('profile.password.submit') %></button>
+    <div class="control-group">
+        <label class="control-label"></label>
+        <div class="controls">
+            <button class="btn primary" type="submit" id="profile-submit-pw" disabled="disabled"><%= __('profile.password.submit') %></button>
+        </div>
+    </div>
 </form>
 
 <script>

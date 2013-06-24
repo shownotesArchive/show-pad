@@ -1,41 +1,30 @@
 var redis  = require('redis')
   , async  = require('async')
-  , userdb = require('./db/userdb.js')
-  , docdb  = require('./db/docdb.js')
-  , groupdb = require('./db/groupdb.js')
-  , templatedb = require('./db/templatedb.js')
+  , pluginloader = require('./pluginloader.js')
   , options
   , client;
-
-exports.user = userdb;
-exports.doc = docdb;
-exports.group = groupdb;
-exports.templatedb = templatedb;
 
 exports.init = function (_options, cb)
 {
   options = _options;
   async.series([
     initRedis,
+    // load dbs
     function (cb)
     {
-      console.debug("Initiating userdb..");
-      userdb.init(exports, cb);
-    },
-    function (cb)
-    {
-      console.debug("Initiating docdb..");
-      docdb.init(exports, cb);
-    },
-    function (cb)
-    {
-      console.debug("Initiating groupdb..");
-      groupdb.init(exports, cb);
-    },
-    function (cb)
-    {
-      console.debug("Initiating templatedb..");
-      templatedb.init(exports, cb);
+      pluginloader.load('./src/db', [exports], console,
+        function (err, plugins)
+        {
+          if(err) return cb("Could not load db: " + err);
+
+          for (var name in plugins)
+          {
+            exports[name] = plugins[name];
+          }
+
+          cb();
+        }
+      );
     }
   ], cb);
 }

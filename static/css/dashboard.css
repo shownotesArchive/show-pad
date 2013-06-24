@@ -3,7 +3,13 @@
 	padding-bottom: 40px;
 }
 
-#doctype
+.dashboard-form > label
 {
-	margin-top: 10px;
+    margin-right: 2px;
+}
+
+.form-inline > label:not(:first-child),
+.form-inline > button:not(:first-child)
+{
+    margin-left: 15px;
 }

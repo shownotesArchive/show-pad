@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%-blocks.title %></title>
 	
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
@@ -44,13 +45,14 @@
 							<li><a href="/dashboard"><%= __('header.dashboard') %></a></li>
 						<% } %>
 		            <% } else { %>
-						<li><a href="/register"><%= __('header.register') %></a></li>
+                        <li><a href="/register"><%= __('header.register') %></a></li>
+                        <li><a href="/login" class="visible-phone"><%= __('header.login') %></a></li>
 		            <% } %>
 				</ul>
 
 				<% if (page != "/register" && page != "/login") { %>
 				<% if (!user) { %>
-					<form class="navbar-form pull-right" action="/login" method="POST">
+					<form class="navbar-form pull-right hidden-phone" action="/login" method="POST">
 		                <input type="text" name="username" class="span2" placeholder="<%= __('login.username') %>">
 		                <input type="password" name="password" class="span2" placeholder="<%= __('login.password') %>">
 		                <input type="submit" value="<%= __('login.login') %>" class="btn" />
@@ -74,7 +76,7 @@
                 <a href="http://github.com/shownotes/show-pad">ShowPad</a> ist ein Tool von <a href="http://shownot.es">Shownot.es</a>.
             </div>
             <div id="flattr" class="pull-right">
-                <a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://pad.shownotes.org/"></a>
+                <a class="FlattrButton" style="display:none;" rev="flattr;button:compact;popout:0;" href="http://pad.shownotes.org/"></a>
                 <noscript>
                     <a href="http://flattr.com/thing/1225851/ShowPad" target="_blank">
                         <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" />

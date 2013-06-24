@@ -41,6 +41,8 @@ exports.init = function (_server, cb)
     ],
     function (err)
     {
+      setInterval(deleteAllExpiredEplSessions, 1000*60*60*60); // every hour
+
       if(err == "nosessions")
         err = null;
       cb(err);
@@ -56,106 +58,8 @@ exports.initExpress = function (app)
 /* Users */
 exports.onLogin = function (user, res, cb)
 {
-  var authorID, sessionIDs = [], groups;
-
-  async.series(
-    [
-      // create author
-      function (cb)
-      {
-        etherpad.createAuthorIfNotExistsFor(
-          {
-            name: user.username,
-            authorMapper: user.username
-          },
-          function (err, data)
-          {
-            if(!err)
-            {
-              authorID = data.authorID;
-              logger.debug("[%s] AuthorID: %s", user.username, authorID);
-            }
-            cb(err);
-          });
-      },
-      // get all groups
-      function (cb)
-      {
-        server.db.group.getGroups(
-          function (err, _groups)
-          {
-            if(!err)
-              groups = _groups;
-            cb(err);
-          }
-        );
-      },
-      // create sessions for all groups of this user and all open groups
-      function (cb)
-      {
-        var sessionGroups = [];
-
-        for (var id in groups)
-        {
-          if(groups[id].type == "open")
-          {
-            sessionGroups.push(groups[id].short);
-          }
-        }
-
-        sessionGroups = sessionGroups.concat(user.groups);
-
-        async.each(sessionGroups,
-          function (showGroup, cb)
-          {
-            etherpad.createSession(
-              {
-                authorID: authorID,
-                groupID: eplGroupIDs[showGroup],
-                validUntil: new Date().getTime() + sessionMaxAge
-              },
-              function (err, data)
-              {
-                if(!err)
-                {
-                  sessionIDs.push(data.sessionID);
-                  logger.debug("[%s] %s (%s) SessionID: %s", user.username, showGroup, eplGroupIDs[showGroup], data.sessionID);
-                }
-                cb(err);
-              });
-          }, cb);
-      },
-      // save session and set cookie
-      function (cb)
-      {
-        var cookieStr = "";
-        for (var id in sessionIDs)
-        {
-          cookieStr += sessionIDs[id] + ',';
-        }
-        cookieStr = cookieStr.substr(0, cookieStr.length - 1);
-
-        if(!user.eplSessions)
-          user.eplSessions = [];
-
-        var userChanges = { username: user.username, eplSessions: sessionIDs.concat(user.eplSessions) };
-        server.db.user.updateUser(userChanges,
-          function (err)
-          {
-            if(err)
-            {
-              logger.debug("[%s] Login failed", user.username);
-            }
-            else
-            {
-              res.cookie("sessionID", cookieStr, { maxAge: sessionMaxAge, httpOnly: false});
-              logger.debug("[%s] Logged in", user.username);
-            }
-
-            cb(err);
-          });
-      }
-    ], cb);
+  // do nothing
+  cb();
 }
 
 exports.onCreateUser = function (user, cb)
@@ -166,28 +70,71 @@ exports.onCreateUser = function (user, cb)
 
 exports.onLogout = function (user, res, cb)
 {
+  if(res)
+    res.clearCookie("sessionID");
+  deleteEplSessionsOfUser(user, true, cb);
+}
+
+function deleteEplSessionsOfUser(user, removeAll, cb)
+{
+  if(typeof removeAll == "function")
+  {
+    cb = removeAll;
+    removeAll = false;
+  }
+
   var sessions = user.eplSessions;
+  var deleteSessions = [];
   var username = user.username;
 
   if(!sessions || sessions.length == 0)
   {
     // no need to stress the db and etherpad
-    logger.warn("[%s] has no sessions", username);
     return cb();
   }
 
+  var newSessions = sessions.slice(0); // clone array, http://davidwalsh.name/javascript-clone-array
+
   async.series(
     [
+      // find out which sessions should be deleted
+      function (cb)
+      {
+        if(removeAll)
+        {
+          deleteSessions = sessions;
+          newSessions = [];
+          return cb();
+        }
+
+        async.each(sessions,
+          function (sid, cb)
+          {
+            isEplSessionValid(sid,
+              function (valid, group)
+              {
+                if(!valid)
+                {
+                  deleteSessions.push(sid);
+                  newSessions.splice(newSessions.indexOf(sid), 1);
+                }
+                cb();
+              }
+            );
+          },
+          cb
+        );
+      },
       // delete epl sessions
       function (cb)
       {
-        async.each(sessions,
+        async.each(deleteSessions,
           function (sid, cb)
           {
             etherpad.deleteSession({sessionID: sid},
               function (err)
               {
-                if(err)
+                if(err && err.message != "sessionID does not exist")
                   logger.error("[%s] could not delete session", username, sid, err);
                 else
                   logger.debug("[%s] session deleted", username, sid);
@@ -198,7 +145,10 @@ exports.onLogout = function (user, res, cb)
       // remove sessions from db
       function (cb)
       {
-        var userChanges = { username: user.username, eplSessions: [] };
+        if(sessions.length == newSessions.length)
+          return cb();
+
+        var userChanges = { username: user.username, eplSessions: newSessions };
         server.db.user.updateUser(userChanges,
           function (err)
           {
@@ -211,6 +161,44 @@ exports.onLogout = function (user, res, cb)
       }
     ], cb
   );
+}
+
+function isEplSessionValid(sid, cb)
+{
+  etherpad.getSessionInfo({sessionID: sid},
+    function (err, data)
+    {
+      var isValid = (!err && (data.validUntil * 1000) > +new Date());
+      var group = (data ? data.groupID : null);
+
+      cb(isValid, group);
+    }
+  );
+}
+
+function deleteAllExpiredEplSessions()
+{
+  async.waterfall(
+    [
+      // the all users
+      function (cb)
+      {
+        server.db.user.getUsers(cb);
+      },
+      // delete sessions
+      function (users, cb)
+      {
+        async.forEachSeries(users, deleteEplSessionsOfUser, cb);
+      }
+    ],
+    function (err)
+    {
+      if(err)
+      {
+        logger.error("Could not clean up EPL sessions:", err);
+      }
+    }
+  )
 }
 
 /* Groups */
@@ -259,16 +247,119 @@ exports.onDeleteDoc = function (doc, cb)
 
 exports.onRequestDoc = function (req, res, user, doc, cb)
 {
-  var locals =
-    {
-      docname: doc.name,
-      groupID: eplGroupIDs[doc.group],
-      eplurl: eplurl,
-      padId: req.params.docname
-    };
+  var docgroup = doc.group
+    , eplgroup = eplGroupIDs[docgroup]
+    , authorID
+    , sessionID
+    , user = res.locals.user
 
-  res.render('documenttypes/etherpad.ejs', locals);
-  cb();
+  if(!user.eplSessions)
+    user.eplSessions = [];
+
+  async.series(
+    [
+      // see if a session is needed
+      function (cb)
+      {
+        async.each(user.eplSessions,
+          function (sid, cb)
+          {
+            isEplSessionValid(sid,
+              function (valid, group)
+              {
+                if(valid && group == eplgroup)
+                  cb("sessionexists");
+                else
+                  cb();
+              }
+            )
+          },
+          cb
+        )
+      },
+      // create author
+      function (cb)
+      {
+        etherpad.createAuthorIfNotExistsFor(
+          {
+            name: user.username,
+            authorMapper: user.username
+          },
+          function (err, data)
+          {
+            if(!err)
+            {
+              authorID = data.authorID;
+              logger.debug("[%s] AuthorID: %s", user.username, authorID);
+            }
+            cb(err);
+          }
+        );
+      },
+      // create session for this pad
+      function (cb)
+      {
+        etherpad.createSession(
+          {
+            authorID: authorID,
+            groupID: eplgroup,
+            validUntil: (new Date().getTime() + sessionMaxAge) / 1000 // seconds
+          },
+          function (err, data)
+          {
+            if(!err)
+            {
+              sessionID = data.sessionID;
+              logger.debug("[%s] %s (%s) SessionID: %s", user.username, docgroup, eplgroup, data.sessionID);
+            }
+            cb(err);
+          }
+        );
+      },
+      // save new session to db and set cookie containing all sessions this user has
+      function (cb)
+      {
+        user.eplSessions = [sessionID].concat(user.eplSessions);
+
+        var userChanges = { username: user.username, eplSessions: user.eplSessions };
+        server.db.user.updateUser(userChanges,
+          function (err)
+          {
+            if(err)
+            {
+              logger.debug("[%s] Login failed", user.username);
+            }
+            else
+            {
+              logger.debug("[%s] Logged in", user.username);
+            }
+
+            cb(err);
+          }
+        );
+      }
+    ],
+    function (err)
+    {
+      if(!err || err == "sessionexists")
+      {
+        var locals =
+        {
+          docname: doc.name,
+          groupID: eplGroupIDs[doc.group],
+          eplurl: eplurl,
+          padId: req.params.docname
+        };
+
+        res.cookie("sessionID", user.eplSessions.join(','), { maxAge: sessionMaxAge, httpOnly: false }); // miliseconds
+        res.render('documenttypes/etherpad.ejs', locals);
+
+        err = null;
+      }
+
+      cb(err);
+    }
+  );
 }
 
 /* Pad text */
@@ -300,7 +391,12 @@ exports.getText = function (doc, cb)
         logger.error("Could not get padtext: %s, %s", docname, err);
       else
         logger.debug("Got padtext:", docname);
-      cb(err, data);
+
+      var text = null;
+      if(data && data.text)
+        text = data.text;
+
+      cb(err, text);
     });
 }
 
@@ -317,6 +413,7 @@ exports.getLastModifed = function (doc, cb)
         logger.error("Could not get pad-lastEdited: %s, %s", docname, err);
       else
         logger.debug("Got pad-lastEdited:", docname);
-      cb(err, data);
+      var date = new Date(data.lastEdited);
+      cb(err, date);
     });
 }

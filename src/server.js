@@ -2,7 +2,6 @@ var express   = require('express')
   , ejslocals = require('ejs-locals')
   , async     = require('async')
   , log4js    = require('log4js')
-  , cookie    = require('cookie')
   , nconf     = require('nconf')
   , ejs       = require('ejs')
   , fs        = require('fs')
@@ -13,6 +12,7 @@ var express   = require('express')
   , cache     = require('memory-cache')
   , punycode  = require('punycode')
   , Recaptcha = require('recaptcha').Recaptcha
+  , amqp      = require('amqp')
   , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator');
@@ -21,6 +21,8 @@ var db            = require('./db.js')
   , api           = require('./api.js')
   , documentTypes = require('./documenttypes.js')
   , hoerapi       = require('./hoersuppe/hoerapi.js')
+  , xenimAmqp     = null
+  , xenimAmqpExc  = null
   , app           = null
   , mailTransport = null
   , pageurl       = null
@@ -43,14 +45,18 @@ exports.log4js = log4js;
 exports.pageurl = pageurl;
 
 // startup
+console.log("Let's go!");
+log4js.configure('log4jsconfig.json', {});
 log4js.replaceConsole();
-console.info("Let's go");
+
+var startupLogger = getLogger("startup");
 
 async.series([
   initConfig,
   initMail,
   initDatabase,
   initDocTypes,
+  initXenim,
   initApi,
   initi18n,
   initServer,
@@ -60,18 +66,20 @@ function (err)
 {
   if(err)
   {
-    console.error(err);
+    startupLogger.error(err);
     process.exit(1);
   }
   else
   {
-    console.info("All done!");
+    startupLogger.info("All done!");
   }
+
+  startupLogger = null;
 });
 
 function initConfig(cb)
 {
-  console.info("Initiating configuration..");
+  startupLogger.info("Initiating configuration..");
   nconf.file({ file: 'config.json' });
 
   nconf.defaults({
@@ -103,32 +111,88 @@ function initConfig(cb)
 function initMail(cb)
 {
   var type = nconf.get('mail:type');
-  console.info("Initiating mail (%s)..", type);
+  startupLogger.info("Initiating mail (%s)..", type);
   mailTransport = nodemailer.createTransport(type, nconf.get('mail:options'));
   cb();
 }
 
 function initDatabase(cb)
 {
-  console.info("Initiating database..");
+  startupLogger.info("Initiating database..");
   db.init(nconf.get("database"), cb);
 }
 
 function initDocTypes(cb)
 {
-  console.info("Initiating doctypes..");
+  startupLogger.info("Initiating doctypes..");
   documentTypes.init(exports, cb);
+}
+
+function initXenim(cb)
+{
+  if(nconf.get("xenim:disabled"))
+  {
+    startupLogger.info("Xenim disabled in config.");
+    return cb();
+  }
+
+  startupLogger.info("Initiating xenim..");
+  var failTimeout = setTimeout(xenimFail, 5000);
+  var failed = false;
+
+  xenimAmqp = amqp.createConnection(
+    {
+      host: 'messages.streams.xenim.de',
+      vhost: "xsn_hls",
+      login: "shownotes",
+      password: nconf.get("xenim:password")
+    }
+  );
+
+  xenimAmqp.on('ready',
+    function ()
+    {
+      if(failed)
+        return;
+
+      startupLogger.debug("[Xenim] ready");
+      xenimAmqp.exchange('shownotes',
+        {
+          passive: true
+        },
+        function (exc)
+        {
+          if(failed)
+            return;
+
+          startupLogger.debug("[Xenim] got exchange");
+          clearTimeout(failTimeout);
+          xenimAmqpExc = exc;
+          cb();
+        }
+      );
+    }
+  );
+
+  function xenimFail()
+  {
+    startupLogger.debug("[Xenim] timeout");
+    failed = true;
+    xenimAmqp = null;
+    xenimAmqpExc = null;
+    cb(); // continue without xenim
+  }
 }
 
 function initApi(cb)
 {
-  console.info("Initiating api..");
+  startupLogger.info("Initiating api..");
   api.init(exports, cb);
 }
 
 function initi18n(cb)
 {
-  console.info("Initiating i18n..");
+  startupLogger.info("Initiating i18n..");
   i18n.configure({
       locales:['en', 'de'],
       cookie: 'locale',
@@ -141,15 +205,16 @@ function initi18n(cb)
 
 function initServer(cb)
 {
-  console.info("Initiating server..");
+  startupLogger.info("Initiating server..");
 
   app = express();
   app.engine('ejs', ejslocals);
   app.set('view engine', 'ejs');
   app.use(express.static(path.resolve(__dirname + '/../static')));
+  app.use("/js/tinyosf/", express.static(path.resolve(__dirname + '/../node_modules/tinyosf')));
   app.use(express.cookieParser());
 
-  console.debug("Initiating server-i18n..");
+  startupLogger.debug("Initiating server-i18n..");
   app.use(i18n.init);
 
   // binding template helpers to request (Credits to https://github.com/enyo #12)
@@ -165,7 +230,7 @@ function initServer(cb)
       next();
     });
 
-  console.debug("Initiating server-forms..");
+  startupLogger.debug("Initiating server-forms..");
   app.use(express.bodyParser());
   app.use(expressValidator);
 
@@ -175,7 +240,7 @@ function initServer(cb)
     app.get('trust proxy');
   }
 
-  console.debug("Initiating server-sessions..");
+  startupLogger.debug("Initiating server-sessions..");
   // sessions
   sessionStore = db.prepareSessionStore(express, {});
   app.use(express.session({ secret: sessionSecret, store: sessionStore }));
@@ -212,10 +277,10 @@ function initServer(cb)
     }
   });
 
-  console.debug("Initiating doctypes (express)..");
+  startupLogger.debug("Initiating doctypes (express)..");
   documentTypes.onExpressInit(app);
 
-  console.debug("Initiating server-routes..");
+  startupLogger.debug("Initiating server-routes..");
   // routes
   app.get('/', processIndex);
   app.post('/createDoc', processCreateDoc);
@@ -250,6 +315,7 @@ function initServer(cb)
   app.post('/profile', processProfile);
 
   app.get('/dashboard', function(req, res) { res.render('dashboard', { pageurl: pageurl, locale: req.locale }); });
+  app.get('/dashboard/sendactivation/:username', sendDashboardUserActivation);
 
   app.get('/logout', processLogout);
 
@@ -262,16 +328,20 @@ function initServer(cb)
   app.put('/api/:version/:endpoint/:entity?', api.handleRequest);
   app.delete('/api/:version/:endpoint/:entity?', api.handleRequest);
 
+  // public API
+  app.get('/publicapi/docnames', processPublicDocnames);
+
   cb(null);
 }
 
 function startServer(cb)
 {
-  console.info("Starting http..");
+  startupLogger.info("Starting http..");
   app.listen(nconf.get("http:port"), nconf.get("http:ip"), cb);
 }
 
-exports.getLogger = function (category)
+exports.getLogger = getLogger;
+function getLogger(category)
 {
   var logger = log4js.getLogger(category);
   var level = nconf.get("loglevel:" + category) || "DEBUG";
@@ -298,6 +368,8 @@ function processIndex (req, res)
 function getClientPods (cb)
 {
   var cacheName = "clientpods";
+  var today = new Date();
+  today.setHours(0,0,0,0);
 
   async.waterfall(
     [
@@ -314,7 +386,11 @@ function getClientPods (cb)
       // get hoersuppe-live-podcasts
       function (cb)
       {
-        hoerapi.getLive(nconf.get("docsonindex"), null, null, cb);
+        var startDate = new Date();
+        startDate.setDate(startDate.getDate()-1); // yesterday
+        var endDate = new Date();
+        endDate.setDate(endDate.getDate()+1); // yesterday
+        hoerapi.getLive(null, startDate, endDate, cb);
       },
       // get podcast<->pad mapping
       function (podcasts, cb)
@@ -337,12 +413,15 @@ function getClientPods (cb)
       function (podcasts, liveToPad, cb)
       {
         var clientPods = [];
+        var maxRows = nconf.get("docsonindex");
 
-        for (var i = 0; i < podcasts.length; i++)
+        for (var i = 0; i < podcasts.length && clientPods.length < maxRows; i++)
         {
           var id = podcasts[i].id;
           var doc = {};
           var docName = liveToPad[id];
+
+          podcasts[i].livedate = new Date(podcasts[i].livedate);
 
           if(docName)
           {
@@ -354,6 +433,15 @@ function getClientPods (cb)
             doc.exists = false;
           }
 
+          var liveDate = new Date(+podcasts[i].livedate);
+          liveDate.setHours(0,0,0,0);
+
+          if(!doc.exists && today - liveDate > 0)
+          {
+            // podcast from yesterday and no created doc => skip it
+            continue;
+          }
+
           clientPods.push(
             {
               pod: podcasts[i],
@@ -362,7 +450,7 @@ function getClientPods (cb)
           );
         }
 
-        clientPods.sort( function (a, b) { return a.time - b.time; });
+        clientPods.sort( function (a, b) { return a.pod.livedate - b.pod.livedate; });
         cache.put(cacheName, clientPods, 60000);
 
         cb(null, clientPods);
@@ -489,7 +577,7 @@ function processCreateDoc (req, res)
             function (podcastdata, cb)
             {
               var fields = { podcast: podcastdata, live: hoerPod.pod, doc: { name: docname } };
-              db.templatedb.getText(fields, function (err, text) { onError("tpl", err, cb, [text]) });
+              db.template.getText(fields, function (err, text) { onError("tpl", err, cb, [text]) });
             },
             // set the doc-text
             function (text, cb)
@@ -505,6 +593,44 @@ function processCreateDoc (req, res)
       {
         db.setSingleHash("live2pad", hoerid, docname);
         cache.del("clientpods");
+        cb();
+      },
+      // tell xenim about the new doc
+      function (cb)
+      {
+        if(nconf.get("xenim:disabled"))
+        {
+          return cb();
+        }
+
+        var xenimInfo = {};
+        xenimInfo.docname = docname;
+        xenimInfo.hoerid = hoerid;
+        xenimInfo.hoerpod = hoerPod.pod.podcast;
+
+        if(xenimAmqpExc)
+        {
+          tellXenim(xenimInfo);
+        }
+        else
+        {
+          console.log("Could send new doc to xenim: no connection");
+
+          process.nextTick(function ()
+          {
+            console.log("Reconnecting to xenim..");
+            initXenim(function (err)
+            {
+              var status = err ? ("error (" + err + ")") : "success";
+              console.log("Reconnect status: " + status);
+
+              if(!err)
+              {
+                tellXenim(xenimInfo);
+              }
+            });
+          });
+        }
         cb();
       }
     ],
@@ -524,6 +650,20 @@ function processCreateDoc (req, res)
 
     console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
     res.json(status == "ok" ? 200 : 500, { status: status, docname: docname });
+  }
+
+  function tellXenim(xenimInfo)
+  {
+    try
+    {
+      xenimAmqpExc.publish('shownotes.padcreated', xenimInfo);
+      console.log("New doc %s sent to xenim.", xenimInfo.docname);
+    }
+    catch (ex)
+    {
+      xenimAmqp = null;
+      xenimAmqpExc = null;
+    }
   }
 }
 
@@ -562,6 +702,7 @@ function processDoc (req, res, mode)
 
         if(!doc)
         {
+          res.statusCode = 404;
           res.render('doc', { error: "nodoc" });
           cb("nodoc");
         }
@@ -572,19 +713,23 @@ function processDoc (req, res, mode)
           db.group.getGroup(doc.group, cb);
         }
       },
-      // get the doc-group
+      // find out whether the client is allowed to view this document
+      // and which mode to show them
       function (_group, cb)
       {
         group = _group;
 
         isPublic = (group.type == "open");
+        // a user is authorized to view a document if
+        //   *) the group is public
+        //   *) the group is closed and the user is in the docs group
         isAuthed = !! (user && (user.inGroup(group.short) || isPublic));
 
         logprefixstr = getShowDocStr(username, docname, isPublic, isAuthed, isText, isReadonly);
 
         if((isAuthed || isPublic) && isText)
         {
-          // show the readwrite-view
+          // return the text for readonly-view refreshes
           cb("text");
         }
         else if(isAuthed && !isReadonly)
@@ -594,19 +739,19 @@ function processDoc (req, res, mode)
         }
         else if((isPublic && !isAuthed))
         {
-          // show the readonly-view
+          // show the readonly-view (because of missing auth)
           readonlyReason = "auth";
           cb("readonly");
         }
         else if(isReadonly && isAuthed)
         {
-          // show the readonly-view
+          // show the readonly-view (because the user used the /readonly-link)
           readonlyReason = "choosen";
           cb("readonly");
         }
         else
         {
-          // fail
+          // auth-fail, show an error
           cb("auth");
         }
       },
@@ -629,60 +774,118 @@ function processDoc (req, res, mode)
       else if(err == "text")
       {
         var cacheName = "doctext_" + docname;
-        var text = cache.get(cacheName);
+        var clientDate;
 
-        var ip = req.ip;
+        if(/[0-9{13}]/.test(req.query.t))
+        {
+          clientDate = new Date(parseInt(req.query.t, 10));
+        }
+        else
+        {
+          clientDate = new Date(0);
+        }
+
+        var text = cache.get(cacheName);
 
         // create dummy objects
         readonlyUsers[docname] = readonlyUsers[docname] || {};
         readonlyUsersTimeouts[docname] = readonlyUsersTimeouts[docname] || {};
 
-        // remember this user and clear its timeout
-        readonlyUsers[docname][ip] = true;
-        if(readonlyUsersTimeouts[docname][ip])
+        if(req.query["bot"] != 1)
         {
-          clearTimeout(readonlyUsersTimeouts[docname][ip]);
-        }
+          var ip = req.ip;
 
-        // set a timeout of 2s to remove the user
-        readonlyUsersTimeouts[docname][ip] = setTimeout(function () { delete readonlyUsers[docname][ip]; }, 2000);
+          // remember this user and clear its timeout
+          readonlyUsers[docname][ip] = true;
+          if(readonlyUsersTimeouts[docname][ip])
+          {
+            clearTimeout(readonlyUsersTimeouts[docname][ip]);
+          }
+
+          // set a timeout of 2s to remove the user
+          readonlyUsersTimeouts[docname][ip] = setTimeout(function () { delete readonlyUsers[docname][ip]; }, 2000);
+        }
 
         // get the number of users
         var users = Object.keys(readonlyUsers[docname]).length;
+        var respData =
+        {
+          status: "ok",
+          users: users,
+          date: +new Date()
+        };
 
-        if(text)
-        {
-          res.json(200, { text: text, users: users });
-        }
-        else
-        {
-          documentTypes.getText(doc,
-            function (err, text)
+        async.waterfall(
+          [
+            function (cb)
             {
-              if(err)
+              documentTypes.getLastModifed(doc,
+                function (err, lastMod)
+                {
+                  var isClientUpToDate = (lastMod < clientDate);
+                  cb(isClientUpToDate ? "up2date" : null);
+                }
+              );
+            },
+            // try to get the text
+            function (cb)
+            {
+              if(text)
               {
-                console.error(logprefixstr + "error while showing doc in text-view:", err);
-                res.statusCode = 500;
-                res.end();
+                cb(null, text);
               }
               else
               {
-                cache.put(cacheName, text, 1000);
-                res.json(200, { text: text, users: users });
+                documentTypes.getText(doc, cb);
               }
+            },
+            // send it to the client
+            function (text, cb)
+            {
+              respData.text = text;
+              cache.put(cacheName, text, 1000);
+              res.json(200, respData);
+              cb();
             }
-          );
-        }
+          ],
+          function (err)
+          {
+            if(err == "up2date")
+            {
+              respData.status = "up2date";
+              res.json(200, respData);
+            }
+            else if(err)
+            {
+              console.error(logprefixstr + "error while showing doc in text-view:", err);
+              res.statusCode = 500;
+              res.end();
+            }
+          }
+        );
       }
       else if(err)
       {
         console.warn(logprefixstr + "error while showing doc: " + err);
 
-        locals.docname = docname;
-        if(err != "auth" && err != "nodoc")
-          locals.err = "other";
+        var error = null;
+
+        if(err == "auth")
+        {
+          error = err;
+        }
+        else if(err == "nodoc")
+        {
+          res.statusCode = 404;
+          error = err;
+        }
         else
-          locals.err = err;
+        {
+          error = "other";
+        }
+
+        locals.docname = docname;
+        locals.err = error;
 
         res.render('doc', locals);
       }
@@ -916,16 +1119,13 @@ function processRegister (req, res)
   req.assert('password', 'pw-invalid').len(8, 255);
   req.assert('passwordr', 'pwr-invalid').len(8, 255);
 
-  var errors = req.validationErrors();
+  var errors = req.validationErrors() || [];
 
   var username = req.param('username');
   var password = req.param('password');
   var email = req.param('email');
-  var password = req.param('password');
   var passwordr = req.param('passwordr');
-
-  if(!errors)
-    errors = [];
+  var emailToken;
 
   var values =
     {
@@ -950,14 +1150,6 @@ function processRegister (req, res)
     registerLimiters[req.ip] = new RateLimiter(2, 'minute', true);
   }
 
-  var emailToken;
-  var mailLocals =
-    {
-      username: username,
-      page: pageurl,
-      link: pageurl + "activate/" + username + "/" // pageurl *always* ends with '/'
-    };
-
   async.series([
     // check the rate limiting
     function (cb)
@@ -981,7 +1173,8 @@ function processRegister (req, res)
             {
               cb();
             }
-          });
+          }
+        );
       }
       else
       {
@@ -994,7 +1187,6 @@ function processRegister (req, res)
       crypto.randomBytes(16, function (err, bytes)
         {
           emailToken = bytes.toString('hex');
-          mailLocals.link += emailToken;
           cb();
         });
     },
@@ -1013,13 +1205,12 @@ function processRegister (req, res)
             else
               usererror = ["other-error"];
             res.redirect('/register?errors=' + JSON.stringify(usererror) + "&values=" + JSON.stringify(values));
+            cb();
           }
           else
           {
-            var emailTemplate = "activation-";
-            emailTemplate += req.locale;
-
-            sendMail(emailTemplate, mailLocals, email, res.locals.__("register.email.subject"), function (err, result)
+            sendActivationMail(username, email, req.locale, emailToken,
+              function (err, result)
               {
                 // sending the email didn't work
                 if(err)
@@ -1027,9 +1218,10 @@ function processRegister (req, res)
                   // delete the created user
                   db.user.deleteUser(username, function ()
                     {
-                      console.info("[%s] Register failed (email):", username, + err);
+                      console.info("[%s] Register failed (email):", username, err);
                       res.redirect('/register?errors=' + JSON.stringify(["email-error"]) + "&values=" + JSON.stringify(values));
-                    });
+                    }
+                  );
                 }
                 else
                 {
@@ -1038,12 +1230,35 @@ function processRegister (req, res)
                     {
                       console.info("[%s] Registered", username);
                       res.redirect('/login?error=registered&values=[]');
-                    });
+                    }
+                  );
                 }
-              });
+
+                cb();
+              }
+            );
           }
-        });
-    }]);
+        }
+      );
+    }]
+  );
+}
+
+function sendActivationMail(username, email, locale, emailToken, cb)
+{
+  var emailTemplate = "activation-" + locale;
+  var mailLocals =
+  {
+    username: username,
+    page: pageurl,
+    link: pageurl + "activate/" + username + "/" + emailToken // pageurl *always* ends with '/'
+  };
+
+  // https://github.com/mashpie/i18n-node/blob/7fd1177b8e7e15387b79e7b5825693a5be3735a2/i18n.js#L280
+  var subject = i18n.__.call({locale: locale}, "register.email.subject");
+
+  console.info("[%s] Sending activation email", username);
+  sendMail(emailTemplate, mailLocals, email, subject, cb);
 }
 
 function getErrorArray(errors)
@@ -1309,6 +1524,39 @@ function processProfile(req, res)
   }
 }
 
+function sendDashboardUserActivation(req, res)
+{
+  var user = res.locals.user;
+  if(!user || !user.hasRole("admin"))
+    return res.redirect("/");
+
+  var activationUser = req.param("username");
+
+  async.waterfall(
+    [
+      function (cb)
+      {
+        db.user.getUser(activationUser, cb);
+      },
+      function (user, cb)
+      {
+        var tokens = Object.keys(user.activateEmailTokens);
+
+        if(tokens.length != 1)
+          return cb("token");
+
+        var token = user.activateEmailTokens[tokens[0]];
+
+        sendActivationMail(user.username, token.email, req.locale, tokens[0], cb);
+      }
+    ],
+    function (err)
+    {
+      res.json({ result: err ? "fail" : "success" });
+    }
+  );
+}
+
 function processEmailActivation(req, res)
 {
   var username = req.params.username;
@@ -1432,4 +1680,87 @@ function evaluateRecaptcha(req, cb)
       }
     });
   }
+}
+
+function processPublicDocnames(req, res)
+{
+  var cacheName = "publicdocnames";
+
+  async.waterfall(
+    [
+      // check the cache
+      function (cb)
+      {
+        var docs = cache.get(cacheName);
+
+        if(docs)
+          cb("cache", docs);
+        else
+          cb();
+      },
+      // get docnames
+      function (cb)
+      {
+        db.getObjectsOfType('doc', cb);
+      },
+      // get live2pad-mapping
+      function (docnames, cb)
+      {
+        db.getHash("live2pad",
+          function (err, liveToDoc)
+          {
+            if(err)
+            {
+              cb(err);
+            }
+            else
+            {
+              cb(null, docnames, liveToDoc);
+            }
+          }
+        );
+      },
+      // add live-ids to docnames
+      function (docnames, liveToDoc, cb)
+      {
+        var docs = [];
+        var liveLookup = {};
+
+        for (var id in liveToDoc)
+        {
+          liveLookup[liveToDoc[id]] = id;
+        }
+
+        for (var i = 0; i < docnames.length; i++)
+        {
+          docs.push(
+            {
+              docname: docnames[i],
+              hoerid: liveLookup[docnames[i]] || null
+            }
+          )
+        }
+
+        cache.put(cacheName, docs, 10000);
+        cb(null, docs);
+      }
+    ],
+    function (err, result)
+    {
+      var resp =
+      {
+        "status": 200,
+        "message": "ok",
+        "data": result
+      };
+
+      if(err && err != "cache")
+      {
+        resp.status = 500;
+        resp.data = null;
+      }
+
+      res.json(resp.status, resp);
+    }
+  );
 }

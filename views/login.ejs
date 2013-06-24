@@ -17,8 +17,13 @@
             <input type="password" id="password" name="password">
         </div>
     </div>
-    <a href="/pwreset" style="margin-left: 15px"><%= __('login.forgotpw') %></a>
-    <button class="btn primary pull-right" type="submit" id="login-submit"><%= __('login.login') %></button>
+    <div class="control-group">
+        <label class="control-label"></label>
+        <div class="controls">
+            <button class="btn primary" type="submit" id="login-submit"><%= __('login.login') %></button>
+            <a href="/pwreset" style="margin-left: 15px"><%= __('login.forgotpw') %></a>
+        </div>
+    </div>
 </form>
 
 <script>

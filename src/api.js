@@ -1,7 +1,9 @@
 var async  = require('async')
   , fs    = require('fs')
-  , apikey = null
+  , pluginloader = require('./pluginloader.js')
+  , apikeys = []
   , server
+  , logger
   , db;
 
 var endpoints = {};
@@ -9,46 +11,39 @@ var endpoints = {};
 exports.init = function (_server, _cb)
 {
   server = _server;
+  logger = server.getLogger("api");
   db = server.db;
 
-  var tmpapikeyey = server.nconf.get("apikey");
-  if(tmpapikeyey && tmpapikeyey.length != 0)
+  var tmpapikeys = server.nconf.get("apikeys");
+
+  for (var i = 0; i < tmpapikeys.length; i++)
   {
-    if(tmpapikeyey.length < 30)
+    var apikey = tmpapikeys[i];
+
+    if(!apikey || !apikey.key || !apikey.name)
     {
-      console.warn("Your API-Key is too short. Please use at least 30 characters.");
+      logger.warn("API-Key-Setting %s is invalid. Please supply an name and key.", i);
+    }
+    if(apikey.key.length < 30)
+    {
+      logger.warn("API-Key for %s is too short. Please use at least 30 characters.", apikey.name);
     }
     else
     {
-      console.log("API-Key is '%s'", tmpapikeyey);
-      apikey = tmpapikeyey;
+      logger.info("API-Key of %s is %s", apikey.name, apikey.key);
+      apikeys.push(apikey);
     }
   }
-  else
-  {
-    console.warn("No API-Key defined.");
-  }
 
-  fs.readdir('./src/api', function (err, files)
-  {
-    if(err)
+  pluginloader.load('./src/api', [db, server], logger,
+    function (err, plugins)
     {
-      console.error("Could not load api: " + err);
-      cb();
-      return;
+      if(err) return cb("Could not load api: " + err);
+
+      endpoints = plugins;
+      _cb();
     }
-
-    console.debug("Found %s apiendpoints!", files.length);
-    async.eachSeries(files,
-      function (file, cb)
-      {
-        var endpoint = require('./api/' + file);
-
-        console.debug("Initiating endpoint: %s...", endpoint.name);
-        endpoints[endpoint.name] = endpoint;
-        endpoints[endpoint.name].init(db, server, cb);
-      }, _cb);
-  });
+  );
 }
 
 /* see /doc/api.md for details */
@@ -60,9 +55,8 @@ exports.handleRequest = function (req, res)
 
   var user = res.locals.user;
 
-  console.info("[API] REQUEST %s %s", method, req.url);
-
-  var apikeyValid = apikey != null && query["apikey"] == apikey;
+  var apikeyName = checkAPIKey(query["apikey"]);
+  var apikeyValid = !!apikeyName;
   var adminValid = !!user && user.hasRole("admin");
 
   if(!apikeyValid && !adminValid)
@@ -71,9 +65,19 @@ exports.handleRequest = function (req, res)
     if(user)
       username = user.username;
 
-    console.warn("API-Auth failed, APIKey=%s, Admin=%s (%s)", apikeyValid, adminValid, username);
+    logger.warn("API-Auth failed, APIKey=%s, Admin=%s (%s)", apikeyValid, adminValid, username);
     answerRequest(res, 401, "Unauthorized", null);
     return;
+  }
+  else
+  {
+    var auth = "";
+    if(apikeyValid)
+      auth = "apikey=" + apikeyName;
+    else if(adminValid)
+      auth = "user=" + user.username;
+
+    logger.info("[API] REQUEST auth=%s %s %s", auth, method, req.url);
   }
 
   var endpoint = endpoints[params.endpoint];
@@ -114,6 +118,24 @@ exports.handleRequest = function (req, res)
     else
       answerRequest(res, 405, "Method Not Allowed", null); // would be delete all
   }
+}
+
+function checkAPIKey(apikey)
+{
+  if(!apikey || typeof apikey != "string")
+  {
+    return null;
+  }
+
+  for (var i = 0; i < apikeys.length; i++)
+  {
+    if(apikeys[i].key == apikey)
+    {
+      return apikeys[i].name;
+    }
+  }
+
+  return null;
 }
 
 function answerRequest(res, statusCode, msg, data)

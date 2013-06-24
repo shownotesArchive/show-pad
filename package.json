@@ -1,9 +1,25 @@
 {
   "name": "show-pad",
   "version": "0.0.4",
-  "author": "luto <m@luto.at>",
+  "author": {
+    "name": "Michael Lutonsky",
+    "email": "m@luto.at",
+    "url": "http://luto.at/"
+  },
   "description": "",
-  "contributors": [],
+  "contributors": [
+    {
+      "name": "Simon Waldherr",
+      "email": "contact@simonwaldherr.de",
+      "url": "http://simon.waldherr.eu/"
+    },
+    {
+      "name": "Dr4k3",
+      "email": "",
+      "url": "http://blog.fastreboot.de/"
+    }
+  ],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/shownotes/show-pad.git"
@@ -11,11 +27,9 @@
   "dependencies" : {
     "express": "~3",
     "connect-redis": "1.4.x",
-    "connect": "~2",
     "ejs-locals": "~1",
     "async": "0.2.x",
-    "log4js": "0.5.x",
-    "cookie": "0.0.5",
+    "log4js": "0.6.x",
     "express-validator": "0.3.x",
     "redis": "0.8.x",
     "ejs": "0.8.x",
@@ -27,9 +41,11 @@
     "etherpad-lite-client": "0.7.0",
     "share": "git://github.com/josephg/ShareJS.git",
     "jwerty": "0.3.x",
+    "tinyosf": "0.2.x",
+    "amqp": "0.1.x",
     "recaptcha": "~1"
   },
   "engines": {
-    "node": ">=0.6"
+    "node": ">=0.8"
   }
 }
