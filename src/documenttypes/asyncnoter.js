@@ -170,11 +170,28 @@ function auth(agent, action)
             var ops = action.op;
             var metaOps = [];
             var allowed = true;
-            var canDelete = user.hasRole('admin');
 
             for (var op in ops)
             {
               var type = checkOp(ops[op]);
+              var canDelete = false;
+
+              if(type == "delete")
+              {
+                if(user.hasRole('admin'))
+                {
+                  canDelete = true;
+                }
+                else
+                {
+                  var metaContent = snapshot.meta[ops[op].p[1]];
+
+                  if(metaContent.creator == username)
+                  {
+                    canDelete = true;
+                  }
+                }
+              }
 
               if(type == "invalid" ||
                  type == "delete" && !canDelete)
