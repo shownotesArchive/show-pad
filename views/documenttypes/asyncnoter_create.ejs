@@ -121,7 +121,6 @@ $mainFormat.on('input',
             var url = $mainFormat.val();
             url = url.slice(0, url.length - 3);
 
-
             $formats.each(
                     function (i, format)
                     {
@@ -137,14 +136,18 @@ $mainFormat.on('input',
                         var text = (url.length < format.length) ? "" : (url + format);
                         $txt.val(text);
                         $txt.attr('data-old', $txt.val());
-
                     }
             );
-
-            clearTimeout(labelTimeout);
-            labelTimeout = setTimeout(updateLabels, 1500);
         }
 );
+
+$formats.on('input',
+    function ()
+    {
+        clearTimeout(labelTimeout);
+        labelTimeout = setTimeout(updateLabels, 1500);
+    }
+)
 
 function updateLabels()
 {
