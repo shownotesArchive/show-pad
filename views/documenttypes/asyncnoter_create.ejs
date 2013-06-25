@@ -9,11 +9,11 @@ Please note that <code>ogg</code> is supported in all browsers except for Intern
 Unsupported browsers will fall back to flash-playback which has fewer features than the HTML5-Version of Asyncnoter.
 </p>
 <hr>
-<form id="form">
+<form id="form" method="post">
     <div class="control-group">
-        <label class="control-label" for="inputEmail">Docname:</label>
+        <label class="control-label" for="docname">Docname:</label>
         <div class="controls">
-            <input type="text" id="inputEmail">
+            <input type="text" id="docname" name="docname">
         </div>
     </div>
     <div id="browsers">
@@ -100,6 +100,8 @@ function addFormat(format)
 
     $label.text(format + ":");
 
+    $txt.attr('name', "formats[" + format + "]");
+
     $status.append($('<span>').addClass('fail hidden').html('&#10007;'));
     $status.append($('<span>').addClass('success hidden').html('&#10003;'));
     $status.append($('<span>').addClass('statustext'));
@@ -157,19 +159,7 @@ function updateLabels()
                 $.getJSON('/createasync/checkstatus?url=' + encodeURIComponent(file),
                     function (data)
                     {
-                        var fail;
-
-                        if(data.result == "ok")
-                        {
-                            if(data.statusCode >= 200 && data.statusCode < 400)
-                                fail = false;
-                            else
-                                fail = true;
-                        }
-                        else
-                        {
-                            fail = true;
-                        }
+                        var fail = data.result == "error";
 
                         if(fail)
                         {

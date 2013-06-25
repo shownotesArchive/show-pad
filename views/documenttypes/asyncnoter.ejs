@@ -18,9 +18,9 @@
 <div id="flashwarning" class="alert alert-warn hidden"><%-__('asyncnoter.flashwarning')%></div>
 <center>
     <audio id="asyncnoterPlayer">
-        <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.m4a" type='audio/mp4' />
-        <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.oga" type='audio/ogg; codecs="vorbis"' />
-        <source src="http://meta.metaebene.me/media/lautsprecher/ls000-der-lautsprecher.mp3" type='audio/mpeg' />
+<% for(media in mediaurls) { %>
+        <source src="<%- mediaurls[media].url %>" type='<%- mediatypes[media] %>' />
+<% } %>
     </audio>
     <hr>
     <div id="addnotes" class="form-horizontal">

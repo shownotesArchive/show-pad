@@ -65,7 +65,124 @@ function getCreateAsync(req, res)
 
 function postCreateAsync(req, res)
 {
+  var docname = req.param("docname");
+  var mediaurls = req.param("formats");
+  var newMediaurls = []
+    , useableMediaurls = []
+    , doc = null
 
+  for (var media in mediaurls)
+  {
+    var uurl = mediaurls[media];
+    newMediaurls.push(
+      {
+        media: media,
+        url: uurl
+      }
+    );
+  }
+
+  mediaurls = newMediaurls;
+
+  async.series(
+    [
+      // check doc name
+      function (cb)
+      {
+        if(!/^[a-z][0-9a-z_-]{5,}$/i.test(docname))
+          cb("docname");
+        else
+          cb();
+      },
+      // check media urls
+      function (cb)
+      {
+        async.each(newMediaurls,
+          function (mediaUrl, cb)
+          {
+            var parsedUrl = url.parse(mediaUrl.url);
+
+            checkMediaFileUrl(parsedUrl,
+              function (err, result)
+              {
+                if(result.result == "ok")
+                  useableMediaurls.push(mediaUrl);
+
+                cb();
+              }
+            );
+          },
+          cb
+        );
+      },
+      // create doc
+      function (cb)
+      {
+        if(useableMediaurls.length == 0)
+          return cb("media");
+
+        server.db.doc.createDoc(docname, "asyncnoter", "pod", cb);
+      },
+      // set media urls
+      function (cb)
+      {
+        var docChanges =
+        {
+          docname: docname,
+          async:
+          {
+            mediaurls: {}
+          }
+        };
+
+        for (var i in useableMediaurls)
+        {
+          var name = useableMediaurls[i].media;
+
+          docChanges.async.mediaurls[name] =
+          {
+            url: useableMediaurls[i].url
+          }
+        }
+
+        server.db.doc.updateDoc(docChanges, cb);
+      },
+      // get the finished doc
+      function (cb)
+      {
+        server.db.doc.getDoc(docname,
+          function (err, _doc)
+          {
+            doc = _doc;
+            cb(err);
+          }
+        );
+      },
+      // create doc in asyncnoter
+      function (cb)
+      {
+        server.documentTypes.onCreateDoc(doc, cb);
+      }
+    ],
+    function (err)
+    {
+      if(err)
+      {
+        var userError = "other";
+
+        if(err == "media" || err == "docname" || err == "docexists")
+          userError = err;
+
+        console.log("Error while creating asyncdoc: " + err);
+
+        res.redirect("/createasync?err=" + userError)
+      }
+      else
+      {
+        res.redirect("/doc/" + docname);
+      }
+    }
+  )
 }
 
 function getCreateAsyncCheckStatus(req, res)
@@ -74,18 +191,27 @@ function getCreateAsyncCheckStatus(req, res)
     return res.end();
 
   var fileUrl = url.parse(req.query.url);
-  var hostname = fileUrl.hostname;
-
-  if(!fileUrl.protocol || !hostname || hostname.indexOf('.') == -1)
-    return res.end();
 
   console.log("Requesting %s//%s%s for %s", fileUrl.protocol, fileUrl.host, fileUrl.pathname, res.locals.user.username);
 
+  checkMediaFileUrl(fileUrl,
+    function (err, status)
+    {
+      res.json(status);
+    }
+  )
+}
+
+function checkMediaFileUrl(url, cb)
+{
+  if(!url.protocol || !url.hostname || url.hostname.indexOf('.') == -1)
+    return cb(null, { result: "error" });
+
   var options =
   {
-    hostname: fileUrl.hostname,
+    hostname: url.hostname,
     port: 80,
-    path: fileUrl.pathname,
+    path: url.pathname,
     method: 'HEAD',
     agent: false // => `Connection: close`
   };
@@ -94,13 +220,17 @@ function getCreateAsyncCheckStatus(req, res)
   {
     var code = fileRes.statusCode;
     var text = HTTPStatus[code];
+    var result = "ok";
 
-    res.json({ result: "ok", statusCode: code, statusText: text });
+    if(code < 200 || code >= 500 || code == 404)
+      result = "error";
+
+    cb(null, { result: result, statusCode: code, statusText: text });
   });
 
   fileReq.on('error', function(e)
   {
-    res.json({ result: "error" });
+    cb(null, { result: "error" });
   });
 
   fileReq.end();
@@ -448,7 +578,9 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
     docname: doc.docname,
     pageurl: server.pageurl,
     groupname: doc.group,
-    authtoken: token
+    authtoken: token,
+    mediaurls: doc.async.mediaurls,
+    mediatypes: { "ogg": 'audio/ogg; codecs="vorbis"', 'mp3': 'audio/mpeg' }
   };
 
   res.render('documenttypes/asyncnoter.ejs', locals);
