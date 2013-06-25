@@ -43,6 +43,7 @@
     "jwerty": "0.3.x",
     "tinyosf": "0.2.x",
     "amqp": "0.1.x",
+    "http-status": "0.1.x",
     "recaptcha": "~1"
   },
   "engines": {

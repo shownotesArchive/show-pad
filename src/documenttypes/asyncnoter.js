@@ -5,6 +5,7 @@ var async   = require('async')
   , url     = require('url')
   , http    = require('http')
   , sharejs = require('share')
+  , HTTPStatus = require('http-status')
 
 var server = null
   , logger = null
@@ -91,7 +92,10 @@ function getCreateAsyncCheckStatus(req, res)
 
   var fileReq = http.request(options, function(fileRes)
   {
-    res.json({ result: "ok", status: fileRes.statusCode });
+    var code = fileRes.statusCode;
+    var text = HTTPStatus[code];
+
+    res.json({ result: "ok", statusCode: code, statusText: text });
   });
 
   fileReq.on('error', function(e)

@@ -101,5 +101,6 @@ Technologies used
   * [jEditable](http://www.appelsiini.net/projects/jeditable) (MIT)
   * [tinyOSF.js](https://github.com/shownotes/tinyOSF.js) (MIT)
   * [etherpad-jquery](https://github.com/tomassedovic/etherpad-lite-client-js) (MIT)
+  * [Browser Icons](https://github.com/paulirish/browser-logos), All other trademarks, logos and copyrights are the property of their respective owners.
 
 [![flattr](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1225851/ShowPad)

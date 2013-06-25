@@ -3,10 +3,10 @@
 
 <h4>Hi Podcaster!</h4>
 <p>
-Please enter a docname (could be <code id="docname-example"></code>) and links to your media-files.
-The more formats you supply the more users will be able to use the HTML5-Version of the PWP
-in ShowPad, wich has richer functionality. This formular will try to guess the other URLs once
-you entered the mp3-URL, if a guess is wrong just correct the URL in the according textbox.
+Please enter a docname (could be <code id="docname-example"></code>) and links to your media-files. This formular will
+try to guess the other URLs once you entered the <code>ogg</code>-URL, if a guess is wrong just correct the URL in the according textbox.
+Please note that <code>ogg</code> is supported in all browsers except for Internet Explorer, which needs <code>mp3</code>.<br>
+Unsupported browsers will fall back to flash-playback which has fewer features than the HTML5-Version of Asyncnoter.
 </p>
 <hr>
 <form id="form">
@@ -15,6 +15,10 @@ you entered the mp3-URL, if a guess is wrong just correct the URL in the accordi
         <div class="controls">
             <input type="text" id="inputEmail">
         </div>
+    </div>
+    <div id="browsers">
+        <span>Supported browsers:</span>
+        <br>
     </div>
     <button class="btn btn-success">Create Document</button>
 </form>
@@ -47,13 +51,41 @@ function getRandomInt(min, max)
 </script>
 
 <script>
-var formats = [ "mp3", "m4a", "oga" ];
+var formats = [ "ogg", "mp3" ];
+var browsers = [ "chrome", "ie", "safari", "opera", "firefox" ];
+var support =
+{
+    "ogg":
+    [
+        browsers.indexOf("chrome"),
+        browsers.indexOf("firefox"),
+        browsers.indexOf("opera"),
+        browsers.indexOf("safari")
+    ],
+    "mp3":
+    [
+        browsers.indexOf("chrome"),
+        browsers.indexOf("ie"),
+        browsers.indexOf("safari")
+    ]
+};
+var givenSupport = {};
 var labelTimeout;
 
 for(var format in formats)
 {
     format = formats[format];
     addFormat(format);
+}
+
+for(var i = 0; i < browsers.length; i++)
+{
+    var $div = $("<div class='browser'>");
+    $div.attr("data-browser", i);
+    $div.css("background-position", (i * 95) + "px 0");
+    $('#browsers').append($div);
+
+    givenSupport[i] = {};
 }
 
 function addFormat(format)
@@ -75,17 +107,18 @@ function addFormat(format)
     $group.append($label);
     $group.append($('<div>').addClass('controls').append($txt).append($status));
 
-    $('#form button').before($group);
+    $('#browsers').before($group);
 }
 
-var $mp3 = $('#format-mp3 input');
+var $mainFormat = $('#format-' + formats[0] + ' input');
 var $formats = $('div.format');
 
-$mp3.on('input',
+$mainFormat.on('input',
         function ()
         {
-            var url = $mp3.val();
+            var url = $mainFormat.val();
             url = url.slice(0, url.length - 3);
+
 
             $formats.each(
                     function (i, format)
@@ -94,7 +127,7 @@ $mp3.on('input',
                         var $txt = $format.find('input');
                         var format = $format.data('format');
 
-                        if(format == "mp3")
+                        if(format == formats[0])
                             return;
                         if($txt.val().length != 0 && $txt.val() != $txt.attr('data-old'))
                             return;
@@ -119,15 +152,16 @@ function updateLabels()
                 var $format = $(format);
                 var $txt = $format.find('input');
                 var file = $txt.val();
+                var format = $format.data('format');
 
                 $.getJSON('/createasync/checkstatus?url=' + encodeURIComponent(file),
                     function (data)
                     {
-                        var fail, failReason;
+                        var fail;
 
                         if(data.result == "ok")
                         {
-                            if(data.status >= 200 && data.status < 400)
+                            if(data.statusCode >= 200 && data.statusCode < 400)
                                 fail = false;
                             else
                                 fail = true;
@@ -148,7 +182,22 @@ function updateLabels()
                             $format.find('.success').removeClass('hidden');
                         }
 
-                        var statustext = !!data.status ? "(" + data.status + ")" : "";
+                        var statustext = !!data.statusCode ? "(" + data.statusCode + ", " + data.statusText + ")": "";
+                        var supported = support[format];
+
+                        for (var brow in supported)
+                        {
+                            brow = supported[brow];
+
+                            if(fail)
+                                delete givenSupport[brow][format];
+                            else
+                                givenSupport[brow][format] = true;
+
+                            if(Object.keys(givenSupport[brow]).length > 0)
+                                $('.browser[data-browser=' + brow + ']').css("opacity", "1");
+                        }
+
                         $format.find('.statustext').text(statustext);
                     }
                 )

@@ -333,3 +333,18 @@ div.format .status > .statustext
     margin-right: 10px;
 
 }
+
+#browsers > .browser
+{
+    background-image: url('/img/browsers.png');
+    width: 47.6px;
+    height: 45px;
+    opacity: 0.3;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+#browsers
+{
+    margin-bottom: 10px;
+}
