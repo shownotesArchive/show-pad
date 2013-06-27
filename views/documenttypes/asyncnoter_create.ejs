@@ -55,7 +55,7 @@ function getRandomInt(min, max)
 
 <script>
 var formats = [ "ogg", "mp3" ];
-var browsers = [ "chrome", "ie", "safari", "opera", "firefox" ];
+var browsers = [ "chrome", "firefox", "opera", "safari", "ie" ];
 var support =
 {
     "ogg":
@@ -86,7 +86,7 @@ for(var i = 0; i < browsers.length; i++)
 {
     var $div = $("<div class='browser'>");
     $div.attr("data-browser", i);
-    $div.css("background-position", (i * 95) + "px 0");
+    $div.css("background-position", (i * -47) + "px 0px");
     $('#browsers').append($div);
 
     givenSupport[i] = {};
@@ -194,9 +194,16 @@ function updateLabels()
                                 delete givenSupport[brow][format];
                             else
                                 givenSupport[brow][format] = true;
+                        }
+
+                        for (var brow = 0; brow < browsers.length; brow++)
+                        {
+                            var $browser = $('.browser[data-browser=' + brow + ']');
 
                             if(Object.keys(givenSupport[brow]).length > 0)
-                                $('.browser[data-browser=' + brow + ']').css("opacity", "1");
+                                $browser.addClass("valid");
+                            else
+                                $browser.removeClass("valid");
                         }
 
                         $format.find('.statustext').text(statustext);

@@ -353,6 +353,11 @@ div.format .status > .statustext
     margin-top: 5px;
 }
 
+#browsers > .browser.valid
+{
+    opacity: 1;
+}
+
 #browsers
 {
     margin-bottom: 10px;
