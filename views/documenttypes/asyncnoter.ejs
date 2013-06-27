@@ -347,7 +347,7 @@ function addNoteToHTML(index, note)
     $note.addClass('note');
     $note.append($('<span>').addClass('time').text(getHumanTime(note.time)));
     $note.append($('<span>').addClass('text').text(note.text));
-    $note.append($('<span>').addClass('delete pull-right').html("&#10008;").click(userDeleteNote));
+    $note.append($('<span>').addClass('delete unselectable pull-right').html("&#10008;").click(userDeleteNote));
     
     if(!isFlash)
     {
