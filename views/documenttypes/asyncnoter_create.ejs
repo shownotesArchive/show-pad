@@ -23,7 +23,7 @@ Unsupported browsers will fall back to flash-playback which has fewer features t
         <span>Supported browsers:</span>
         <br>
     </div>
-    <button class="btn btn-success">Create Document</button>
+    <button id="submit" class="btn btn-success" disabled="disabled">Create Document</button>
 </form>
 
 <script>
@@ -73,6 +73,7 @@ var support =
     ]
 };
 var givenSupport = {};
+var validMediafiles = {};
 var labelTimeout;
 
 for(var format in formats)
@@ -171,12 +172,16 @@ function updateLabels()
                         {
                             $format.find('.fail').removeClass('hidden');
                             $format.find('.success').addClass('hidden');
+                            delete validMediafiles[format];
                         }
                         else
                         {
                             $format.find('.fail').addClass('hidden');
                             $format.find('.success').removeClass('hidden');
+                            validMediafiles[format] = true;
                         }
+
+                        $('#submit').attr('disabled', Object.keys(validMediafiles).length == 0 ? "disabled" : null);
 
                         var statustext = !!data.statusCode ? "(" + data.statusCode + ", " + data.statusText + ")": "";
                         var supported = support[format];
