@@ -78,6 +78,9 @@ function postCreateAsync(req, res)
   for (var media in mediaurls)
   {
     var uurl = mediaurls[media];
+    if(uurl.indexOf("http://") != 0)
+      uurl = "http://" + uurl;
+
     values["format-" + media] = uurl;
     newMediaurls.push(
       {
@@ -196,7 +199,10 @@ function getCreateAsyncCheckStatus(req, res)
   if(!canCreateDoc(res.locals.user) || !req.query.url)
     return res.end();
 
-  var fileUrl = url.parse(req.query.url);
+  var uurl = req.query.url;
+  if(uurl.indexOf("http://") != 0)
+    uurl = "http://" + uurl;
+  var fileUrl = url.parse(uurl);
 
   console.log("Requesting %s//%s%s for %s", fileUrl.protocol, fileUrl.host, fileUrl.pathname, res.locals.user.username);
 

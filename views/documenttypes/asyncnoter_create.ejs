@@ -122,8 +122,8 @@ var $formats = $('div.format');
 $mainFormat.on('input',
         function ()
         {
-            var url = $mainFormat.val();
-            url = url.slice(0, url.length - 3);
+            var rawUrl = $mainFormat.val();
+            var strippedUrl = rawUrl.slice(0, rawUrl.length - formats[0].length);
 
             $formats.each(
                     function (i, format)
@@ -137,7 +137,12 @@ $mainFormat.on('input',
                         if($txt.val().length != 0 && $txt.val() != $txt.attr('data-old'))
                             return;
 
-                        var text = (url.length < format.length) ? "" : (url + format);
+                        var text = "";
+                        if(strippedUrl.length > format.length &&
+                           rawUrl.indexOf("." + formats[0]) == rawUrl.length - (1 + formats[0].length))
+                        {
+                            text = strippedUrl + format;
+                        }
                         $txt.val(text);
                         $txt.attr('data-old', $txt.val());
                     }
