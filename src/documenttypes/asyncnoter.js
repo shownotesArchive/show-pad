@@ -237,7 +237,14 @@ function checkMediaFileUrl(url, cb)
     if(code < 200 || code >= 500 || code == 404)
       result = "error";
 
-    cb(null, { result: result, statusCode: code, statusText: text });
+    cb(null,
+      {
+        result: result,
+        statusCode: code,
+        statusText: text,
+        headerLocation: fileRes.headers.location
+      }
+    );
   });
 
   fileReq.on('error', function(e)

@@ -188,7 +188,27 @@ function updateLabels()
 
                         $('#submit').attr('disabled', Object.keys(validMediafiles).length == 0 ? "disabled" : null);
 
-                        var statustext = !!data.statusCode ? "(" + data.statusCode + ", " + data.statusText + ")": "";
+                        var statusParts = [];
+
+                        if(data.statusCode)
+                            statusParts.push({ part: data.statusCode })
+                        if(data.statusText)
+                            statusParts.push({ part: data.statusText });
+                        if(data.headerLocation)
+                            statusParts.push({ part: data.headerLocation, separator: " → " });
+
+                        var statustext = "";
+
+                        for (var i = 0; i < statusParts.length; i++)
+                        {
+                            var part = statusParts[i];
+                            var sep = part.separator || ", ";
+
+                            if(i != 0)
+                                statustext += sep;
+                            statustext += part.part;
+                        }
+
                         var supported = support[format];
 
                         for (var brow in supported)
