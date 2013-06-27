@@ -70,10 +70,15 @@ function postCreateAsync(req, res)
   var newMediaurls = []
     , useableMediaurls = []
     , doc = null
+    , values =
+      {
+        "docname": docname
+      }
 
   for (var media in mediaurls)
   {
     var uurl = mediaurls[media];
+    values["format-" + media] = uurl;
     newMediaurls.push(
       {
         media: media,
@@ -82,7 +87,8 @@ function postCreateAsync(req, res)
     );
   }
 
-  mediaurls = newMediaurls;
+  values = JSON.stringify(values);
+  values = encodeURIComponent(values);
 
   async.series(
     [
@@ -175,7 +181,7 @@ function postCreateAsync(req, res)
 
         console.log("Error while creating asyncdoc: " + err);
 
-        res.redirect("/createasync?err=" + userError)
+        res.redirect("/createasync?error=" + userError + "&values=" + values)
       }
       else
       {

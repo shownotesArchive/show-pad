@@ -1,6 +1,8 @@
 <% layout('../layout.ejs') %>
 <% block('title', 'Create Document') -%>
 
+<% script('js/jquery-queryParser.min.js') %>
+
 <h4>Hi Podcaster!</h4>
 <p>
 Please enter a docname (could be <code id="docname-example"></code>) and links to your media-files. This formular will
@@ -9,6 +11,7 @@ Please note that <code>ogg</code> is supported in all browsers except for Intern
 Unsupported browsers will fall back to flash-playback which has fewer features than the HTML5-Version of Asyncnoter.
 </p>
 <hr>
+<div class="alert alert-error hidden" id="error"></div>
 <form id="form" method="post">
     <div class="control-group">
         <label class="control-label" for="docname">Docname:</label>
@@ -196,5 +199,40 @@ function updateLabels()
                 )
             }
     );
+}
+</script>
+
+<script>
+var error = $.getQuery().error;
+var values = $.getQuery().values;
+
+if(error)
+{
+    values = JSON.parse(values);
+
+    switch(error)
+    {
+        case "docname":
+            $('#docname').parents(".control-group:first").addClass("error");
+            break;
+        case "media":
+            $('#error').text("You did not provide a single valid media file.");
+            $('#error').removeClass("hidden");
+            break;
+        case "other":
+            $('#error').text("There was an error when creating your document. Please contact an admin.");
+            $('#error').removeClass("hidden");
+            break;
+    }
+
+    for(var v in values)
+    {
+        if(v.indexOf("format-") == 0)
+            $('input[name="formats[' + v.substr(7) + ']"]').val(values[v]);
+        else
+            $('#' + v).val(values[v]);
+    }
+
+    updateLabels();
 }
 </script>
