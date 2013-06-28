@@ -475,11 +475,18 @@ function getSnapshotAtRevision(docname, v, cb)
 
 function checkOp(op)
 {
-  if(!op.p || (op.p[0] != "notes" || op.p.length != 2))
+  if(!op.p || (op.p[0] != "notes" || op.p.length < 2))
   {
     return "invalid";
   }
 
+  // editing
+  if(op.oi && op.od && Object.keys(op).length == 3)
+  {
+    return "edit";
+  }
+
+  // inserting
   if(op.li && Object.keys(op).length == 2)
   {
     var note = op.li;
@@ -490,6 +497,7 @@ function checkOp(op)
     return isValid ? "insert" : "invalid";
   }
 
+  // deleting
   if(op.ld && Object.keys(op).length == 2)
   {
     return "delete";

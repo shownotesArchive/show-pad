@@ -113,6 +113,7 @@ function setupSharejs()
             $.each(notes, addNoteToHTML);
             doc.at("notes").on('insert', onDocInsert);
             doc.at("notes").on('delete', onDocDelete);
+            doc.at("notes").on('child op', onNoteChildOp);
         }
     );
 }
@@ -288,6 +289,24 @@ function onDocDelete(position, note)
     removeNoteFromHTML(position);
 }
 
+function onNoteChildOp(path, op)
+{
+    var index = path[0];
+    var newVal = op.oi;
+    var $note = $('li.note[data-index=' + index + ']');
+
+    switch(path[1])
+    {
+        case "time":
+            $note.find('.time').text(getHumanTime(newVal));
+            break;
+
+        case "text":
+            $note.find('.text').text(newVal);
+            break;
+    }
+}
+
 function userAddNote(text)
 {
     isInNote = false;
@@ -324,11 +343,11 @@ function userEditNote(e)
 
 function userFinishEditNote()
 {
-    setAddnotetimeSpan('');
-    $('#addnotetext').val('');
-
     var text = $('#addnotetext').val() || "";
     setNoteDoc(editingNote, { time: inNoteTime, text: text });
+
+    setAddnotetimeSpan('');
+    $('#addnotetext').val('');
 }
 
 var errorTimeout;
@@ -388,11 +407,51 @@ function removeNoteFromDoc(index)
 
 function setNoteDoc(index, note)
 {
-    doc.at(["notes", index]).set(note,
-        function (err)
+    var oldnote = getNotes()[index];
+    var keys = getKeys(oldnote, note);
+
+    for (var i = 0; i < keys.length; i++)
+    {
+        var key = keys[i];
+
+        if(oldnote[key] != note[key])
         {
+            doc.at(["notes", index, key]).set(note[key],
+                    function (err, op)
+                    {
+                        if(err)
+                        {
+
+                        }
+                        else
+                        {
+                            onNoteChildOp(op[0].p.slice(1), op[0]);
+                        }
+                    }
+            );
         }
-    );
+    }
+}
+
+function getKeys()
+{
+    var keys = [];
+
+    for (var i = 0; i < arguments.length; i++)
+    {
+        var arg = arguments[i];
+        var argKeys = Object.keys(arg);
+
+        for (var j = 0; j < argKeys.length; j++)
+        {
+            var argKey = argKeys[j];
+
+            if(keys.indexOf(argKey) == -1)
+                keys.push(argKey);
+        }
+    }
+
+    return keys;
 }
 
 function addNoteToHTML(index, note)
