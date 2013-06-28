@@ -23,11 +23,11 @@
 <% } %>
     </audio>
     <hr>
-    <div id="addnotes" class="form-horizontal">
+    <div id="editnote" class="form-horizontal">
         <span><%-__('asyncnoter.addnote.txt')%></span>
-        <span id="addnotetime">&nbsp;</span>
-        <input id="addnotetext" type="text">
-        <button class="btn" id="addnote"><%-__('asyncnoter.addnote.btn')%></button>
+        <span class="time">&nbsp;</span>
+        <input class="text" type="text">
+        <button class="btn submit"><%-__('asyncnoter.addnote.btn')%></button>
     </div>
 </center>
 
@@ -54,6 +54,11 @@ var isInNote = false
 
 // edit notes
 var editingNote
+
+// jQuery
+var $editnotetime = $('#editnote > .time:first')
+  , $editnotetext = $('#editnote > .text:first')
+  , $editnotesubmit = $('#editnote > .submit:first')
 
 $(function()
 {
@@ -120,10 +125,9 @@ function setupSharejs()
 
 function setupUI()
 {
-    $('#addnotetext').on('input', function ()
+    $editnotetext.on('input', function ()
     {
-        var $text = $('#addnotetext');
-        if($text.val().length == 0)
+        if($editnotetext.val().length == 0)
         {
             isInNote = false;
             setAddnotetimeSpan('');
@@ -134,8 +138,8 @@ function setupUI()
         }
     });
 
-    $('#addnote').click(userSubmitNote);
-    $('#addnotetext').keypress(function (e)
+    $editnotesubmit.click(userSubmitNote);
+    $editnotetext.keypress(function (e)
     {
         if((e.keyCode ? e.keyCode : e.which) == 13) userSubmitNote();
     });
@@ -231,7 +235,7 @@ function userJump(amount)
 
 function userSubmitNote()
 {
-    var text = $('#addnotetext').val() || "";
+    var text = $editnotetext.val() || "";
 
     if(editMode == "add")
     {
@@ -311,11 +315,11 @@ function userAddNote(text)
 {
     isInNote = false;
     setAddnotetimeSpan('');
-    $('#addnotetext').val('');
+    $editnotetext.val('');
 
     addNoteToDoc({ time: inNoteTime, text: text });
 
-    $('#addnotetext').focus();
+    $editnotetext.focus();
 }
 
 function userDeleteNote(e)
@@ -338,16 +342,16 @@ function userEditNote(e)
     inNoteTime = note.time;
 
     setAddnotetimeSpan(getHumanTime(note.time));
-    $('#addnotetext').val(note.text);
+    $editnotetext.val(note.text);
 }
 
 function userFinishEditNote()
 {
-    var text = $('#addnotetext').val() || "";
+    var text = $editnotetext.val() || "";
     setNoteDoc(editingNote, { time: inNoteTime, text: text });
 
     setAddnotetimeSpan('');
-    $('#addnotetext').val('');
+    $editnotetext.val('');
 }
 
 var errorTimeout;
@@ -522,11 +526,11 @@ function setAddnotetimeSpan(text)
 {
     if(text.length == 0)
     {
-        $('#addnotetime').html('&nbsp;');
+        $editnotetime.html('&nbsp;');
     }
     else
     {
-        $('#addnotetime').text(text);
+        $editnotetime.text(text);
     }
 }
 

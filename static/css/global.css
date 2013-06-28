@@ -284,13 +284,13 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     cursor: pointer;
 }
 
-#addnotes
+#editnote
 {
     text-align: center;
     margin-top: 20px;
 }
 
-#addnotetime
+#editnote > .time
 {
     width: 100px;
     display: inline-block;
@@ -298,7 +298,7 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     border-radius: 7px;
 }
 
-#addnotetext
+#editnote > .text
 {
     width: calc(100% - 500px);
     min-width: 200px;
