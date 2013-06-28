@@ -91,15 +91,6 @@ body
     font-size: 27px;
 }
 
-.unselectable
-{
-    -moz-user-select: -moz-none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
 #content
 {
     position: relative;
@@ -277,12 +268,18 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     text-align: right;
 }
 
-#notes li.note .delete
+.note > .notebtn
 {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     float: right;
+    margin-right: 0.1em;
 }
 
-#notes li.note .delete:hover
+.note > .notebtn:hover
 {
     cursor: pointer;
 }

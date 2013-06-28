@@ -46,10 +46,14 @@ var webplayer
   , doc
   , isFlash = false
   , scrollInterval
+  , editMode = "add"
 
 // add notes
 var isInNote = false
   , inNoteTime
+
+// edit notes
+var editingNote
 
 $(function()
 {
@@ -226,11 +230,29 @@ function userJump(amount)
 
 function userSubmitNote()
 {
-    var text = $('#addnotetext').val();
-    if(text && text.length != 0)
+    var text = $('#addnotetext').val() || "";
+
+    if(editMode == "add")
     {
-        userAddNote(text);
+        if(text.length != 0)
+        {
+            userAddNote(text);
+        }
     }
+    else if(editMode == "edit")
+    {
+        var index = editingNote;
+
+        if(text.length == 0)
+        {
+            removeNoteFromDoc(index);
+        }
+        else
+        {
+            userFinishEditNote();
+        }
+    }
+
 }
 
 function userClickNote(e)
@@ -285,6 +307,30 @@ function userDeleteNote(e)
     removeNoteFromDoc(index);
 }
 
+function userEditNote(e)
+{
+    var $note = getNoteFromChild(e.target);
+    var index = $note.attr('data-index');
+    var note = getNotes()[index];
+
+    editMode = "edit";
+    editingNote = index;
+    isInNote = true;
+    inNoteTime = note.time;
+
+    setAddnotetimeSpan(getHumanTime(note.time));
+    $('#addnotetext').val(note.text);
+}
+
+function userFinishEditNote()
+{
+    setAddnotetimeSpan('');
+    $('#addnotetext').val('');
+
+    var text = $('#addnotetext').val() || "";
+    setNoteDoc(editingNote, { time: inNoteTime, text: text });
+}
+
 var errorTimeout;
 
 function addNoteToDoc(note)
@@ -320,6 +366,9 @@ function removeNoteFromDoc(index)
                 }
                 else
                 {
+                    if(editingNote > index)
+                        editingNote--;
+
                     $("#notes li.note").each(
                             function (i, elem)
                             {
@@ -337,6 +386,15 @@ function removeNoteFromDoc(index)
     );
 }
 
+function setNoteDoc(index, note)
+{
+    doc.at(["notes", index]).set(note,
+        function (err)
+        {
+        }
+    );
+}
+
 function addNoteToHTML(index, note)
 {
     var $notes = $('#notes li.note');
@@ -347,8 +405,9 @@ function addNoteToHTML(index, note)
     $note.addClass('note');
     $note.append($('<span>').addClass('time').text(getHumanTime(note.time)));
     $note.append($('<span>').addClass('text').text(note.text));
-    $note.append($('<span>').addClass('delete unselectable pull-right').html("&#10008;").click(userDeleteNote));
-    
+    $note.append($('<span>').addClass('delete notebtn pull-right').html("&#10008;").click(userDeleteNote));
+    $note.append($('<span>').addClass('edit notebtn pull-right').html("&#9998;").click(userEditNote));
+
     if(!isFlash)
     {
         // jumping to the notes time does not work in the flash
