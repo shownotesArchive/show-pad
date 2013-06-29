@@ -633,13 +633,22 @@ exports.getText = function (doc, cb)
       function (state, cb)
       {
         var notes = state.snapshot.notes;
+        var osfNotes = [];
 
         for (var i = 0; i < notes.length; i++)
         {
-          notes[i].index = i;
+          var note = notes[i];
+
+          osfNotes.push(
+            {
+              index: i,
+              text: note.text,
+              time: note.time
+            }
+          );
         }
 
-        notes.sort(
+        osfNotes.sort(
           function (a, b)
           {
             if(a.time != b.time)
@@ -651,9 +660,10 @@ exports.getText = function (doc, cb)
 
         var osf = "HEADER\n/HEADER\n";
 
-        for (var i = 0; i < notes.length; i++)
+        for (var i = 0; i < osfNotes.length; i++)
         {
-          osf += "\n" + getHumanTime(notes[i].time) + " " + notes[i].text;
+          var note = osfNotes[i];
+          osf += "\n" + getHumanTime(note.time) + " " + note.text;
         }
 
         cb(null, osf);
