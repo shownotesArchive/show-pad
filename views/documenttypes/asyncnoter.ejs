@@ -412,6 +412,14 @@ function userEditNote(e)
     resetNoteTimespan();
     setAddnotetimeSpan(getHumanTime(note.time));
     $editnotetext.val(note.text);
+    $editnotetext.focus();
+
+    var bracketPos = note.text.indexOf("<>");
+
+    if(bracketPos != -1) // empty link, jump between the brackets
+    {
+        $editnotetext.selectRange(bracketPos + 1, bracketPos + 1);
+    }
 }
 
 function userFinishEditNote()
@@ -674,4 +682,21 @@ function getNotes()
 {
     return doc.at("notes").get();
 }
+
+// http://stackoverflow.com/a/841121/2486196
+$.fn.selectRange = function(start, end) {
+    if(!end) end = start;
+    return this.each(function() {
+        if (this.setSelectionRange) {
+            this.focus();
+            this.setSelectionRange(start, end);
+        } else if (this.createTextRange) {
+            var range = this.createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', end);
+            range.moveStart('character', start);
+            range.select();
+        }
+    });
+};
 </script>
