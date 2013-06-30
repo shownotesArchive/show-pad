@@ -37,11 +37,11 @@
 </center>
 <hr>
 <div id="editnote" class="form-horizontal">
-    <span><%-__('asyncnoter.addnote.txt')%></span>
+    <span></span>
     <span class="time">&nbsp;</span>
     <input class="time" style="display: none" type="text">
     <input class="text" type="text">
-    <button class="btn submit"><%-__('asyncnoter.addnote.btn')%></button>
+    <button class="btn submit"></button>
 </div>
 
 <br>
@@ -177,6 +177,8 @@ function setupUI()
     {
         endEditNoteTimeSpan();
     });
+
+    setControlMode("add");
 }
 
 function setupUserlist()
@@ -405,7 +407,7 @@ function userEditNote(e)
     var index = $note.attr('data-index');
     var note = getNotes()[index];
 
-    editMode = "edit";
+    setControlMode("edit");
     editingNote = index;
     isInNote = true;
     inNoteTime = note.time;
@@ -430,7 +432,7 @@ function userFinishEditNote()
 
     setAddnotetimeSpan('');
     $editnotetext.val('');
-    editMode = "add";
+    setControlMode("add");
 }
 
 var errorTimeout;
@@ -604,6 +606,30 @@ function getHumanTime(time)
 function removeNoteFromHTML(index)
 {
     $("#notes li.note[data-index=" + index + "]").remove();
+}
+
+function setControlMode(mode)
+{
+    editMode = mode;
+
+    var modes =
+    {
+        add:
+        {
+            pretext: "<%-__('asyncnoter.controls.add.txt')%>",
+            btntext: "<%-__('asyncnoter.controls.add.btn')%>"
+        },
+        edit:
+        {
+            pretext: "<%-__('asyncnoter.controls.edit.txt')%>",
+            btntext: "<%-__('asyncnoter.controls.edit.btn')%>"
+        }
+    };
+
+    var texts = modes[mode];
+
+    $('#editnote > span:first').text(texts.pretext);
+    $editnotesubmit.text(texts.btntext);
 }
 
 function setAddnotetimeSpan(text)

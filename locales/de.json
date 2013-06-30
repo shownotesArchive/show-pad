@@ -170,7 +170,9 @@
     "profile.password.status.success": "Dein Passwort wurde geändert.",
 
     "asyncnoter.onlineusers": "Benutzer:",
-    "asyncnoter.addnote.txt": "Notiz hinzufügen:",
-    "asyncnoter.addnote.btn": "Add!",
+    "asyncnoter.controls.add.txt": "Notiz hinzufügen:",
+    "asyncnoter.controls.add.btn": "Speichern!",
+    "asyncnoter.controls.edit.txt": "Notiz bearbeiten:",
+    "asyncnoter.controls.edit.btn": "Speichern!",
     "asyncnoter.flashwarning": "Der Player befinet sich im Flash-Modus, daher sind manche ShowPad-Funktionen nicht nutzbar.<br>Bitte benutze einen Browser mit besserer HTML5-Audiounterstützung oder frage deinen Podcast nach mehr Formaten."
 }
