@@ -118,6 +118,8 @@ function updateDocuments()
       // check documents
       function (docs, cb)
       {
+        docs = [docs[0]];
+
         async.each(docs,
           function (doc, cb)
           {
@@ -146,7 +148,9 @@ function updateDocuments()
                 path: "notes",
                 props: notesProps
               }
-            ]
+            ];
+
+            var updatedPaths = [];
 
             async.each(props,
               function (prop, cb)
@@ -156,22 +160,30 @@ function updateDocuments()
                   {
                     if(err)
                     {
-                      console.error("Could not update doc %s: %s", docname, err);
+                      console.error("Could not update doc %s (%s): %s", docname, prop.path, err);
                     }
                     else if(updated)
                     {
-                      console.info("Doc %s: updated!", docname);
-                    }
-                    else
-                    {
-                      console.debug("Doc %s: no update needed", docname);
+                      updatedPaths.push(prop.path);
                     }
 
                     cb();
                   }
                 );
               },
-              cb
+              function ()
+              {
+                if(updatedPaths.length > 1)
+                {
+                  console.info("Doc %s: updated!", docname);
+                }
+                else
+                {
+                  console.debug("Doc %s: no update needed", docname);
+                }
+                
+                cb();
+              }
             );
           },
           cb
