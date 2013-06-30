@@ -322,7 +322,8 @@ function onNoteChildOp(path, op)
     switch(path[1])
     {
         case "time":
-            $note.find('.time').text(getHumanTime(newVal));
+            removeNoteFromHTML(index);
+            addNoteToHTML(index, getNotes()[index]);
             break;
 
         case "text":
@@ -560,6 +561,7 @@ function editNoteTimeSpan()
 {
     $editnotetimetxt.val($editnotetimespan.text());
     $editnotetime.toggle();
+    $editnotetimetxt.focus();
 }
 
 function endEditNoteTimeSpan()
