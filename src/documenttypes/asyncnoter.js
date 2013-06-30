@@ -11,6 +11,7 @@ var server = null
   , logger = null
   , model  = null
   , sessions = {}
+  , onlineusers = {}
 
 exports.name = "asyncnoter";
 
@@ -56,6 +57,9 @@ exports.initExpress = function (app)
   app.get("/createasync", getCreateAsync);
   app.post("/createasync", postCreateAsync);
   app.get("/createasync/checkstatus", getCreateAsyncCheckStatus);
+
+  app.get("/async/onlineusers/:docname", getOnlineusers);
+  app.post("/async/onlineusers/:docname", postOnlineusers);
 }
 
 function updateDocuments()
@@ -474,6 +478,48 @@ function checkMediaFileUrl(url, cb)
 function canCreateDoc(user)
 {
   return user && user.hasRole("podcaster");
+}
+
+function getOnlineusers(req, res)
+{
+  var user = res.locals.user;
+  var docname = req.param("docname");
+
+  if(user)
+  {
+    var users = [];
+
+    if(onlineusers[docname])
+      users = Object.keys(onlineusers[docname]);
+
+    res.json({ users: users });
+  }
+  else
+  {
+    res.end();
+  }
+}
+
+function postOnlineusers(req, res)
+{
+  var user = res.locals.user;
+  var username = user.username;
+  var docname = req.param("docname");
+
+  if(user)
+  {
+    if(!onlineusers[docname])
+      onlineusers[docname] = {};
+
+    onlineusers[docname][username] = setTimeout(clearOnlineUser, 30000);
+  }
+
+  res.end();
+
+  function clearOnlineUser()
+  {
+    delete onlineusers[docname][username];
+  }
 }
 
 function auth(agent, action)
