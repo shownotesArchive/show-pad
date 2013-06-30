@@ -267,9 +267,8 @@ function setupScrolling()
                 }
 
                 $notes.scrollTo($prevNote, 800);
-                $notes.find('li.note').css('background-color', '');
-                $currentNote.css('background-color', 'rgba(255,255,0,0.2)');
-                $currentNote.css('opactiy', "0.2");
+                $notes.find('li.note').removeClass("active");
+                $currentNote.addClass("active");
                 break;
             }
         }
@@ -375,20 +374,9 @@ function onDocDelete(position, note)
 function onNoteChildOp(path, op)
 {
     var index = path[0];
-    var newVal = op.oi;
-    var $note = $('li.note[data-index=' + index + ']');
 
-    switch(path[1])
-    {
-        case "time":
-            removeNoteFromHTML(index);
-            addNoteToHTML(index, getNotes()[index]);
-            break;
-
-        case "text":
-            $note.find('.text').text(newVal);
-            break;
-    }
+    removeNoteFromHTML(index);
+    addNoteToHTML(index, getNotes()[index]);
 }
 
 function userAddNote(text)
@@ -552,6 +540,11 @@ function addNoteToHTML(index, note)
     $note.append($('<span>').addClass('text').text(note.text));
     $note.append($('<span>').addClass('delete notebtn pull-right').html("&#10008;").click(userDeleteNote));
     $note.append($('<span>').addClass('edit notebtn pull-right').html("&#9998;").click(userEditNote));
+
+    if(note.text.indexOf("<>") != -1) // empty link
+    {
+        $note.addClass("missinglink");
+    }
 
     if(!isFlash)
     {
