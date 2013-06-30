@@ -357,9 +357,17 @@ function auth(agent, action)
                 var metaOp = { "p": [ "meta", ops[op].p[1] ] };
 
                 if(type == "insert")
-                  metaOp["li"] = { creator: username, createtime: +new Date() };
+                  metaOp["li"] = { creator: username, createtime: +new Date(), editors: {} };
                 else if(type == "delete")
                   metaOp["ld"] = {};
+
+                metaOps.push(metaOp);
+              }
+              else if(type == "edit")
+              {
+                var metaOp = { "p": [ "meta", ops[op].p[1], "editors", username ] };
+
+                metaOp["oi"] = { createtime: +new Date() };
 
                 metaOps.push(metaOp);
               }

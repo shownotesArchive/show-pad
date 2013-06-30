@@ -6,7 +6,14 @@
   [
     {
       creator: "luto",
-      createtime: 1234567890
+      createtime: 1234567890,
+      editors:
+      {
+        "kai":
+        {
+          createtime: 1234567891
+        }
+      }
     }
   ],
   notes:
