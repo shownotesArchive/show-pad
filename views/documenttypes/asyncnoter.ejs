@@ -185,7 +185,7 @@ function setupUserlist()
 {
     var options =
     {
-        item: '<li><span class="username"></span></li>'
+        item: '<li><span class="username"></span>&nbsp;(<span class="type"></span>)</li>'
     };
 
     userlist = new List('userlist', options);
@@ -206,18 +206,42 @@ function setupUserlist()
         $.getJSON('/async/onlineusers/<%=docname%>',
             function (data)
             {
+                var historicalUsers = getHistoricalUsers();
+                var users = {};
+
                 for (var i = 0; i < data.users.length; i++)
                 {
-                    var user = data.users[i];
-                    if(!userlist.get("username", user))
-                        userlist.add({ username: user });
+                    users[data.users[i]] = { type: "online" };
+                }
+
+                for (var i = 0; i < historicalUsers.length; i++)
+                {
+                    if(!users[historicalUsers[i]])
+                        users[historicalUsers[i]] = { type: "historical" };
+                }
+
+                var usernames = Object.keys(users);
+
+                for (var username in users)
+                {
+                    var user = users[username];
+                    var liUser = userlist.get("username", username);
+
+                    if(liUser && liUser.values().type != user.type)
+                    {
+                        userlist.remove("username", username);
+                        liUser = null;
+                    }
+
+                    if(!liUser)
+                        userlist.add({ username: username, type: user.type });
                 }
 
                 for (var i = 0; i < userlist.items.length; i++)
                 {
                     var username = $(userlist.items[i].elm).find('.username').text();
                     
-                    if(data.users.indexOf(username) == -1)
+                    if(usernames.indexOf(username) == -1)
                     {
                         userlist.remove("username", username);
                     }
@@ -708,6 +732,29 @@ function getCurrentTime()
 function getNotes()
 {
     return doc.at("notes").get();
+}
+
+function getHistoricalUsers()
+{
+    if(!doc)
+        return [];
+
+    var meta = doc.at("meta").get();
+    var users = {};
+
+    for (var i = 0; i < meta.length; i++)
+    {
+        var m = meta[i];
+        var metaUsers = Object.keys(m.editors).concat(m.creator);
+
+        for (var j = 0; j < metaUsers.length; j++)
+        {
+            var metaUser = metaUsers[j];
+            users[metaUser] = (users[metaUser] || 0) + 1;
+        }
+    }
+
+    return Object.keys(users);
 }
 
 // http://stackoverflow.com/a/841121/2486196
