@@ -118,8 +118,6 @@ function updateDocuments()
       // check documents
       function (docs, cb)
       {
-        docs = [docs[0]];
-
         async.each(docs,
           function (doc, cb)
           {
@@ -136,6 +134,10 @@ function updateDocuments()
 
             var notesProps =
             [
+              {
+                name: "index", // don't modify notes in document when generating OSF, ab92dec4af461fc7987bea9f800cffff063c3209
+                delete: true
+              }
             ];
 
             var props =
@@ -173,7 +175,7 @@ function updateDocuments()
               },
               function ()
               {
-                if(updatedPaths.length > 1)
+                if(updatedPaths.length > 0)
                 {
                   console.info("Doc %s: updated!", docname);
                 }
@@ -221,9 +223,15 @@ function fixDocObject(docname, snapshot, path, props, cb)
 
       var op =
       {
-        "p": [ path, i, missing.name ],
-        "oi": missing.value
+        "p": [ path, i, missing.name ]
       };
+
+      if(missing.value && !missing.delete)
+        op.oi = missing.value;
+      else if(!missing.value && missing.delete)
+        op.od = missing.currentValue;
+      else
+        console.error("Invalid prop: " + missing.name)
 
       ops.push(op);
     }
@@ -246,14 +254,18 @@ function fixDocObject(docname, snapshot, path, props, cb)
 
 function checkDocItem(obj, props)
 {
-  var keys = Object.keys(obj);
   var missings = [];
 
   for (var i = 0; i < props.length; i++)
   {
     var prop = props[i];
-    if(!obj[prop.name])
+
+    if( prop.delete &&  obj[prop.name] ||
+       !prop.delete && !obj[prop.name])
+    {
+      prop.currentValue = obj[prop.name];
       missings.push(prop);
+    }
   }
 
   return missings;
