@@ -14,23 +14,34 @@
 
 <% script('/jwerty/jwerty.js') %>
 <% script('/js/jquery.scrollTo-min.js') %>
+<% script('/js/list.min.js') %>
 
 <div id="flashwarning" class="alert alert-warn hidden"><%-__('asyncnoter.flashwarning')%></div>
-<center>
-    <audio id="asyncnoterPlayer">
-<% for(media in mediaurls) { %>
-        <source src="<%- mediaurls[media].url %>" type='<%- mediatypes[media] %>' />
-<% } %>
-    </audio>
-    <hr>
-    <div id="editnote" class="form-horizontal">
-        <span><%-__('asyncnoter.addnote.txt')%></span>
-        <span class="time">&nbsp;</span>
-        <input class="time" style="display: none" type="text">
-        <input class="text" type="text">
-        <button class="btn submit"><%-__('asyncnoter.addnote.btn')%></button>
+<center style="clear: both">
+    <div id="toprow">
+        <div class="col fixed">
+        </div>
+        <div class="col">
+            <audio id="asyncnoterPlayer">
+                <% for(media in mediaurls) { %>
+                <source src="<%- mediaurls[media].url %>" type='<%- mediatypes[media] %>' />
+                <% } %>
+            </audio>
+        </div>
+        <div id="userlist" class="col fixed">
+            <ul class="list">
+            </ul>
+        </div>
     </div>
 </center>
+<hr>
+<div id="editnote" class="form-horizontal">
+    <span><%-__('asyncnoter.addnote.txt')%></span>
+    <span class="time">&nbsp;</span>
+    <input class="time" style="display: none" type="text">
+    <input class="text" type="text">
+    <button class="btn submit"><%-__('asyncnoter.addnote.btn')%></button>
+</div>
 
 <br>
 <div id="err" class="alert alert-error hidden"></div>
@@ -48,6 +59,7 @@ var webplayer
   , isFlash = false
   , scrollInterval
   , editMode = "add"
+  , userlist
 
 // add notes
 var isInNote = false
@@ -68,6 +80,7 @@ $(function()
     setupWebplayer();
     setupSharejs();
     setupUI();
+    setupUserlist();
     setupKeybindings();
     setupScrolling();
 });
@@ -163,6 +176,52 @@ function setupUI()
     {
         endEditNoteTimeSpan();
     });
+}
+
+function setupUserlist()
+{
+    var options =
+    {
+        item: '<li><span class="username"></span></li>'
+    };
+
+    userlist = new List('userlist', options);
+
+    setInterval(postUserList, 10000);
+    setInterval(getUserList, 2000);
+
+    postUserList();
+    getUserList();
+
+    function postUserList()
+    {
+        $.post('/async/onlineusers/<%=docname%>');
+    }
+
+    function getUserList()
+    {
+        $.getJSON('/async/onlineusers/<%=docname%>',
+            function (data)
+            {
+                for (var i = 0; i < data.users.length; i++)
+                {
+                    var user = data.users[i];
+                    if(!userlist.get("username", user))
+                        userlist.add({ username: user });
+                }
+
+                for (var i = 0; i < userlist.items.length; i++)
+                {
+                    var username = $(userlist.items[i].elm).find('.username').text();
+                    
+                    if(data.users.indexOf(username) == -1)
+                    {
+                        userlist.remove("username", username);
+                    }
+                }
+            }
+        )
+    }
 }
 
 function setupKeybindings()

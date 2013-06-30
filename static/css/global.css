@@ -364,3 +364,20 @@ div.format .status > .statustext
 {
     clear: both;
 }
+
+#toprow > .col
+{
+    display: inline-block;
+    vertical-align: top;
+}
+
+#toprow > .col.fixed
+{
+    width: 200px;
+    height: 100px;
+}
+
+#userlist > .list
+{
+    text-align: left;
+}

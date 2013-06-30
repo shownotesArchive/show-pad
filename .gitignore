@@ -20,5 +20,6 @@ logs
 static/js/jquery-queryParser.min.js
 static/js/jquery.jeditable.mini.js
 static/js/jquery.scrollTo-min.js
+static/js/list.min.js
 static/js/etherpad.js
 static/pwp/

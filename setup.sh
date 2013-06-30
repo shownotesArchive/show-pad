@@ -10,6 +10,7 @@ wget "https://raw.github.com/mattsnider/jquery-plugin-query-parser/master/jquery
 wget "http://www.appelsiini.net/download/jquery.jeditable.mini.js" -O jquery.jeditable.mini.js
 wget "https://raw.github.com/ether/etherpad-lite-jquery-plugin/master/js/etherpad.js" -O etherpad.js
 wget "http://demos.flesler.com/jquery/scrollTo/js/jquery.scrollTo-min.js" -O jquery.scrollTo-min.js
+wget "https://raw.github.com/javve/list/master/list.min.js" -O list.min.js
 cd ..
 
 mkdir css

@@ -503,15 +503,19 @@ function getOnlineusers(req, res)
 function postOnlineusers(req, res)
 {
   var user = res.locals.user;
-  var username = user.username;
   var docname = req.param("docname");
 
   if(user)
   {
+    var username = user.username;
+
     if(!onlineusers[docname])
       onlineusers[docname] = {};
 
-    onlineusers[docname][username] = setTimeout(clearOnlineUser, 30000);
+    var id = onlineusers[docname][username];
+    if(id)
+      clearTimeout(id);
+    onlineusers[docname][username] = setTimeout(clearOnlineUser, 11000);
   }
 
   res.end();
