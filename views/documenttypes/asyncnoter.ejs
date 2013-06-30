@@ -26,6 +26,7 @@
     <div id="editnote" class="form-horizontal">
         <span><%-__('asyncnoter.addnote.txt')%></span>
         <span class="time">&nbsp;</span>
+        <input class="time" style="display: none" type="text">
         <input class="text" type="text">
         <button class="btn submit"><%-__('asyncnoter.addnote.btn')%></button>
     </div>
@@ -56,9 +57,11 @@ var isInNote = false
 var editingNote
 
 // jQuery
-var $editnotetime = $('#editnote > .time:first')
-  , $editnotetext = $('#editnote > .text:first')
-  , $editnotesubmit = $('#editnote > .submit:first')
+var $editnotetime     = $('#editnote > .time')
+  , $editnotetimespan = $editnotetime.filter("span")
+  , $editnotetimetxt  = $editnotetime.filter("input")
+  , $editnotetext     = $('#editnote > .text:first')
+  , $editnotesubmit   = $('#editnote > .submit:first')
 
 $(function()
 {
@@ -142,6 +145,23 @@ function setupUI()
     $editnotetext.keypress(function (e)
     {
         if((e.keyCode ? e.keyCode : e.which) == 13) userSubmitNote();
+    });
+
+    $editnotetimespan.click(
+        function ()
+        {
+            editNoteTimeSpan();
+        }
+    );
+
+    $editnotetimetxt.keypress(function (e)
+    {
+        if((e.keyCode ? e.keyCode : e.which) == 13) endEditNoteTimeSpan();
+    });
+
+    $editnotetimetxt.focusout(function (e)
+    {
+        endEditNoteTimeSpan();
     });
 }
 
@@ -341,6 +361,7 @@ function userEditNote(e)
     isInNote = true;
     inNoteTime = note.time;
 
+    resetNoteTimespan();
     setAddnotetimeSpan(getHumanTime(note.time));
     $editnotetext.val(note.text);
 }
@@ -527,12 +548,58 @@ function setAddnotetimeSpan(text)
 {
     if(text.length == 0)
     {
-        $editnotetime.html('&nbsp;');
+        $editnotetimespan.html('&nbsp;');
     }
     else
     {
-        $editnotetime.text(text);
+        $editnotetimespan.text(text);
     }
+}
+
+function editNoteTimeSpan()
+{
+    $editnotetimetxt.val($editnotetimespan.text());
+    $editnotetime.toggle();
+}
+
+function endEditNoteTimeSpan()
+{
+    var val = jQuery.trim($editnotetimetxt.val());
+    var timeParts = val.split(':');
+    var time = 0;
+    var fail = false;
+
+    if(timeParts.length != 3)
+    {
+        fail = true;
+    }
+
+    for (var i = 0; i < timeParts.length; i++)
+    {
+        timeParts[i] = parseInt(timeParts[i], 10);
+
+        if(Number.isNaN(timeParts[i]))
+        {
+            fail = true;
+            break;
+        }
+
+        time += timeParts[i] * Math.max(((timeParts.length - i - 1) * 60), 1);
+    }
+
+    if(!fail)
+    {
+        inNoteTime = time;
+        setAddnotetimeSpan(getHumanTime(inNoteTime));
+    }
+
+    $editnotetime.toggle();
+}
+
+function resetNoteTimespan()
+{
+    $editnotetimespan.show();
+    $editnotetimetxt.hide();
 }
 
 // webplayer.currentTime does not work in the flash-version of mediaelement.js
