@@ -47,12 +47,204 @@ exports.initExpress = function (app)
 
   sharejs.server.attach(app, options);
   model = app.model;
+
+  updateDocuments();
+
   app.use("/sharejs/channel", express.static(path.resolve(__dirname + '/../../node_modules/share/node_modules/browserchannel/dist')));
   app.use("/jwerty", express.static(path.resolve(__dirname + '/../../node_modules/jwerty')));
 
   app.get("/createasync", getCreateAsync);
   app.post("/createasync", postCreateAsync);
   app.get("/createasync/checkstatus", getCreateAsyncCheckStatus);
+}
+
+function updateDocuments()
+{
+  logger.info("Updating documents..");
+
+  async.waterfall(
+    [
+      // get all docs
+      function (cb)
+      {
+        server.db.doc.getDocs(cb);
+      },
+      // filter asyncnoter docs
+      function (docs, cb)
+      {
+        async.filter(docs,
+          function (doc, cb)
+          {
+            cb(doc.type == exports.name);
+          },
+          function (docs)
+          {
+            cb(null, docs);
+          }
+        );
+      },
+      // get snapshots of all docs
+      function (docs, cb)
+      {
+        var newDocs = [];
+        logger.debug("Found %s docs to update", docs.length);
+
+        async.map(docs,
+          function (doc, cb)
+          {
+            model.getSnapshot(doc.docname,
+              function (err, snapshot)
+              {
+                if(err)
+                {
+                  logger.error("Could not get snapshot of doc %s: %s", doc.docname, err);
+                }
+                else
+                {
+                  doc.snapshot = snapshot;
+                  newDocs.push(doc);
+                }
+
+                cb();
+              }
+            );
+          },
+          function (err)
+          {
+            cb(null, newDocs);
+          }
+        );
+      },
+      // check documents
+      function (docs, cb)
+      {
+        async.each(docs,
+          function (doc, cb)
+          {
+            var snapshot = doc.snapshot;
+            var docname = doc.docname;
+
+            var metaProps =
+            [
+              {
+                name: "editors",
+                value: {}
+              }
+            ];
+
+            var notesProps =
+            [
+            ];
+
+            var props =
+            [
+              {
+                path: "meta",
+                props: metaProps
+              },
+              {
+                path: "notes",
+                props: notesProps
+              }
+            ]
+
+            async.each(props,
+              function (prop, cb)
+              {
+                fixDocObject(docname, snapshot, prop.path, prop.props,
+                  function (err, updated)
+                  {
+                    if(err)
+                    {
+                      console.error("Could not update doc %s: %s", docname, err);
+                    }
+                    else if(updated)
+                    {
+                      console.info("Doc %s: updated!", docname);
+                    }
+                    else
+                    {
+                      console.debug("Doc %s: no update needed", docname);
+                    }
+
+                    cb();
+                  }
+                );
+              },
+              cb
+            );
+          },
+          cb
+        );
+      }
+    ],
+    function (err)
+    {
+      if(err)
+      {
+        logger.error("Could not update docs", err);
+      }
+      else
+      {
+        logger.info("Docs updated");
+      }
+    }
+  )
+}
+
+function fixDocObject(docname, snapshot, path, props, cb)
+{
+  var ops = [];
+  var content = snapshot.snapshot;
+  var v = snapshot.v;
+
+  for (var i = 0; i < content[path].length; i++)
+  {
+    var item = content[path][i];
+    var missings = checkDocItem(item, props);
+
+    for (var j = 0; j < missings.length; j++)
+    {
+      var missing = missings[j];
+
+      var op =
+      {
+        "p": [ path, i, missing.name ],
+        "oi": missing.value
+      };
+
+      ops.push(op);
+    }
+  }
+
+  if(ops.length > 0)
+  {
+    applyOp(docname, ops, v,
+      function (err)
+      {
+        cb(err, true);
+      }
+    );
+  }
+  else
+  {
+    cb(null, false);
+  }
+}
+
+function checkDocItem(obj, props)
+{
+  var keys = Object.keys(obj);
+  var missings = [];
+
+  for (var i = 0; i < props.length; i++)
+  {
+    var prop = props[i];
+    if(!obj[prop.name])
+      missings.push(prop);
+  }
+
+  return missings;
 }
 
 function getCreateAsync(req, res)
