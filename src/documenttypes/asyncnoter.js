@@ -325,7 +325,7 @@ function checkOp(op)
   }
 
   // editing
-  if(op.oi && op.od && Object.keys(op).length == 3)
+  if(isValidVal(op.oi) && isValidVal(op.od) && Object.keys(op).length == 3)
   {
     return "edit";
   }
@@ -348,6 +348,11 @@ function checkOp(op)
   }
 
   return "invalid";
+}
+
+function isValidVal(obj)
+{
+  return obj || obj == 0;
 }
 
 // http://stackoverflow.com/a/1830844
