@@ -583,8 +583,13 @@ function addNoteToHTML(index, note)
     $note.addClass('note');
     $note.append($('<span>').addClass('time').text(getHumanTime(note.time)));
     $note.append($('<span>').addClass('text').text(note.text));
-    $note.append($('<span>').addClass('delete notebtn pull-right').html("&#10008;").click(userDeleteNote));
-    $note.append($('<span>').addClass('edit notebtn pull-right').html("&#9998;").click(userEditNote));
+
+    var $btns = $('<div>');
+    $btns.addClass("btns");
+    $btns.append($('<span>').addClass('delete notebtn pull-right').html("&#10008;").click(userDeleteNote));
+    $btns.append($('<span>').addClass('edit notebtn pull-right').html("&#9998;").click(userEditNote));
+
+    $note.append($btns);
 
     if(note.text.indexOf("<>") != -1) // empty link
     {

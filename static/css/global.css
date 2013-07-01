@@ -247,11 +247,13 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
 
 #notes li.note
 {
+    position: relative;
     margin: 0 3px 3px 3px;
     padding: 0.4em;
-    padding-left: 1.5em;
+    padding-right: 48px;
+    padding-left: 110px;
     font-size: 1.4em;
-    height: 18px;
+    min-height: 18px;
     border: 1px solid #CCC;
     outline: none;
     border-radius: 3px;
@@ -271,21 +273,35 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
 #notes li.note .time
 {
     color: #CCC;
-    display: inline-block;
-    margin-right: 10px;
-    padding-right: 10px;
     border-right: solid #DDD 1px;
+    padding-right: 10px;
     text-align: right;
+
+    position: absolute;
+    top: 0.4em;
+    left: 0.4em;
 }
 
-.note > .notebtn
+.note > .text
+{
+    word-wrap: break-word;
+}
+
+.note > .btns
 {
     -moz-user-select: -moz-none;
     -khtml-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    float: right;
+
+    position: absolute;
+    top: 0.4em;
+    right: 0.4em;
+}
+
+.note > .btns > .notebtn
+{
     margin-right: 0.1em;
 }
 
