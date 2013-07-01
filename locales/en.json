@@ -171,9 +171,9 @@
 
     "asyncnoter.onlineusers": "Users participating:",
     "asyncnoter.controls.add.txt": "Add a note:",
-    "asyncnoter.controls.add.btn": "Add!",
+    "asyncnoter.controls.add.btn": "Add",
     "asyncnoter.controls.edit.txt": "Edit this note:",
-    "asyncnoter.controls.edit.btn": "Save!",
+    "asyncnoter.controls.edit.btn": "Save",
     "asyncnoter.sourcewarning": "No vaild file to play could be found. Please contact an administrator.",
     "asyncnoter.flashwarning": "The player is currently in flash-mode. Some ShowPad-features may not be available.<br>Please switch to a browser which has better support for HTML5-Audio-Playback or ask your podcaster to supply more formats."
 }

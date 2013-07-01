@@ -251,8 +251,8 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     margin: 0 2px 2px 2px;
     padding: 0.1em;
     padding-right: 48px;
-    padding-left: 88px;
-    font-size: 1.2em;
+    padding-left: 99px;
+    font-size: 1em;
     min-height: 18px;
     border: 1px solid #CCC;
     outline: none;
@@ -275,11 +275,13 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     color: #CCC;
     border-right: solid #DDD 1px;
     padding-right: 10px;
+    padding-left: 8px;
     text-align: right;
 
+    font-family: monospace;
     position: absolute;
     top: 0.1em;
-    left: 0.1em;
+    left: 0.3em;
 }
 
 .note > .text
@@ -295,6 +297,7 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     -ms-user-select: none;
     user-select: none;
 
+    font-size: 1.5em;
     position: absolute;
     top: 0.1em;
     right: 0.5em;
