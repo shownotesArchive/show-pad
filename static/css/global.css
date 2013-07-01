@@ -305,9 +305,10 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     margin-right: 0.1em;
 }
 
-.note > .notebtn:hover
+.note > .btns > .notebtn:hover
 {
     cursor: pointer;
+    cursor: hand;
 }
 
 #editnote
