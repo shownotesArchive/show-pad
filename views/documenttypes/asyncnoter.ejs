@@ -140,6 +140,9 @@ function setupSharejs()
 
             var notes = getNotes();
             $.each(notes, addNoteToHTML);
+
+            doc.at("notes").on('insert', onDocInsert);
+            doc.at("notes").on('delete', onDocDelete);
             doc.at("notes").on('child op', onNoteChildOp);
         }
     );
@@ -397,8 +400,21 @@ function getNoteFromChild(child)
     return $note;
 }
 
+function onDocInsert(position, note)
+{
+    addNoteToHTML(position, note);
+}
+
+function onDocDelete(position, note)
+{
+    removeNoteFromHTML(position);
+}
+
 function onNoteChildOp(path, op)
 {
+    if(op.p[0] != "notes")
+        return;
+
     var index = path[0];
 
     removeNoteFromHTML(index);
@@ -470,6 +486,10 @@ function addNoteToDoc(note)
                 clearTimeout(errorTimeout);
                 errorTimeout = setTimeout(function () { $('#err').addClass('hidden') }, 5000);
                 $('#err').text(err).removeClass('hidden');
+            }
+            else
+            {
+                addNoteToHTML(op[0].p[1], note);
             }
         }
     );
