@@ -22,10 +22,9 @@ exports.init = function (_server, cb)
     function (err, _plugins)
     {
       exports.plugins = plugins = _plugins;
+      cb();
     }
   );
-
-  cb();
 }
 
 exports.initExpress = function (app)
