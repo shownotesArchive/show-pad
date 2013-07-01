@@ -180,7 +180,8 @@ function setupUI()
 
     $editnotetimetxt.focusout(function (e)
     {
-        endEditNoteTimeSpan();
+        if($editnotetimetxt.is(":visible"))
+            endEditNoteTimeSpan();
     });
 
     setControlMode("add");
