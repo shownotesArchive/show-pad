@@ -16,7 +16,10 @@
 <% script('/js/jquery.scrollTo-min.js') %>
 <% script('/js/list.min.js') %>
 
-<div id="flashwarning" class="alert alert-warn hidden"><%-__('asyncnoter.flashwarning')%></div>
+<div style="display: hidden; height: 10px; clear: both;"></div>
+<div id="flashwarning" class="alert alert-warn hidden topwarning"><%-__('asyncnoter.flashwarning')%></div>
+<div id="sourcewarning" class="alert alert-warn hidden topwarning"><%-__('asyncnoter.sourcewarning')%></div>
+
 <center style="clear: both">
     <div id="toprow">
         <div class="col fixed">
@@ -111,7 +114,11 @@ function setupWebplayer()
 
     webplayer = $('#asyncnoterPlayer')[0];
 
-    if(!webplayer.setCurrentTime)
+    if(webplayer.currentSrc == "")
+    {
+        $('#sourcewarning').removeClass('hidden');
+    }
+    else if(!webplayer.setCurrentTime)
     {
         $('#flashwarning').removeClass('hidden');
         isFlash = true;
@@ -265,6 +272,9 @@ function setupKeybindings()
 
 function setupScrolling()
 {
+    if(webplayer.currentSrc == "")
+        return;
+
     var lastTime = null;
 
     scrollInterval = setInterval(function ()

@@ -370,11 +370,6 @@ div.format .status > .statustext
     margin-bottom: 10px;
 }
 
-#flashwarning
-{
-    clear: both;
-}
-
 #toprow > .col
 {
     display: inline-block;

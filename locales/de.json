@@ -174,5 +174,6 @@
     "asyncnoter.controls.add.btn": "Speichern!",
     "asyncnoter.controls.edit.txt": "Notiz bearbeiten:",
     "asyncnoter.controls.edit.btn": "Speichern!",
+    "asyncnoter.sourcewarning": "Es konnte keine Datei zum Abspielen gefunden werden. Bitte melde dich bei einem Administrator.",
     "asyncnoter.flashwarning": "Der Player befinet sich im Flash-Modus, daher sind manche ShowPad-Funktionen nicht nutzbar.<br>Bitte benutze einen Browser mit besserer HTML5-Audiounterstützung oder frage deinen Podcast nach mehr Formaten."
 }

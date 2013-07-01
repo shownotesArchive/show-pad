@@ -874,13 +874,19 @@ exports.onRequestDoc = function (req, res, user, doc, cb)
 {
   var token = crypto.randomBytes(42).toString('hex');
   sessions[token] = user.username;
+
+  var mediaurls = [];
+
+  if(doc.async && doc.async.mediaurls)
+    mediaurls = doc.async.mediaurls;
+
   var locals =
   {
     docname: doc.docname,
     pageurl: server.pageurl,
     groupname: doc.group,
     authtoken: token,
-    mediaurls: doc.async.mediaurls,
+    mediaurls: mediaurls,
     mediatypes: { "ogg": 'audio/ogg; codecs="vorbis"', 'mp3': 'audio/mpeg' }
   };
 
