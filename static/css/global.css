@@ -297,7 +297,7 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
 
     position: absolute;
     top: 0.1em;
-    right: 0.1em;
+    right: 0.5em;
 }
 
 .note > .btns > .notebtn
