@@ -219,10 +219,24 @@ function postOnlineusers(req, res)
 {
   var user = res.locals.user;
   var docname = req.param("docname");
+  var data = req.body;
 
   if(user)
   {
-    onlineusers.add(docname, user.username);
+    var isLengthValid = Object.keys(data).length == 2;
+    var isTimeValid = (data.time || data.time == 0) && /^[0-9]+$/.test(data.time);
+    var isPlayingValid = data.playing == "true" || data.playing == "false";
+
+    if(isLengthValid && isTimeValid && isPlayingValid)
+    {
+      onlineusers.add(docname, user.username,
+        {
+          time: parseInt(data.time, 10),
+          playing: (data.playing === 'true'),
+          username: user.username
+        }
+      );
+    }
   }
 
   res.end();

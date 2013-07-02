@@ -421,3 +421,9 @@ div.format .status > .statustext
     overflow-x: hidden;
     height: 110px;
 }
+
+#userlist > .list > li > .time
+{
+    cursor: pointer;
+    cursor: hand;
+}

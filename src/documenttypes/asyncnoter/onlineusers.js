@@ -17,24 +17,34 @@ exports.init = function (_asyncnoter, _server, _logger, cb)
 
 exports.get = function (docname)
 {
+  var users = [];
+
   if(onlineusers[docname])
-    return Object.keys(onlineusers[docname]);
-  else
-    return [];
+  {
+    for (var user in onlineusers[docname])
+    {
+      users.push(onlineusers[docname][user].data);
+    }
+  }
+
+  return users;
 }
 
-exports.add = function (docname, username)
+exports.add = function (docname, username, data)
 {
   if(!onlineusers[docname])
     onlineusers[docname] = {};
 
-  var timeoutID = onlineusers[docname][username];
-  if(timeoutID)
+  var user = onlineusers[docname][username];
+  if(user)
   {
-    clearTimeout(timeoutID);
+    clearTimeout(user.timeoutId);
   }
 
-  onlineusers[docname][username] = setTimeout(function ()
+  onlineusers[docname][username] = {};
+
+  onlineusers[docname][username].data = data;
+  onlineusers[docname][username].timeoutId = setTimeout(function ()
   {
     exports.clearOnlineUser(docname, username);
   }, 11000);

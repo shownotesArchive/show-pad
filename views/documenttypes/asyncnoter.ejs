@@ -203,20 +203,26 @@ function setupUserlist()
 {
     var options =
     {
-        item: '<li><span class="username"></span>&nbsp;(<span class="type"></span>)</li>'
+        item: '<li><span class="username"></span>&nbsp;(<span class="type"></span>) <span class="time"></span></li>'
     };
 
     userlist = new List('userlist', options);
+    userlist.sort('username');
 
-    setInterval(postUserList, 10000);
-    setInterval(getUserList, 2000);
+    setTimeout(function () { setInterval(postUserList, 1500) }, 500);
+    setInterval(getUserList, 1500);
 
-    postUserList();
     getUserList();
 
     function postUserList()
     {
-        $.post('/async/onlineusers/<%=docname%>');
+        var data =
+        {
+            time: getCurrentTime(),
+            playing: !webplayer.paused
+        };
+
+        $.post('/async/onlineusers/<%=docname%>', data);
     }
 
     function getUserList()
@@ -229,7 +235,20 @@ function setupUserlist()
 
                 for (var i = 0; i < data.users.length; i++)
                 {
-                    users[data.users[i]] = { type: "online" };
+                    var username = data.users[i].username;
+                    var time = data.users[i].time;
+
+                    var userData =
+                    {
+                        type: "online"
+                    };
+
+                    if(username != "<%=user.username%>")
+                    {
+                        userData.time = osftools.toHumanTime(time);
+                    }
+
+                    users[username] = userData;
                 }
 
                 for (var i = 0; i < historicalUsers.length; i++)
@@ -243,16 +262,13 @@ function setupUserlist()
                 for (var username in users)
                 {
                     var user = users[username];
-                    var liUser = userlist.get("username", username);
+                    user.username = username;
+                    user.id = username;
 
-                    if(liUser && liUser.values().type != user.type)
-                    {
-                        userlist.remove("username", username);
-                        liUser = null;
-                    }
+                    userlist.remove("username", username);
+                    userlist.add(user);
 
-                    if(!liUser)
-                        userlist.add({ username: username, type: user.type });
+                    $(userlist.get("username", username).elm).find('.time').click(clickUserTime);
                 }
 
                 for (var i = 0; i < userlist.items.length; i++)
@@ -266,6 +282,15 @@ function setupUserlist()
                 }
             }
         )
+    }
+
+    function clickUserTime(e)
+    {
+        var $time = $(e.target);
+        var time = osftools.fromHumanTime($time.text());
+
+        setCurrentTime(time);
+        webplayer.play();
     }
 }
 
@@ -356,7 +381,12 @@ function userJumpBackward()
 
 function userJump(amount)
 {
-    webplayer.setCurrentTime(webplayer.currentTime + amount);
+    setCurrentTime(getCurrentTime() + amount);
+}
+
+function setCurrentTime(time)
+{
+    webplayer.setCurrentTime(time);
 }
 
 function userSubmitNote()
@@ -392,7 +422,7 @@ function userClickNote(e)
     var index = $note.attr('data-index');
 
     var time = getNotes()[index].time;
-    webplayer.setCurrentTime(time);
+    setCurrentTime(time);
 }
 
 function getNoteFromChild(child)
