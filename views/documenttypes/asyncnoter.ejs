@@ -15,6 +15,7 @@
 <% script('/jwerty/jwerty.js') %>
 <% script('/js/jquery.scrollTo-min.js') %>
 <% script('/js/list.min.js') %>
+<% script('/js/osftools.js') %>
 
 <div style="display: hidden; height: 10px; clear: both;"></div>
 <div id="flashwarning" class="alert alert-warn hidden topwarning"><%-__('asyncnoter.flashwarning')%></div>
@@ -340,7 +341,7 @@ function userSetNoteTime()
 {
     isInNote = true;
     inNoteTime = getCurrentTime();
-    setAddnotetimeSpan(getHumanTime(inNoteTime));
+    setAddnotetimeSpan(osftools.getHumanTime(inNoteTime));
 }
 
 function userJumpForward()
@@ -468,7 +469,7 @@ function userEditNote(e)
     inNoteTime = note.time;
 
     resetNoteTimespan();
-    setAddnotetimeSpan(getHumanTime(note.time));
+    setAddnotetimeSpan(osftools.getHumanTime(note.time));
     $editnotetext.val(note.text);
     $editnotetext.focus();
 
@@ -612,7 +613,7 @@ function addNoteToHTML(index, note)
     var $note = $('<li>');
     $note.attr('data-index', index);
     $note.addClass('note');
-    $note.append($('<span>').addClass('time').text(getHumanTime(note.time)));
+    $note.append($('<span>').addClass('time').text(osftools.getHumanTime(note.time)));
     $note.append($('<span>').addClass('text').text(note.text));
 
     var $btns = $('<div>');
@@ -654,22 +655,6 @@ function addNoteToHTML(index, note)
     else
     {
         $notes.eq(position).before($note);
-    }
-}
-
-function getHumanTime(time)
-{
-    var seconds = pad(time % 60, 2);
-    var minutes = pad(Math.floor((time / 60) % 60), 2);
-    var hours = pad(Math.floor((time / 60 / 60) % 60), 2);
-
-    return hours + ":" + minutes + ":" + seconds;
-
-    // http://stackoverflow.com/a/10073788
-    function pad(n, width, z) {
-        z = z || '0';
-        n = n + '';
-        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
     }
 }
 
@@ -724,32 +709,12 @@ function editNoteTimeSpan()
 function endEditNoteTimeSpan()
 {
     var val = jQuery.trim($editnotetimetxt.val());
-    var timeParts = val.split(':');
-    var time = 0;
-    var fail = false;
+    var time = osftools.fromHumanTime(val);
 
-    if(timeParts.length != 3)
-    {
-        fail = true;
-    }
-
-    for (var i = 0; i < timeParts.length; i++)
-    {
-        timeParts[i] = parseInt(timeParts[i], 10);
-
-        if(Number.isNaN(timeParts[i]))
-        {
-            fail = true;
-            break;
-        }
-
-        time += timeParts[i] * Math.max(((timeParts.length - i - 1) * 60), 1);
-    }
-
-    if(!fail)
+    if(time != false)
     {
         inNoteTime = time;
-        setAddnotetimeSpan(getHumanTime(inNoteTime));
+        setAddnotetimeSpan(osftools.getHumanTime(inNoteTime));
     }
 
     $editnotetime.toggle();

@@ -1,16 +1,13 @@
+var osftools = {};
 
-exports.name = "async-osftools";
+osftools.name = "async-osftools";
 
-var asyncnoter
-
-exports.init = function (_asyncnoter, _server, _logger, cb)
+osftools.init = function (_asyncnoter, _server, _logger, cb)
 {
-  asyncnoter = _asyncnoter;
-
   cb();
 }
 
-exports.osfFromNotes = function (notes, cb)
+osftools.osfFromNotes = function (notes, cb)
 {
   var osfNotes = [];
 
@@ -42,17 +39,17 @@ exports.osfFromNotes = function (notes, cb)
   for (var i = 0; i < osfNotes.length; i++)
   {
     var note = osfNotes[i];
-    osf += "\n" + getHumanTime(note.time) + " " + note.text;
+    osf += "\n" + osftools.getHumanTime(note.time) + " " + note.text;
   }
 
   cb(null, osf);
 }
 
-exports.notesFromOsf = function (osf, cb)
+osftools.notesFromOsf = function (osf, cb)
 {
 }
 
-function getHumanTime(time)
+osftools.getHumanTime = function (time)
 {
   var seconds = pad(time % 60, 2);
   var minutes = pad(Math.floor((time / 60) % 60), 2);
@@ -68,9 +65,37 @@ function getHumanTime(time)
   }
 }
 
-function fromHumanTime(humantime)
+osftools.fromHumanTime = function (humantime)
 {
+  var timeParts = humantime.split(':');
+  var time = 0;
+
+  if(timeParts.length != 3)
+  {
+    return false;
+  }
+
+  for (var i = 0; i < timeParts.length; i++)
+  {
+    timeParts[i] = parseInt(timeParts[i], 10);
+
+    if(Number.isNaN(timeParts[i]))
+    {
+      return false;
+    }
+
+    time += timeParts[i] * Math.max(((timeParts.length - i - 1) * 60), 1);
+  }
+
+  return time;
 }
 
-exports.getHumanTime = getHumanTime;
-exports.fromHumanTime = fromHumanTime;
+if(typeof exports != "undefined")
+{
+  var keys = Object.keys(osftools);
+
+  for (var i = 0; i < keys.length; i++)
+  {
+    exports[keys[i]] = osftools[keys[i]];
+  }
+}

@@ -36,6 +36,8 @@ exports.initExpress = function (app)
 
   app.get("/async/onlineusers/:docname", getOnlineusers);
   app.post("/async/onlineusers/:docname", postOnlineusers);
+
+  app.get('/js/osftools.js', function (req, res) { res.sendfile(__dirname + "/osftools.js"); });
 }
 
 function getCreateAsync(req, res)
