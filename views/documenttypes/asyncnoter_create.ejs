@@ -171,8 +171,18 @@ function updateLabels()
             {
                 var $format = $(format);
                 var $txt = $format.find('input');
-                var file = $txt.val();
+                var file = $txt.val().trim();
                 var format = $format.data('format');
+
+                if(file.length == 0)
+                {
+                    delete validMediafiles[format];
+                    updateBrowserIcons(format, true);
+                    updateSubmitButton();
+                    $format.find('.statustext').text("");
+                    $format.find('.fail, .success').addClass('hidden');
+                    return;
+                }
 
                 $.getJSON('/createasync/checkstatus?url=' + encodeURIComponent(file),
                     function (data)
@@ -192,7 +202,7 @@ function updateLabels()
                             validMediafiles[format] = true;
                         }
 
-                        $('#submit').attr('disabled', Object.keys(validMediafiles).length == 0 ? "disabled" : null);
+                        updateSubmitButton();
 
                         var statusParts = [];
 
@@ -217,33 +227,43 @@ function updateLabels()
                             statustext += part.part;
                         }
 
-                        var supported = support[format];
-
-                        for (var brow in supported)
-                        {
-                            brow = supported[brow];
-
-                            if(fail)
-                                delete givenSupport[brow][format];
-                            else
-                                givenSupport[brow][format] = true;
-                        }
-
-                        for (var brow = 0; brow < browsers.length; brow++)
-                        {
-                            var $browser = $('.browser[data-browser=' + brow + ']');
-
-                            if(Object.keys(givenSupport[brow]).length > 0)
-                                $browser.addClass("valid");
-                            else
-                                $browser.removeClass("valid");
-                        }
+                        updateBrowserIcons(format, fail);
 
                         $format.find('.statustext').text(statustext);
                     }
                 )
             }
     );
+}
+
+function updateSubmitButton()
+{
+    $('#submit').attr('disabled', Object.keys(validMediafiles).length == 0 ? "disabled" : null);
+}
+
+function updateBrowserIcons(format, fail)
+{
+    var supported = support[format];
+
+    for (var brow in supported)
+    {
+        brow = supported[brow];
+
+        if(fail)
+            delete givenSupport[brow][format];
+        else
+            givenSupport[brow][format] = true;
+    }
+
+    for (var brow = 0; brow < browsers.length; brow++)
+    {
+        var $browser = $('.browser[data-browser=' + brow + ']');
+
+        if(Object.keys(givenSupport[brow]).length > 0)
+            $browser.addClass("valid");
+        else
+            $browser.removeClass("valid");
+    }
 }
 </script>
 
