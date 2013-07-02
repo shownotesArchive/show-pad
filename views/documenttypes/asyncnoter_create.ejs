@@ -54,11 +54,11 @@ function getRandomInt(min, max)
 </script>
 
 <script>
-var formats = [ "ogg", "mp3" ];
+var formats = [ "oga", "mp3" ];
 var browsers = [ "chrome", "firefox", "opera", "safari", "ie" ];
 var support =
 {
-    "ogg":
+    "oga":
     [
         browsers.indexOf("chrome"),
         browsers.indexOf("firefox"),
@@ -71,6 +71,11 @@ var support =
         browsers.indexOf("ie"),
         browsers.indexOf("safari")
     ]
+};
+var mimeTypes =
+{
+    "oga": [ "audio/ogg" ],
+    "mp3": [ "audio/mpeg" ]
 };
 var givenSupport = {};
 var validMediafiles = {};
@@ -190,6 +195,8 @@ function updateLabels()
 
                         var statusParts = [];
 
+                        if(data.headerContentType)
+                            statusParts.push({ part: "Content-Type: " + data.headerContentType });
                         if(data.statusCode)
                             statusParts.push({ part: data.statusCode })
                         if(data.statusText)

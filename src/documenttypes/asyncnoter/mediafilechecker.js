@@ -44,7 +44,8 @@ exports.checkMediaFileUrl = function (url, cb)
         result: result,
         statusCode: code,
         statusText: text,
-        headerLocation: fileRes.headers.location
+        headerLocation: fileRes.headers.location,
+        headerContentType: fileRes.headers["content-type"].split(';')[0]
       }
     );
   });
