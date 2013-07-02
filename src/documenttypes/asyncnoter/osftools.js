@@ -39,7 +39,7 @@ osftools.osfFromNotes = function (notes, cb)
   for (var i = 0; i < osfNotes.length; i++)
   {
     var note = osfNotes[i];
-    osf += "\n" + osftools.getHumanTime(note.time) + " " + note.text;
+    osf += "\n" + osftools.toHumanTime(note.time) + " " + note.text;
   }
 
   cb(null, osf);
@@ -49,7 +49,7 @@ osftools.notesFromOsf = function (osf, cb)
 {
 }
 
-osftools.getHumanTime = function (time)
+osftools.toHumanTime = function (time)
 {
   var seconds = pad(time % 60, 2);
   var minutes = pad(Math.floor((time / 60) % 60), 2);

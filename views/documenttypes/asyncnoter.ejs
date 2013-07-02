@@ -341,7 +341,7 @@ function userSetNoteTime()
 {
     isInNote = true;
     inNoteTime = getCurrentTime();
-    setAddnotetimeSpan(osftools.getHumanTime(inNoteTime));
+    setAddnotetimeSpan(osftools.toHumanTime(inNoteTime));
 }
 
 function userJumpForward()
@@ -469,7 +469,7 @@ function userEditNote(e)
     inNoteTime = note.time;
 
     resetNoteTimespan();
-    setAddnotetimeSpan(osftools.getHumanTime(note.time));
+    setAddnotetimeSpan(osftools.toHumanTime(note.time));
     $editnotetext.val(note.text);
     $editnotetext.focus();
 
@@ -613,7 +613,7 @@ function addNoteToHTML(index, note)
     var $note = $('<li>');
     $note.attr('data-index', index);
     $note.addClass('note');
-    $note.append($('<span>').addClass('time').text(osftools.getHumanTime(note.time)));
+    $note.append($('<span>').addClass('time').text(osftools.toHumanTime(note.time)));
     $note.append($('<span>').addClass('text').text(note.text));
 
     var $btns = $('<div>');
@@ -709,12 +709,12 @@ function editNoteTimeSpan()
 function endEditNoteTimeSpan()
 {
     var val = jQuery.trim($editnotetimetxt.val());
-    var time = osftools.fromHumanTime(val);
+    var time = osftools.toHumanTime(val);
 
     if(time != false)
     {
         inNoteTime = time;
-        setAddnotetimeSpan(osftools.getHumanTime(inNoteTime));
+        setAddnotetimeSpan(osftools.toHumanTime(inNoteTime));
     }
 
     $editnotetime.toggle();
