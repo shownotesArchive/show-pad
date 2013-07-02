@@ -164,9 +164,15 @@ function setupUI()
     });
 
     $editnotesubmit.click(userSubmitNote);
-    $editnotetext.keypress(function (e)
+    $editnotetext.keyup(function (e)
     {
-        if((e.keyCode ? e.keyCode : e.which) == 13) userSubmitNote();
+        var isEnter = (e.keyCode ? e.keyCode : e.which) == 13;
+        var isEsc = (e.keyCode ? e.keyCode : e.which) == 27;
+
+        if(isEnter)
+            userSubmitNote();
+        else if(isEsc && editMode == "edit")
+            userAbortEdit();
     });
 
     $editnotetimespan.click(
@@ -471,6 +477,11 @@ function userFinishEditNote()
 
     setAddnotetimeSpan('');
     $editnotetext.val('');
+    setControlMode("add");
+}
+
+function userAbortEdit()
+{
     setControlMode("add");
 }
 
