@@ -413,6 +413,14 @@ function onDocInsert(position, note)
 
 function onDocDelete(position, note)
 {
+    if(editMode == "edit")
+    {
+        if(editingNote > position)
+            editingNote--;
+        else if(editingNote == position)
+            userAbortEdit();
+    }
+
     removeNoteFromHTML(position);
 }
 
@@ -520,8 +528,13 @@ function removeNoteFromDoc(index)
                 }
                 else
                 {
-                    if(editingNote > index)
-                        editingNote--;
+                    if(editMode == "edit")
+                    {
+                        if(editingNote > index)
+                            editingNote--;
+                        else if(editingNote == index)
+                            userAbortEdit();
+                    }
 
                     $("#notes li.note").each(
                             function (i, elem)
