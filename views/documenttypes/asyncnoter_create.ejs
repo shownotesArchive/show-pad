@@ -5,7 +5,7 @@
 
 <h4>Hi Podcaster!</h4>
 <p>
-Please enter a docname (could be <code id="docname-example"></code>) and links to your media-files. This formular will
+Please enter a docname (could be <code class="docname-example"></code>) and links to your media-files. This formular will
 try to guess the other URLs once you entered the <code>ogg</code>-URL, if a guess is wrong just correct the URL in the according textbox.
 Please note that <code>ogg</code> is supported in all browsers except for Internet Explorer, which needs <code>mp3</code>.<br>
 Unsupported browsers will fall back to flash-playback which has fewer features than the HTML5-Version of Asyncnoter.
@@ -14,7 +14,7 @@ Unsupported browsers will fall back to flash-playback which has fewer features t
 <div class="alert alert-error hidden" id="error"></div>
 <form id="form" method="post">
     <div class="control-group">
-        <label class="control-label" for="docname">Docname:</label>
+        <label class="control-label" for="docname">Docname (for example: <code class="docname-example"></code>, use your full podcast name!):</label>
         <div class="controls">
             <input type="text" id="docname" name="docname">
         </div>
@@ -45,7 +45,7 @@ episode = new Array(3 - episode.length + 1).join('0') + episode;
 
 var docname = podcast + "-" + episode;
 
-$('#docname-example').text(docname);
+$('.docname-example').text(docname);
 
 function getRandomInt(min, max)
 {
@@ -101,13 +101,14 @@ function addFormat(format)
 {
     var $group = $('<div>').addClass('control-group').addClass('format');
     var $label = $('<label>').addClass('control-label');
-    var $txt = $('<input type="text">');
+    var $txt = $('<input type="text" class="mediafile">');
     var $status = $('<span>').addClass('status');
 
     $group.attr('id', 'format-' + format);
     $group.attr('data-format', format);
 
-    $label.text(format + ":");
+    $label.html("Media-File <code>" + format + "</code>:");
+    $label.append($status);
 
     $txt.attr('name', "formats[" + format + "]");
 
@@ -116,7 +117,7 @@ function addFormat(format)
     $status.append($('<span>').addClass('statustext'));
 
     $group.append($label);
-    $group.append($('<div>').addClass('controls').append($txt).append($status));
+    $group.append($('<div>').addClass('controls').append($txt));
 
     $('#browsers').before($group);
 }

@@ -340,6 +340,12 @@ div.format .status
     margin-left: 5px;
 }
 
+div.format input
+{
+    min-width: 206px;
+    width: calc(100% - 100px);
+}
+
 div.format .status > .fail
 {
     color: red;
