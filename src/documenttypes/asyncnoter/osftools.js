@@ -47,6 +47,47 @@ osftools.osfFromNotes = function (notes, cb)
 
 osftools.notesFromOsf = function (osf, cb)
 {
+  var lines = osf.split('\n');
+  var notes = [];
+  var firstTime = null;
+
+  for (var i = 0; i < lines.length; i++)
+  {
+    var line = lines[i];
+    var text = line;
+    var spaceIndex = line.indexOf(' ');
+    var time = false;
+
+    if(spaceIndex != -1)
+    {
+      var time = line.substr(0, spaceIndex);
+      text = line.substr(spaceIndex + 1);
+
+      if(/^[0-9]{10}$/.test(time))
+      {
+        time = parseInt(time, 10);
+
+        if(firstTime == null)
+        {
+          firstTime = time;
+          time = 0;
+        }
+        else
+        {
+          time = time - firstTime;
+        }
+      }
+      else
+      {
+        time = osftools.fromHumanTime(time);
+      }
+
+    }
+
+    notes.push({ time: time, text: text });
+  }
+
+  return notes;
 }
 
 osftools.toHumanTime = function (time)
