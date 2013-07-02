@@ -662,7 +662,7 @@ function addNoteToHTML(index, note)
     {
         // jumping to the notes time does not work in the flash
         // version because setCurrentTime doesn't.
-        $note.click(userClickNote);
+        $note.find('.time').click(userClickNote);
     }
 
     for (var i = 0; i < $notes.length; i++)
