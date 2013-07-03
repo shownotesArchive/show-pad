@@ -37,7 +37,14 @@ exports.initExpress = function (app)
   app.get("/async/onlineusers/:docname", getOnlineusers);
   app.post("/async/onlineusers/:docname", postOnlineusers);
 
-  app.get('/js/osftools.js', function (req, res) { res.sendfile(__dirname + "/osftools.js"); });
+  routeWireFile(app, '/js/osftools.js', (__dirname + "/osftools.js"));
+  routeWireFile(app, '/js/async.js', (__dirname + "/../../../node_modules/async/lib/async.js"));
+}
+
+function routeWireFile(app, route, file)
+{
+  var resolvedFile = path.resolve(file);
+  app.get(route, function (req, res) { res.sendfile(resolvedFile); });
 }
 
 function getCreateAsync(req, res)

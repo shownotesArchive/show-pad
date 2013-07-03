@@ -7,15 +7,12 @@
 <% script(pwppath + '/static/podlove-web-player.js') %>
 <% stylesheet(pwppath + '/static/podlove-web-player.css') %>
 
-<!-- ShareJS -->
-<% script('/sharejs/channel/bcsocket.js') %>
-<% script('/sharejs/share.uncompressed.js') %>
-<% script('/sharejs/json.uncompressed.js') %>
-
 <% script('/jwerty/jwerty.js') %>
 <% script('/js/jquery.scrollTo-min.js') %>
 <% script('/js/list.min.js') %>
 <% script('/js/osftools.js') %>
+<% script('/js/async.js') %>
+<% script('/js/asyncnoter_share.js') %>
 
 <div style="display: hidden; height: 10px; clear: both;"></div>
 <div id="flashwarning" class="alert alert-warn hidden topwarning"><%-__('asyncnoter.flashwarning')%></div>
@@ -62,11 +59,12 @@ $(window).resize(fixNotesHeight);
 
 // arch
 var webplayer
-  , doc
   , isFlash = false
   , scrollInterval
   , editMode = "add"
   , userlist
+  , connectors = asyncnoterconnectors
+  , connector = null
 
 // add notes
 var isInNote = false
@@ -84,15 +82,61 @@ var $editnotetime     = $('#editnote > .time')
 
 $(function()
 {
-    setupWebplayer();
-    setupSharejs();
-    setupUI();
-    setupUserlist();
-    setupKeybindings();
-    setupScrolling();
+    async.series(
+        [
+            setupConnector,
+            setupWebplayer,
+            setupUI,
+            setupUserlist,
+            setupKeybindings,
+            setupScrolling
+        ]
+    );
 });
 
-function setupWebplayer()
+
+/* Setup Functions */
+function setupConnector(cb)
+{
+    var options = {};
+    var docname = "<%=docname%>";
+    var connectorName = Object.keys(connectors)[0];
+
+    connector = connectors[connectorName];
+
+    if(connectorName == "share")
+    {
+        options =
+        {
+            origin: '<%=pageurl%>sharejs/sock_bc',
+            authentication: "<%=authtoken%>"
+        }
+    }
+
+    async.waterfall(
+        [
+            function (cb)
+            {
+                connector.start(docname, options, cb);
+            },
+            function (cb)
+            {
+                connector.addEventReceiver("noteAdded", connectorNoteAdded);
+                connector.addEventReceiver("noteRemoved", connectorNoteRemoved);
+                connector.addEventReceiver("noteEdited", connectorNoteEdited);
+                connector.getNotes(cb);
+            },
+            function (notes, cb)
+            {
+                $.each(notes, addNoteToHTML);
+                cb();
+            }
+        ],
+        cb
+    );
+}
+
+function setupWebplayer(cb)
 {
     $('#asyncnoterPlayer').podlovewebplayer(
         {
@@ -126,32 +170,11 @@ function setupWebplayer()
         $('#flashwarning').removeClass('hidden');
         isFlash = true;
     }
+
+    cb();
 }
 
-function setupSharejs()
-{
-    var options =
-    {
-        origin: '<%=pageurl%>sharejs/sock_bc',
-        authentication: "<%=authtoken%>"
-    }
-
-    sharejs.open("<%=docname%>", 'json', options,
-        function (error, _doc)
-        {
-            doc = _doc;
-
-            var notes = getNotes();
-            $.each(notes, addNoteToHTML);
-
-            doc.at("notes").on('insert', onDocInsert);
-            doc.at("notes").on('delete', onDocDelete);
-            doc.at("notes").on('child op', onNoteChildOp);
-        }
-    );
-}
-
-function setupUI()
+function setupUI(cb)
 {
     $editnotetext.on('input', function ()
     {
@@ -197,9 +220,11 @@ function setupUI()
     });
 
     setControlMode("add");
+
+    cb();
 }
 
-function setupUserlist()
+function setupUserlist(cb)
 {
     var options =
     {
@@ -213,6 +238,8 @@ function setupUserlist()
     setInterval(getUserList, 1500);
 
     getUserList();
+
+    cb();
 
     function postUserList()
     {
@@ -290,7 +317,7 @@ function setupUserlist()
     }
 }
 
-function setupKeybindings()
+function setupKeybindings(cb)
 {
     jwerty.key('ctrl+space', userPauseOrStart);
     jwerty.key('ctrl+e', userSetNoteTime);
@@ -300,9 +327,11 @@ function setupKeybindings()
         jwerty.key('ctrl+w', userJumpForward);
         jwerty.key('ctrl+q', userJumpBackward);
     }
+    
+    cb();
 }
 
-function setupScrolling()
+function setupScrolling(cb)
 {
     if(webplayer.currentSrc == "")
         return;
@@ -312,39 +341,80 @@ function setupScrolling()
     scrollInterval = setInterval(function ()
     {
         var time = getCurrentTime();
+        var $notes = $('#notes');
 
         if(lastTime == time)
             return;
 
-        var notes = getNotes();
-        var $notes = $('#notes');
-
-        for (var i = 0; i < notes.length; i++)
-        {
-            if((i == notes.length - 1) || notes[i + 1].time > time)
+        connector.getNotes(
+            function (err, notes)
             {
-                var $currentNote = $notes.find('li.note[data-index=' + i + ']');
-                var $prevNote;
-
-                if(i == 0)
+                for (var i = 0; i < notes.length; i++)
                 {
-                    $prevNote = $currentNote;
-                }
-                else
-                {
-                    $prevNote = $currentNote.siblings('li.note').eq($currentNote.index() - 1);
+                    if((i == notes.length - 1) || notes[i + 1].time > time)
+                    {
+                        var $currentNote = $notes.find('li.note[data-index=' + i + ']');
+                        var $prevNote;
+
+                        if(i == 0)
+                        {
+                            $prevNote = $currentNote;
+                        }
+                        else
+                        {
+                            $prevNote = $currentNote.siblings('li.note').eq($currentNote.index() - 1);
+                        }
+
+                        $notes.scrollTo($prevNote, 800);
+                        $notes.find('li.note').removeClass("active");
+                        $currentNote.addClass("active");
+                        break;
+                    }
                 }
 
-                $notes.scrollTo($prevNote, 800);
-                $notes.find('li.note').removeClass("active");
-                $currentNote.addClass("active");
-                break;
+                lastTime = time;
             }
-        }
-
-        lastTime = time;
+        );
     }, 1500);
+    
+    cb();
 }
+
+
+/* Connector Events */
+
+function connectorNoteAdded(index, note)
+{
+    addNoteToHTML(index, note);
+}
+
+function connectorNoteRemoved(index, note)
+{
+    if(editMode == "edit")
+    {
+        if(editingNote > index)
+            editingNote--;
+        else if(editingNote == index)
+            userAbortEdit();
+    }
+
+    removeNoteFromHTML(index);
+}
+
+function connectorNoteEdited(index, note, changes)
+{
+    var changedKeys = Object.keys(changes);
+    var $note = getHTMLNote(index);
+
+    for (var i = 0; i < changedKeys.length; i++)
+    {
+        var key = changedKeys[i];
+        $note.find('.' + key).text(changes[key]);
+    }
+}
+
+
+/* User Functions */
 
 function userPauseOrStart()
 {
@@ -380,21 +450,13 @@ function userJump(amount)
     setCurrentTime(getCurrentTime() + amount);
 }
 
-function setCurrentTime(time)
-{
-    webplayer.setCurrentTime(time);
-}
-
 function userSubmitNote()
 {
     var text = $editnotetext.val() || "";
 
-    if(editMode == "add")
+    if(editMode == "add" && text.length != 0)
     {
-        if(text.length != 0)
-        {
-            userAddNote(text);
-        }
+        userAddNote(text);
     }
     else if(editMode == "edit")
     {
@@ -402,7 +464,7 @@ function userSubmitNote()
 
         if(text.length == 0)
         {
-            removeNoteFromDoc(index);
+            removeNote(index);
         }
         else
         {
@@ -412,67 +474,47 @@ function userSubmitNote()
 
 }
 
-function userClickNote(e)
-{
-    var $note = getNoteFromChild(e.target);
-    var index = $note.attr('data-index');
-
-    var time = getNotes()[index].time;
-    setCurrentTime(time);
-}
-
-function getNoteFromChild(child)
-{
-    var $note;
-    if(child.tagName.toUpperCase() == "LI")
-    {
-        $note = $(child);
-    }
-    else
-    {
-        $note = $(child).parents("li:first");
-    }
-    return $note;
-}
-
-function onDocInsert(position, note)
-{
-    addNoteToHTML(position, note);
-}
-
-function onDocDelete(position, note)
-{
-    if(editMode == "edit")
-    {
-        if(editingNote > position)
-            editingNote--;
-        else if(editingNote == position)
-            userAbortEdit();
-    }
-
-    removeNoteFromHTML(position);
-}
-
-function onNoteChildOp(path, op)
-{
-    if(op.p[0] != "notes")
-        return;
-
-    var index = path[0];
-
-    removeNoteFromHTML(index);
-    addNoteToHTML(index, getNotes()[index]);
-}
-
 function userAddNote(text)
 {
     isInNote = false;
     setAddnotetimeSpan('');
     $editnotetext.val('');
 
-    addNoteToDoc({ time: inNoteTime, text: text });
+    connector.addNote({ time: inNoteTime, text: text },
+            function (err)
+            {
+                if(err)
+                {
+                    clearTimeout(errorTimeout);
+                    errorTimeout = setTimeout(function () { $('#err').addClass('hidden') }, 5000);
+                    $('#err').text(err).removeClass('hidden');
+                }
+            }
+    );
 
     $editnotetext.focus();
+}
+
+function userFinishEditNote()
+{
+    var text = $editnotetext.val() || "";
+    var time = inNoteTime;
+
+    connector.editNote(editingNote, { time: time, text: text },
+            function (err)
+            {
+                if(err)
+                {
+
+                }
+                else
+                {
+                    setAddnotetimeSpan('');
+                    $editnotetext.val('');
+                    setControlMode("add");
+                }
+            }
+    );
 }
 
 function userDeleteNote(e)
@@ -480,41 +522,35 @@ function userDeleteNote(e)
     var $note = getNoteFromChild(e.target);
     var index = $note.attr('data-index');
 
-    removeNoteFromDoc(index);
+    removeNote(index);
 }
 
 function userEditNote(e)
 {
     var $note = getNoteFromChild(e.target);
     var index = $note.attr('data-index');
-    var note = getNotes()[index];
 
-    setControlMode("edit");
-    editingNote = index;
-    isInNote = true;
-    inNoteTime = note.time;
+    connector.getNote(index,
+            function (err, note)
+            {
+                setControlMode("edit");
+                editingNote = index;
+                isInNote = true;
+                inNoteTime = note.time;
 
-    resetNoteTimespan();
-    setAddnotetimeSpan(osftools.toHumanTime(note.time));
-    $editnotetext.val(note.text);
-    $editnotetext.focus();
+                resetNoteTimespan();
+                setAddnotetimeSpan(osftools.toHumanTime(note.time));
+                $editnotetext.val(note.text);
+                $editnotetext.focus();
 
-    var bracketPos = note.text.indexOf("<>");
+                var bracketPos = note.text.indexOf("<>");
 
-    if(bracketPos != -1) // empty link, jump between the brackets
-    {
-        $editnotetext.selectRange(bracketPos + 1, bracketPos + 1);
-    }
-}
-
-function userFinishEditNote()
-{
-    var text = $editnotetext.val() || "";
-    setNoteDoc(editingNote, { time: inNoteTime, text: text });
-
-    setAddnotetimeSpan('');
-    $editnotetext.val('');
-    setControlMode("add");
+                if(bracketPos != -1) // empty link, jump between the brackets
+                {
+                    $editnotetext.selectRange(bracketPos + 1, bracketPos + 1);
+                }
+            }
+    );
 }
 
 function userAbortEdit()
@@ -522,32 +558,31 @@ function userAbortEdit()
     setControlMode("add");
 }
 
-var errorTimeout;
-
-function addNoteToDoc(note)
+function editNoteTimeSpan()
 {
-    doc.at("notes").push(note,
-        function (err, op)
-        {
-            if(err)
-            {
-                clearTimeout(errorTimeout);
-                errorTimeout = setTimeout(function () { $('#err').addClass('hidden') }, 5000);
-                $('#err').text(err).removeClass('hidden');
-            }
-            else
-            {
-                addNoteToHTML(op[0].p[1], note);
-            }
-        }
-    );
+    $editnotetimetxt.val($editnotetimespan.text());
+    $editnotetime.toggle();
+    $editnotetimetxt.focus();
 }
 
-function removeNoteFromDoc(index)
+function endEditNoteTimeSpan()
 {
-    removeNoteFromHTML(index);
-    doc.at(["notes", index]).remove(
-            function (err, op)
+    var val = jQuery.trim($editnotetimetxt.val());
+    var time = osftools.fromHumanTime(val);
+
+    if(time != false)
+    {
+        inNoteTime = time;
+        setAddnotetimeSpan(osftools.toHumanTime(inNoteTime));
+    }
+
+    $editnotetime.toggle();
+}
+
+function removeNote(index)
+{
+    connector.removeNote(index,
+            function (err)
             {
                 if(err)
                 {
@@ -564,71 +599,40 @@ function removeNoteFromDoc(index)
                         else if(editingNote == index)
                             userAbortEdit();
                     }
-
-                    $("#notes li.note").each(
-                            function (i, elem)
-                            {
-                                var $elem = $(elem);
-                                var elemIndex = $elem.attr('data-index');
-
-                                if(elemIndex > index)
-                                {
-                                    $elem.attr('data-index', elemIndex - 1);
-                                }
-                            }
-                    )
                 }
             }
     );
 }
 
-function setNoteDoc(index, note)
+function userClickNote(e)
 {
-    var oldnote = getNotes()[index];
-    var keys = getKeys(oldnote, note);
+    var $note = getNoteFromChild(e.target);
+    var index = $note.attr('data-index');
 
-    for (var i = 0; i < keys.length; i++)
-    {
-        var key = keys[i];
-
-        if(oldnote[key] != note[key])
-        {
-            doc.at(["notes", index, key]).set(note[key],
-                    function (err, op)
-                    {
-                        if(err)
-                        {
-
-                        }
-                        else
-                        {
-                            onNoteChildOp(op[0].p.slice(1), op[0]);
-                        }
-                    }
-            );
-        }
-    }
+    connector.getNote(index,
+            function (err, note)
+            {
+                var time = note.time;
+                setCurrentTime(time);
+            }
+    );
 }
 
-function getKeys()
+
+/* Note-HTML Functions */
+
+function getNoteFromChild(child)
 {
-    var keys = [];
-
-    for (var i = 0; i < arguments.length; i++)
+    var $note;
+    if(child.tagName.toUpperCase() == "LI")
     {
-        var arg = arguments[i];
-        var argKeys = Object.keys(arg);
-
-        for (var j = 0; j < argKeys.length; j++)
-        {
-            var argKey = argKeys[j];
-
-            if(keys.indexOf(argKey) == -1)
-                keys.push(argKey);
-        }
+        $note = $(child);
     }
-
-    return keys;
+    else
+    {
+        $note = $(child).parents("li:first");
+    }
+    return $note;
 }
 
 function addNoteToHTML(index, note)
@@ -661,33 +665,59 @@ function addNoteToHTML(index, note)
         $note.find('.time').click(userClickNote);
     }
 
-    for (var i = 0; i < $notes.length; i++)
-    {
-        var currentIndex = $($notes[i]).attr('data-index');
-        var currentNote = getNotes()[currentIndex];
+    connector.getNotes(
+            function (err, notes)
+            {
+                for (var i = 0; i < $notes.length; i++)
+                {
+                    var currentIndex = $($notes[i]).attr('data-index');
+                    var currentNote = notes[currentIndex];
 
-        if(currentNote.time > note.time ||
-           currentNote.time == note.time && currentIndex > index)
-        {
-            position = i;
-            break;
-        }
-    }
+                    if(currentNote.time > note.time ||
+                            currentNote.time == note.time && currentIndex > index)
+                    {
+                        position = i;
+                        break;
+                    }
+                }
 
-    if(position == -1)
-    {
-        $('#notes').append($note);
-    }
-    else
-    {
-        $notes.eq(position).before($note);
-    }
+                if(position == -1)
+                {
+                    $('#notes').append($note);
+                }
+                else
+                {
+                    $notes.eq(position).before($note);
+                }
+            }
+    );
 }
 
 function removeNoteFromHTML(index)
 {
-    $("#notes li.note[data-index=" + index + "]").remove();
+    getHTMLNote(index).remove();
+
+    $("#notes li.note").each(
+            function (i, elem)
+            {
+                var $elem = $(elem);
+                var noteIndex = $elem.attr('data-index');
+
+                if(parseInt(noteIndex, 10) > index)
+                {
+                    $elem.attr('data-index', noteIndex - 1);
+                }
+            }
+    );
 }
+
+function getHTMLNote(index)
+{
+    return $("#notes li.note[data-index=" + index + "]");
+}
+
+
+/* Edit/Add-HTML Functions */
 
 function setControlMode(mode)
 {
@@ -725,37 +755,25 @@ function setAddnotetimeSpan(text)
     }
 }
 
-function editNoteTimeSpan()
-{
-    $editnotetimetxt.val($editnotetimespan.text());
-    $editnotetime.toggle();
-    $editnotetimetxt.focus();
-}
-
-function endEditNoteTimeSpan()
-{
-    var val = jQuery.trim($editnotetimetxt.val());
-    var time = osftools.fromHumanTime(val);
-
-    if(time != false)
-    {
-        inNoteTime = time;
-        setAddnotetimeSpan(osftools.toHumanTime(inNoteTime));
-    }
-
-    $editnotetime.toggle();
-}
-
 function resetNoteTimespan()
 {
     $editnotetimespan.show();
     $editnotetimetxt.hide();
 }
 
-// webplayer.currentTime does not work in the flash-version of mediaelement.js
-// so we have to squeeze the current time out of the HTML element which contains it..
+
+/* Player Functions */
+
+function setCurrentTime(time)
+{
+    webplayer.setCurrentTime(time);
+}
+
 function getCurrentTime()
 {
+    // webplayer.currentTime does not work in the flash-version of mediaelement.js
+    // so we have to squeeze the current time out of the HTML element which contains it..
+
     var rawTime = $('.podlovewebplayer_wrapper .mejs-currenttime').text().split(':');
     var time = 0;
     // hours are optional.. so here comes the magic!
@@ -766,15 +784,12 @@ function getCurrentTime()
     return time;
 }
 
-function getNotes()
-{
-    return doc.at("notes").get();
-}
-
 function getHistoricalUsers()
 {
-    if(!doc)
-        return [];
+    return [];
+
+    //if(!doc)
+    //    return [];
 
     var meta = doc.at("meta").get();
     var users = {};
@@ -793,6 +808,9 @@ function getHistoricalUsers()
 
     return Object.keys(users);
 }
+
+
+/* Utilities */
 
 // http://stackoverflow.com/a/841121/2486196
 $.fn.selectRange = function(start, end) {
