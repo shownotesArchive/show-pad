@@ -125,7 +125,7 @@ osftools.fromHumanTime = function (humantime)
       return false;
     }
 
-    time += timeParts[i] * Math.max(((timeParts.length - i - 1) * 60), 1);
+    time += timeParts[i] * Math.pow(60, timeParts.length - i - 1);
   }
 
   return time;
