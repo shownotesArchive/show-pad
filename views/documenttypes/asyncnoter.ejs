@@ -240,13 +240,9 @@ function setupUserlist()
 
                     var userData =
                     {
-                        type: "online"
+                        type: "online",
+                        time: osftools.toHumanTime(time)
                     };
-
-                    if(username != "<%=user.username%>")
-                    {
-                        userData.time = osftools.toHumanTime(time);
-                    }
 
                     users[username] = userData;
                 }
@@ -739,7 +735,7 @@ function editNoteTimeSpan()
 function endEditNoteTimeSpan()
 {
     var val = jQuery.trim($editnotetimetxt.val());
-    var time = osftools.toHumanTime(val);
+    var time = osftools.fromHumanTime(val);
 
     if(time != false)
     {

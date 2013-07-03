@@ -337,6 +337,11 @@ table#newpadlist td.joinpad, table#newpadlist td.createdoc
     min-width: 200px;
 }
 
+div.format label
+{
+    cursor: default;
+}
+
 div.format .status
 {
     font-size: 27px;
