@@ -258,7 +258,6 @@ function auth(agent, action)
 function getSnapshotAtRevision(docname, v, cb)
 {
   var snapshot
-    , content
     , ops = []
 
   async.waterfall(
@@ -270,7 +269,6 @@ function getSnapshotAtRevision(docname, v, cb)
           function (err, _snapshot)
           {
             snapshot = _snapshot;
-            content = snapshot.snapshot;
             cb(err);
           }
         );
@@ -293,6 +291,7 @@ function getSnapshotAtRevision(docname, v, cb)
       function (cb)
       {
         var json = sharejs.types.json;
+        var content = snapshot.snapshot;
         var err = null;
 
         try
