@@ -92,14 +92,32 @@ function callAction(action, parameters, cb)
 
       res.on('end', function()
       {
-        body = JSON.parse(body);
-        if(body.status == 1)
+        if(res.statusCode != 200)
         {
-          cb(null, body.data);
+          cb("Hoersuppe: " + res.statusCode, null);
         }
         else
         {
-          cb(body.msg, null);
+          try
+          {
+            body = JSON.parse(body);
+          }
+          catch (ex)
+          {
+            body = null;
+          }
+
+          if(body && body.status == 1)
+          {
+            cb(null, body.data);
+          }
+          else
+          {
+            var msg = "no body";
+            if(body)
+              msg = body.msg;
+            cb("Hoersuppe: " + msg, null);
+          }
         }
       });
     }
