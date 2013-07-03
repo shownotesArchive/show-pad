@@ -161,14 +161,14 @@ function setupWebplayer(cb)
 
     webplayer = $('#asyncnoterPlayer')[0];
 
-    if(webplayer.src == "")
-    {
-        $('#sourcewarning').removeClass('hidden');
-    }
-    else if(!webplayer.setCurrentTime)
+    if(!webplayer.setCurrentTime)
     {
         $('#flashwarning').removeClass('hidden');
         isFlash = true;
+    }
+    else if(webplayer.src == "")
+    {
+        $('#sourcewarning').removeClass('hidden');
     }
 
     cb();
