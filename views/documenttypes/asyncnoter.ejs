@@ -409,7 +409,16 @@ function connectorNoteEdited(index, note, changes)
     for (var i = 0; i < changedKeys.length; i++)
     {
         var key = changedKeys[i];
-        $note.find('.' + key).text(changes[key]);
+
+        switch(key)
+        {
+            case "text":
+                setHTMLNoteText($note, changes[key]);
+                break;
+            case "time":
+                setHTMLNoteTime($note, changes[key]);
+                break;
+        }
     }
 }
 
@@ -643,8 +652,11 @@ function addNoteToHTML(index, note)
     var $note = $('<li>');
     $note.attr('data-index', index);
     $note.addClass('note');
-    $note.append($('<span>').addClass('time').text(osftools.toHumanTime(note.time)));
-    $note.append($('<span>').addClass('text').text(note.text));
+    $note.append($('<span>').addClass('time'));
+    $note.append($('<span>').addClass('text'));
+
+    setHTMLNoteTime($note, note.time);
+    setHTMLNoteText($note, note.text);
 
     var $btns = $('<div>');
     $btns.addClass("btns");
@@ -691,6 +703,35 @@ function addNoteToHTML(index, note)
                 }
             }
     );
+}
+
+function setHTMLNoteTime($note, time)
+{
+    $note.find('.time').text(osftools.toHumanTime(time));
+}
+
+function setHTMLNoteText($note, text)
+{
+    var $text = $note.find('.text');
+
+    var linkStartIndex = text.indexOf("<");
+    var linkEndIndex = text.indexOf(">", linkStartIndex);
+
+    if(linkStartIndex != -1 && linkEndIndex != -1)
+    {
+        linkStartIndex += 1;
+
+        var link = text.substr(linkStartIndex, linkEndIndex - linkStartIndex);
+        var $link = $('<a>').attr('href', link).text(link);
+
+        $text.append(document.createTextNode(text.substr(0, linkStartIndex)));
+        $text.append($link);
+        $text.append(document.createTextNode(text.substr(linkEndIndex)));
+    }
+    else
+    {
+        $text.text(text);
+    }
 }
 
 function removeNoteFromHTML(index)
