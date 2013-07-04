@@ -722,7 +722,7 @@ function setHTMLNoteText($note, text)
         linkStartIndex += 1;
 
         var link = text.substr(linkStartIndex, linkEndIndex - linkStartIndex);
-        var $link = $('<a>').attr('href', link).text(link);
+        var $link = $('<a>').attr('href', link).text(link).attr('target', '_blank');
 
         $text.append(document.createTextNode(text.substr(0, linkStartIndex)));
         $text.append($link);
