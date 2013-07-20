@@ -139,7 +139,7 @@ function initXenim(cb)
   xenimAmqp = amqp.createConnection(
     {
       host: 'messages.streams.xenim.de',
-      vhost: "xsn_hls",
+      vhost: "xsn_shownotes",
       login: "shownotes",
       password: nconf.get("xenim:password")
     }
