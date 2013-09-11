@@ -9,6 +9,13 @@
     "password": "",
     "disabled": true
   },
+  "SMS":
+  {
+    "username": "",
+    "password": "",
+    "host": "jabber.shownot.es",
+    "disabled": true
+  },
   "loglevel":
   {
     "doctypes": "INFO",
