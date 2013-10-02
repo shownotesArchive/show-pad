@@ -28,6 +28,13 @@
     "publickey": "",
     "privatekey": ""
   },
+  "SMS":
+  {
+    "username": "",
+    "password": "",
+    "host": "jabber.shownot.es",
+    "disabled": true
+  },
   "mail":
   {
     "type": "smtp",

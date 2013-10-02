@@ -14,7 +14,8 @@ var express   = require('express')
   , amqp      = require('amqp')
   , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
-  , expressValidator = require('express-validator');
+  , expressValidator = require('express-validator')
+  , http             = require('http')
 
 var db            = require('./db.js')
   , api           = require('./api.js')
@@ -627,6 +628,47 @@ function processCreateDoc (req, res)
           });
         }
         cb();
+      },
+      // tell Shownotes Message Service about the new doc
+      function (cb)
+      {
+        if(nconf.get("SMS:disabled"))
+          return cb();
+
+        //define querystring
+        var querystring = JSON.stringify({
+          pad: hoerPod.pod.podcast,
+          link: "http://pad.shownotes.es/doc/" + docname
+        });
+
+        // configure the req
+        var options = {
+          host: nconf.get("SMS:host"),
+          path: '/rest/newpad',
+          method: 'POST',
+          headers:
+          {
+            'Content-Length': querystring.length,
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + new Buffer(nconf.get("SMS:username") + ':' + nconf.get("SMS:password")).toString('base64')
+          }
+        };
+
+        try
+        {
+          var req = http.request(options, function () {});
+
+          req.write(querystring);
+          req.end();
+
+          console.log("New doc %s sent to Shownotes Message Service.", docname);
+        }
+        catch (err)
+        {
+          console.log("Could not send doc to SMS:", err);
+        }
+
+        cb();
       }
     ],
     reply
@@ -642,7 +684,6 @@ function processCreateDoc (req, res)
       status = "fail";
     else
       status = "ok";
-
     console.log("[%s] Creating doc: %s, err=%s", username, docname, err);
     res.json(status == "ok" ? 200 : 500, { status: status, docname: docname });
   }
