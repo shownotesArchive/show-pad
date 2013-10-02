@@ -656,7 +656,16 @@ function processCreateDoc (req, res)
 
         try
         {
-          var req = http.request(options, function () {});
+          var req = http.request(options, function(res){
+            var content;
+            res.on("data", function (chunk) {
+              content += chunk;
+            });
+
+            res.on("end", function () {
+              console.log("SMS resp:", content);
+            });
+          });
 
           req.write(querystring);
           req.end();
