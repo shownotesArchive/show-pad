@@ -15,7 +15,8 @@ var express   = require('express')
   , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator')
-  , http             = require('http')
+    sys              = require('sys')
+  , https            = require('https')
 
 var db            = require('./db.js')
   , api           = require('./api.js')
@@ -638,14 +639,16 @@ function processCreateDoc (req, res)
         //define querystring
         var querystring = JSON.stringify({
           pad: hoerPod.pod.podcast,
-          link: "http://pad.shownotes.es/doc/" + docname
+          link: nconf.get("SMS:serverpadpath") + docname
         });
 
         // configure the req
         var options = {
           host: nconf.get("SMS:host"),
+          port: 443,
           path: '/rest/newpad',
           method: 'POST',
+          rejectUnauthorized: false,
           headers:
           {
             'Content-Length': querystring.length,
@@ -656,21 +659,30 @@ function processCreateDoc (req, res)
 
         try
         {
-          var req = http.request(options, function(res){
-            var content;
+          var req = https.request(options, function(res){
+            var content = "";
             res.on("data", function (chunk) {
               content += chunk;
             });
 
-            res.on("end", function () {
-              console.log("SMS resp:", content);
+            res.on("error", function(e) {
+              console.log("We got a serious fuck up! :", e.message);
+            });
+
+            res.on("end", function() {
+              console.log("finished request to Shownotes Message Service")
+              console.log("statusCode: ", res.statusCode);
+              //console.log("headers: ", res.headers);
+
+                if(content.length != 0)
+                  console.log("SMS content resp:\n", content);
             });
           });
 
           req.write(querystring);
           req.end();
 
-          console.log("New doc %s sent to Shownotes Message Service.", docname);
+          console.log("Will sent doc %s to Shownotes Message Service.", docname);
         }
         catch (err)
         {
