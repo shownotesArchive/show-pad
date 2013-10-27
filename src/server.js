@@ -17,7 +17,7 @@ var express   = require('express')
   , expressValidator = require('express-validator')
   , sys              = require('sys')
   , net           = require('net')
-  , https            = require('https')
+  , https            = require('https');
 
 var db            = require('./db.js')
   , api           = require('./api.js')
