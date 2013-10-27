@@ -39,7 +39,7 @@
     "limiter": "~1",
     "memory-cache": "0.0.x",
     "etherpad-lite-client": "0.7.0",
-    "tinyosf": "0.3.5",
+    "tinyosf": "0.3.x",
     "amqp": "0.1.x",
     "recaptcha": "~1"
   },
