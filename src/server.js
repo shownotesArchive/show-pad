@@ -15,7 +15,8 @@ var express   = require('express')
   , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator')
-    sys              = require('sys')
+  , sys              = require('sys')
+  , net           = require('net')
   , https            = require('https')
 
 var db            = require('./db.js')
@@ -659,30 +660,56 @@ function processCreateDoc (req, res)
 
         try
         {
-          var req = https.request(options, function(res){
+          /* Test socket TCP connection before real request
+           * Workaround for ECONNREFUSED-Exception
+           */
+          var socket = net.createConnection(443,nconf.get("SMS:host"));
+          console.log('Test socket created');
+          
+          // if connection is up -> make real request
+          socket.on('connect', function() {
+             
+            console.log('Server is up. Will send real request');
+
+            var req = https.request(options, function(res){
             var content = "";
-            res.on("data", function (chunk) {
-              content += chunk;
+                res.on("data", function (chunk) {
+                    content += chunk;
+                });
+
+                res.on("error", function(e) {
+                    console.log("Request failed", e.message);
+                });
+
+                res.on("end", function() {
+                    console.log("finished request to Shownotes Message Service")
+                    console.log("statusCode: ", res.statusCode);
+                    //console.log("headers: ", res.headers);
+
+                    if(content.length != 0)
+                        console.log("SMS content resp:\n", content);
+                 });
             });
 
-            res.on("error", function(e) {
-              console.log("We got a serious fuck up! :", e.message);
-            });
+            req.write(querystring);
+            req.end();
 
-            res.on("end", function() {
-              console.log("finished request to Shownotes Message Service")
-              console.log("statusCode: ", res.statusCode);
-              //console.log("headers: ", res.headers);
+            // It works! \o/
+            console.log("Will sent doc %s to Shownotes Message Service.", docname);
+            socket.end();
+           })
+          
+          // if connection refused - close socket and print error
+          socket.on('error', function(e) {
+              console.log('Cound not send doc to SMS. Error: ' + e.message);
+              socket.end();
+          })
 
-                if(content.length != 0)
-                  console.log("SMS content resp:\n", content);
-            });
-          });
+          // close socket
+          socket.on('end', function() {
+              console.log('Test socket closed');
+           });
 
-          req.write(querystring);
-          req.end();
-
-          console.log("Will sent doc %s to Shownotes Message Service.", docname);
         }
         catch (err)
         {
