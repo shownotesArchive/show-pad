@@ -15,7 +15,9 @@ var express   = require('express')
   , nodemailer       = require('nodemailer')
   , RateLimiter      = require('limiter').RateLimiter
   , expressValidator = require('express-validator')
-  , http             = require('http')
+  , sys              = require('sys')
+  , net           = require('net')
+  , https            = require('https');
 
 var db            = require('./db.js')
   , api           = require('./api.js')
@@ -638,14 +640,16 @@ function processCreateDoc (req, res)
         //define querystring
         var querystring = JSON.stringify({
           pad: hoerPod.pod.podcast,
-          link: "http://pad.shownotes.es/doc/" + docname
+          link: nconf.get("SMS:serverpadpath") + docname
         });
 
         // configure the req
         var options = {
           host: nconf.get("SMS:host"),
+          port: 443,
           path: '/rest/newpad',
           method: 'POST',
+          rejectUnauthorized: false,
           headers:
           {
             'Content-Length': querystring.length,
@@ -656,21 +660,56 @@ function processCreateDoc (req, res)
 
         try
         {
-          var req = http.request(options, function(res){
-            var content;
-            res.on("data", function (chunk) {
-              content += chunk;
+          /* Test socket TCP connection before real request
+           * Workaround for ECONNREFUSED-Exception
+           */
+          var socket = net.createConnection(443,nconf.get("SMS:host"));
+          console.log('Test socket created');
+          
+          // if connection is up -> make real request
+          socket.on('connect', function() {
+             
+            console.log('Server is up. Will send real request');
+
+            var req = https.request(options, function(res){
+            var content = "";
+                res.on("data", function (chunk) {
+                    content += chunk;
+                });
+
+                res.on("error", function(e) {
+                    console.log("Request failed", e.message);
+                });
+
+                res.on("end", function() {
+                    console.log("finished request to Shownotes Message Service")
+                    console.log("statusCode: ", res.statusCode);
+                    //console.log("headers: ", res.headers);
+
+                    if(content.length != 0)
+                        console.log("SMS content resp:\n", content);
+                 });
             });
 
-            res.on("end", function () {
-              console.log("SMS resp:", content);
-            });
-          });
+            req.write(querystring);
+            req.end();
 
-          req.write(querystring);
-          req.end();
+            // It works! \o/
+            console.log("Will sent doc %s to Shownotes Message Service.", docname);
+            socket.end();
+           })
+          
+          // if connection refused - close socket and print error
+          socket.on('error', function(e) {
+              console.log('Cound not send doc to SMS. Error: ' + e.message);
+              socket.end();
+          })
 
-          console.log("New doc %s sent to Shownotes Message Service.", docname);
+          // close socket
+          socket.on('end', function() {
+              console.log('Test socket closed');
+           });
+
         }
         catch (err)
         {

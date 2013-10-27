@@ -33,6 +33,7 @@
     "username": "",
     "password": "",
     "host": "jabber.shownot.es",
+    "serverpadpath":"http://example.com/doc/",
     "disabled": true
   },
   "mail":
