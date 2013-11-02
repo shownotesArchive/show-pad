@@ -139,8 +139,30 @@ $('#format.nav').click(
 );
 
 function dlbut(mode) {
-  window.location = 'http://cdn.shownot.es/dl/showpad.php?mode=' + mode + '&pad=' + document.getElementById('h2title').innerHTML;
-  return false;
+  var dldata;
+  switch(mode)
+  {
+      case 'raw':
+      case 'chapter':
+      case 'md':
+      case 'reaper':
+      case 'audacity':
+          dldata = $('pre.doctext').text();
+          break;
+      case 'html':
+      case 'htmllist':
+          dldata = $('div.doctext').html();
+          break;
+  }
+  $.post( 'http://cdn.shownot.es/paddl/showpad.php?mode=' + mode + '&title=' + encodeURIComponent(document.getElementById('h2title').innerHTML), { mode: mode, title: encodeURIComponent(document.getElementById('h2title').innerHTML), data: dldata } );
+  /*
+  $.ajax({
+    type: "POST",
+    url: 'http://cdn.shownot.es/paddl/showpad.php?mode=' + mode + '&title=' + encodeURIComponent(document.getElementById('h2title').innerHTML),
+    data: dldata
+  });
+  */
+  //return false;
 }
 
 function selectFormat(format)
