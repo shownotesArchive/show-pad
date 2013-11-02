@@ -19,11 +19,6 @@
     <a class="baf grey viewbut" href="#audacity" data-format="audacity"><%= __('showdoc.readonly.format.audacity') %></a>
     <a class="baf grey viewbut" href="#chapter" data-format="chapter"><%= __('showdoc.readonly.format.chapters') %></a>
     <a class="baf grey viewbut" href="#raw" data-format="raw"><%= __('showdoc.readonly.format.raw') %></a>
-</div><h4 style="display: inline-block; vertical-align: text-bottom;"><%= __('showdoc.readonly.download') %>: </h4>
-<div class="baf-group baf-group-x2" style="margin: 10px 10px 0 10px;">
-    <a class="baf grey dlbut" target="_blank" onclick="dlbut('reaper');"><%= __('showdoc.readonly.format.reaper') %></a>
-    <a class="baf grey dlbut" target="_blank" onclick="dlbut('audacity');"><%= __('showdoc.readonly.format.audacity') %></a>
-    <a class="baf grey dlbut" target="_blank" onclick="dlbut('chapters');"><%= __('showdoc.readonly.format.chapters') %></a>
 </div>
 <hr/>
 <div class="alert hidden" id="updateerror"></div>
@@ -137,33 +132,6 @@ $('#format.nav').click(
         }
     }
 );
-
-function dlbut(mode) {
-  var dldata;
-  switch(mode)
-  {
-      case 'raw':
-      case 'chapter':
-      case 'md':
-      case 'reaper':
-      case 'audacity':
-          dldata = $('pre.doctext').text();
-          break;
-      case 'html':
-      case 'htmllist':
-          dldata = $('div.doctext').html();
-          break;
-  }
-  $.post( 'http://cdn.shownot.es/paddl/showpad.php?mode=' + mode + '&title=' + encodeURIComponent(document.getElementById('h2title').innerHTML), { mode: mode, title: encodeURIComponent(document.getElementById('h2title').innerHTML), data: dldata } );
-  /*
-  $.ajax({
-    type: "POST",
-    url: 'http://cdn.shownot.es/paddl/showpad.php?mode=' + mode + '&title=' + encodeURIComponent(document.getElementById('h2title').innerHTML),
-    data: dldata
-  });
-  */
-  //return false;
-}
 
 function selectFormat(format)
 {
