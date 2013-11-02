@@ -21,9 +21,9 @@
     <a class="baf grey viewbut" href="#raw" data-format="raw"><%= __('showdoc.readonly.format.raw') %></a>
 </div><h4 style="display: inline-block; vertical-align: text-bottom;"><%= __('showdoc.readonly.download') %>: </h4>
 <div class="baf-group baf-group-x2" style="margin: 10px 10px 0 10px;">
-    <a class="baf grey dlbut" target="_blank"><%= __('showdoc.readonly.format.reaper') %></a>
-    <a class="baf grey dlbut" target="_blank"><%= __('showdoc.readonly.format.audacity') %></a>
-    <a class="baf grey dlbut" target="_blank"><%= __('showdoc.readonly.format.chapters') %></a>
+    <a class="baf grey dlbut" target="_blank" onclick="dlbut('reaper');"><%= __('showdoc.readonly.format.reaper') %></a>
+    <a class="baf grey dlbut" target="_blank" onclick="dlbut('audacity');"><%= __('showdoc.readonly.format.audacity') %></a>
+    <a class="baf grey dlbut" target="_blank" onclick="dlbut('chapters');"><%= __('showdoc.readonly.format.chapters') %></a>
 </div>
 <hr/>
 <div class="alert hidden" id="updateerror"></div>
@@ -138,11 +138,10 @@ $('#format.nav').click(
     }
 );
 
-$('.dlbut').click(
-  function() {
-    window.location = 'http://cdn.shownot.es/dl/showpad.php?pad=' + document.getElementById('h2title').innerHTML;
-  }
-);
+function dlbut(mode) {
+  window.location = 'http://cdn.shownot.es/dl/showpad.php?mode=' + mode + '&pad=' + document.getElementById('h2title').innerHTML;
+  return false;
+}
 
 function selectFormat(format)
 {
