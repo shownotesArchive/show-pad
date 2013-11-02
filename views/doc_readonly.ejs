@@ -1,31 +1,31 @@
 <!-- included by doc.ejs -->
+<% stylesheet('http://selfcss.org/baf/css/baf.min.css') %>
+<% stylesheet('http://selfcss.org/baf/css/icomoon.css') %>
+<% stylesheet('http://cdn.shownot.es/include-shownotes/shownotes.css') %>
+<% script('http://selfcss.org/baf/js/baf.min.js') %>
 <% script('/js/tinyosf/tinyosf.js') %>
 <% script('/js/tinyosf/tinyosf_exportmodules.js') %>
-<% stylesheet('http://cdn.shownot.es/include-shownotes/shownotes.css') %>
 
 <span><%- __('showdoc.error.readonly.' + readonlyReason, '/doc/' + docname) %></span>
-<br><br>
+<br/><br/>
 <span><%= __('showdoc.readonly.users') %> <span id="users"></span></span>
 
-<h4><%= __('showdoc.readonly.format') %></h4>
-<ul id="format" class="nav nav-pills">
-    <li class="active">
-        <a href="#html" data-format="html"><%= __('showdoc.readonly.format.block') %></a>
-    </li>
-    <li class="active">
-        <a href="#htmllist" data-format="htmllist"><%= __('showdoc.readonly.format.list') %></a>
-    </li>
-    <li class="active">
-        <a href="#raw" data-format="raw"><%= __('showdoc.readonly.format.raw') %></a>
-    </li>
-    <li class="active">
-        <a href="#chapter" data-format="chapter"><%= __('showdoc.readonly.format.chapters') %></a>
-    </li>
-    <li class="active">
-        <a href="#md" data-format="md"><%= __('showdoc.readonly.format.markdown') %></a>
-    </li>
-</ul>
-<hr>
+<br/><h4 style="display: inline-block; vertical-align: text-bottom;"><%= __('showdoc.readonly.format') %>: </h4>
+<div id="format" class="nav baf-group baf-group-x1" style="margin: 10px 10px 0 10px;">
+    <a class="baf grey viewbut" href="#htmllist" data-format="htmllist"><%= __('showdoc.readonly.format.list') %></a>
+    <a class="baf grey viewbut" href="#html" data-format="html"><%= __('showdoc.readonly.format.block') %></a>
+    <a class="baf grey viewbut" href="#md" data-format="md"><%= __('showdoc.readonly.format.markdown') %></a>
+    <a class="baf grey viewbut" href="#reaper" data-format="reaper"><%= __('showdoc.readonly.format.reaper') %></a>
+    <a class="baf grey viewbut" href="#audacity" data-format="audacity"><%= __('showdoc.readonly.format.audacity') %></a>
+    <a class="baf grey viewbut" href="#chapter" data-format="chapter"><%= __('showdoc.readonly.format.chapters') %></a>
+    <a class="baf grey viewbut" href="#raw" data-format="raw"><%= __('showdoc.readonly.format.raw') %></a>
+</div><h4 style="display: inline-block; vertical-align: text-bottom;"><%= __('showdoc.readonly.download') %>: </h4>
+<div class="baf-group baf-group-x2" style="margin: 10px 10px 0 10px;">
+    <a class="baf grey dlbut" target="_blank"><%= __('showdoc.readonly.format.reaper') %></a>
+    <a class="baf grey dlbut" target="_blank"><%= __('showdoc.readonly.format.audacity') %></a>
+    <a class="baf grey dlbut" target="_blank"><%= __('showdoc.readonly.format.chapters') %></a>
+</div>
+<hr/>
 <div class="alert hidden" id="updateerror"></div>
 <div class="doctext" style="display: none"><%= __('showdoc.readonly.loading') %></div>
 <pre class="doctext"><%= __('showdoc.readonly.loading') %></pre>
@@ -35,7 +35,9 @@ var lastUpdate = null;
 var lastOsf = null;
 
 var hash = window.location.hash;
-if(hash && hash.length > 1) hash = hash.substr(1);
+if(hash && hash.length > 1) {
+    hash = hash.substr(1);
+}
 var activeFormat = hash || 'html';
 
 setInterval(getDocText, 1000);
@@ -49,14 +51,13 @@ function getDocText()
     }
 
     $.ajax('/doc/<%=docname%>/text?t=' + (+lastUpdate))
-        .success
-        (
+        .success(
             function (res)
             {
-                var status = res.status;
-                var date = new Date(res.date);
-                var text = res.text;
-                var users = res.users;
+                var status = res.status,
+                  date = new Date(res.date),
+                  text = res.text,
+                  users = res.users;
 
                 $('#users').text(users);
                 $('#updateerror').addClass('hidden');
@@ -75,14 +76,14 @@ function getDocText()
         (
             function (res)
             {
-                $('#updateerror').removeClass('hidden').text("<%=__('showdoc.readonly.updateerror')%>")
+                $('#updateerror').removeClass('hidden').text("<%=__('showdoc.readonly.updateerror')%>");
             }
         );
 }
 
 function updateUI()
 {
-    var exported;
+    var exported, parsed;
 
     if(!lastOsf)
     {
@@ -95,7 +96,7 @@ function updateUI()
     }
     else
     {
-        var parsed = tinyosf.Parser(lastOsf);
+        parsed = tinyosf.Parser(lastOsf);
         exported = tinyosf.Export(parsed, osfExportModules[activeFormat]);
     }
 
@@ -106,6 +107,8 @@ function updateUI()
         case 'raw':
         case 'chapter':
         case 'md':
+        case 'reaper':
+        case 'audacity':
             $('pre.doctext').show().text(exported);
             break;
         case 'html':
@@ -120,25 +123,30 @@ selectFormat(activeFormat);
 $('#format.nav').click(
     function (evt)
     {
-        var elem = $(evt.target);
-        var format = elem.data("format");
+        var elem = $(evt.target),
+          format = elem.data("format");
 
-        if(format != undefined)
+        console.log(format);
+
+        if(format !== undefined)
         {
-            $('#format.nav li').removeClass('disabled').addClass('active');
+            $('#format.nav a').removeClass('blue').addClass('grey');
             activeFormat = format;
             selectFormat(format);
             updateUI();
         }
     }
-)
+);
+
+$('.dlbut').click(
+  function() {
+    window.location = 'http://cdn.shownot.es/dl/showpad.php?pad=' + document.getElementById('h2title').innerHTML;
+  }
+);
 
 function selectFormat(format)
 {
-    $('li a[data-format=' + activeFormat + ']')
-        .parent('li')
-        .addClass('disabled')
-        .removeClass('active');
+    $(' a[data-format=' + activeFormat + ']').addClass('blue').removeClass('grey');
 }
 
 function isPageVisible()
