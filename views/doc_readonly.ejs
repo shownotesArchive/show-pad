@@ -1,7 +1,7 @@
 <!-- included by doc.ejs -->
 <% stylesheet('http://selfcss.org/baf/css/baf.min.css') %>
 <% stylesheet('http://selfcss.org/baf/css/icomoon.css') %>
-<% stylesheet('http://cdn.shownot.es/include-shownotes/shownotes.css') %>
+<% stylesheet('http://shownotes.github.io/tinyOSF.js/shownotes.css') %>
 <% script('http://selfcss.org/baf/js/baf.min.js') %>
 <% script('/js/tinyosf/tinyosf.js') %>
 <% script('/js/tinyosf/tinyosf_exportmodules.js') %>
@@ -18,7 +18,13 @@
     <a class="baf grey viewbut" href="#reaper" data-format="reaper"><%= __('showdoc.readonly.format.reaper') %></a>
     <a class="baf grey viewbut" href="#audacity" data-format="audacity"><%= __('showdoc.readonly.format.audacity') %></a>
     <a class="baf grey viewbut" href="#chapter" data-format="chapter"><%= __('showdoc.readonly.format.chapters') %></a>
+    <a class="baf grey viewbut" href="#osf" data-format="osf"><%= __('showdoc.readonly.format.osf') %></a>
     <a class="baf grey viewbut" href="#raw" data-format="raw"><%= __('showdoc.readonly.format.raw') %></a>
+</div><div class="baf-group baf-group-x1">
+  <a class="baf green" onclick="dlbut();">
+    <span class="baf-icomoon big" aria-hidden="true" data-icon="&#xe074;">
+    </span>
+  </a>
 </div>
 <hr/>
 <div class="alert hidden" id="updateerror"></div>
@@ -37,6 +43,29 @@ var activeFormat = hash || 'html';
 
 setInterval(getDocText, 1000);
 getDocText();
+
+function dlbut() {
+  var dldata;
+  switch(activeFormat)
+  {
+      case 'raw':
+      case 'chapter':
+      case 'md':
+      case 'reaper':
+      case 'audacity':
+          dldata = $('pre.doctext').text();
+          break;
+      case 'html':
+      case 'htmllist':
+          dldata = $('div.doctext').html();
+          break;
+  }
+
+  $.post( 'http://cdn.shownot.es/paddl/showpad.php?mode=' + activeFormat + '&title=' + encodeURIComponent(document.getElementById('h2title').innerHTML), { mode: activeFormat, title: encodeURIComponent(document.getElementById('h2title').innerHTML), data: dldata } ).done(function(data) {
+    newlocation = JSON.parse(data);
+    window.location = newlocation.dlurl;
+  });
+}
 
 function getDocText()
 {
@@ -100,6 +129,7 @@ function updateUI()
     switch(activeFormat)
     {
         case 'raw':
+        case 'osf':
         case 'chapter':
         case 'md':
         case 'reaper':
@@ -120,8 +150,6 @@ $('#format.nav').click(
     {
         var elem = $(evt.target),
           format = elem.data("format");
-
-        console.log(format);
 
         if(format !== undefined)
         {
