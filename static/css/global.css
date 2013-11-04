@@ -62,7 +62,9 @@ body
 }
 
 .doctext {
-    font-family: "Lucida Grande", "Lucida Sans Unicode", Geneva, sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 300 !important;
+    padding: 20px;
 }
 
 .doctext ol, .doctext ul {
@@ -71,6 +73,7 @@ body
 
 .doctext h1, .doctext h2 {
     font-size: 27px;
+    font-weight: 200 !important;
 }
 
 #content
